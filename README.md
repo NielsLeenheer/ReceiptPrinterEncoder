@@ -13,7 +13,7 @@ Then, require the package and use it like so:
     let ThermalPrinterEncoder = require('thermal-printer-encoder');
 
     let encoder = new ThermalPrinterEncoder({
-        language: 'esc/pos'
+        language: 'esc-pos'
     });
 
     let result = encoder
