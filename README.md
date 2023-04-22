@@ -23,9 +23,38 @@ Then, require the package and use it like so:
         .qrcode('https://nielsleenheer.com')
         .encode();
 
-All commands can be chained, except for `encode()` which will return the result as an Uint8Array which contains all the bytes that need to be send to the printer.
+
+### Printer language
+
+It is possible to specify the language of the printer you want to use by providing a options object with the property 'language' set to either 'esc-pos' or to 'star-prtn'. To use the ESC/POS language use:
+
+    let encoder = new ThermalPrinterEncoder({ 
+        language: 'esc-pos'
+    });
+
+Or for StarPRNT use:
+
+    let encoder = new ThermalPrinterEncoder({ 
+        language: 'star-prnt'
+    });
+
+### Legacy mode
+
+If you have an ESC/POS printer, depending on how new it is you might want to use 'legacy' mode or 'modern' mode. The default is 'modern'. The main difference is how images are encoded. Some newer printers do not support the legacy way of encoding images, while some older printer do not support the modern way of encoding images. It may depend on the printer model what mode you should use.
+
+To opt in to 'legacy' mode you need to provide the constructor of the `ThermalPrinterEncoder` class with an options object with the property `legacy` set to `true`.
+
+    let encoder = new ThermalPrinterEncoder({ 
+        language: 'esc-pos',
+        legacy: true 
+    });
+
+
+## Commands
 
 You can reuse the instantiated `ThermalPrinterEncoder` class to generate multiple commands or sets of commands for the same printer. It will remember settings like code page, so you don't have to specify that on subsequent use. That does rely on that previous commands were actually send to the printer. 
+
+All commands can be chained, except for `encode()` which will return the result as an Uint8Array which contains all the bytes that need to be send to the printer.
 
 The following commands are available:
 
@@ -165,6 +194,26 @@ It will try to remember the current state of the text style. But you can also pr
 
 Note: this text style is not supported by most ESC/POS receipt printers and not at all by StarPRNT receipt printers.
 
+### Invert
+
+Change the style to white text on a black background. 
+
+    let result = encoder
+        .text('This is ')
+        .invert()
+        .text('white text on black')
+        .invert()
+        .encode()
+
+It will try to remember the current state of the text style. But you can also provide and additional parameter to force the text style to turn on and off.
+
+    let result = encoder
+        .text('This is ')
+        .invert(true)
+        .text('white text on black')
+        .invert(false)
+        .encode()
+
 ### Align
 
 Change the alignment of the text. You can specify the alignment using a parameter which can be either "left", "center" or "right".
@@ -187,6 +236,46 @@ Change the text size. You can specify the size using a parameter which can be ei
         .line('A line of small text)
         .size('normal')
         .line('A line of normal text)
+        .encode()
+
+### Width
+
+Change the text width. You can specify the width using a parameter which can be a number from 1 to 6 for StarPRNT or 1 to 8 for ESC/POS.
+
+    let result = encoder
+        .width(2)
+        .line('A line of text twice as wide')
+        .width(3)
+        .line('A line of text three times as wide')
+        .width(1)
+        .line('A line of text with normal width')
+        .encode()
+
+Not all printers support all widths, it is probably best to not go over 4x at the most just to be safe.
+
+### Height
+
+Change the text height. You can specify the height using a parameter which can be a number from 1 to 6 for StarPRNT or 1 to 8 for ESC/POS.
+
+    let result = encoder
+        .height(2)
+        .line('A line of text twice as high')
+        .height(3)
+        .line('A line of text three times as high')
+        .height(1)
+        .line('A line of text with normal height')
+        .encode()
+
+Not all printers support all heights, it is probably best to not go over 4x at the most just to be safe.
+
+Also, you can combine this command with the width command to make the text bigger. For example:
+
+    let result = encoder
+        .width(2)
+        .width(2)
+        .line('This text is twice as large as normal text')
+        .height(1)
+        .height(1)
         .encode()
 
 ### Barcode
@@ -302,9 +391,27 @@ The fifth paramter is the threshold that will be used by the threshold and bayer
     
     img.onload = function() {
         let result = encoder
-            .image(img, 300, 300, 'atkinson')
+            .image(img, 320, 320, 'atkinson')
             .encode()
     }
+
+### Pulse
+
+Send a pulse to an external device, such as a beeper or cash drawer. 
+
+    let result = encoder
+        .pulse()
+        .encode()
+
+The first parameter is the device where you want to send the pulse. This can be 0 or 1 depending how the device is connected. This parameter is optional an by default it will be send to device 0.
+
+The second parameter is how long the pulse should be active in milliseconds, with a default of 100 milliseconds
+
+The third parameter is how long there should be a delay after the pulse has been send in milliseconds, with a default of 500 milliseconds.
+
+    let result = encoder
+        .pulse(0, 100, 500)
+        .encode()
 
 ### Cut
 
