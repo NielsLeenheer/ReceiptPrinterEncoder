@@ -1,12 +1,19 @@
 {
     "name": "thermal-printer-encoder",
-    "version": "1.0.0",
-    "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS",
-    "main": "src/thermal-printer-encoder.js",
+    "version": "2.0",
+    "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS or StarPRNT",
+    "type": "module",
+    "exports": {
+        "browser": {
+            "import": "./dist/thermal-printer-encoder.esm.js",
+            "require": "./dist/thermal-printer-encoder.umd.js",
+            "script": "./dist/thermal-printer-encoder.umd.js"
+        }
+    },
+    "main": "dist/thermal-printer-encoder.cjs",
+    "module": "dist/thermal-printer-encoder.mjs",
     "scripts": {
-        "bundle": "browserify src/thermal-printer-encoder.js --standalone ThermalPrinterEncoder -o dist/thermal-printer-encoder.js",
-        "uglify": "uglifyjs dist/thermal-printer-encoder.js -cm --overwrite -o dist/thermal-printer-encoder.js",
-        "build": "npm run bundle && npm run uglify",
+        "build": "rollup -c",
         "lint": "eslint --fix src/thermal-printer-encoder.js",
         "mocha": "mocha test/",
         "test": "npm run lint && npm run mocha"
@@ -29,15 +36,18 @@
     },
     "homepage": "https://github.com/NielsLeenheer/ThermalPrinterEncoder#readme",
     "devDependencies": {
-        "browserify": "^16.5.2",
-        "chai": "^4.2.0",
-        "eslint": "^7.7.0",
+        "@rollup/plugin-alias": "^5.0.0",
+        "@rollup/plugin-commonjs": "^24.1.0",
+        "@rollup/plugin-node-resolve": "^15.0.2",
+        "@rollup/plugin-terser": "^0.4.1",
+        "chai": "^4.3.7",
+        "eslint": "^8.39.0",
         "eslint-config-google": "^0.14.0",
-        "mocha": "^8.1.1",
-        "uglify-es": "^3.3.9"
+        "mocha": "^10.2.0",
+        "rollup": "^3.20.7"
     },
     "dependencies": {
-        "esc-pos-encoder": "^1.3.0",
-        "star-prnt-encoder": "^1.0.2"
+        "esc-pos-encoder": "^2.0.0",
+        "star-prnt-encoder": "^2.0.0"
     }
 }

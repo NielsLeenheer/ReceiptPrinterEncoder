@@ -1,10 +1,5 @@
-const ThermalPrinterEncoder = require ('../src/thermal-printer-encoder');
-
-const chai = require('chai');  
-const assert = chai.assert;
-const expect = chai.expect;
-const should = chai.should();
-
+import ThermalPrinterEncoder from '../src/thermal-printer-encoder.js';
+import { assert, expect } from 'chai';
 
 describe('EscPosEncoder', function() {
     describe('ThermalPrinterEncoder()', function () {

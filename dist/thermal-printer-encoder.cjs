@@ -1,5 +1,7 @@
-import EscPosEncoder from 'esc-pos-encoder';
-import StarPrntEncoder from 'star-prnt-encoder';
+'use strict';
+
+var EscPosEncoder = require('esc-pos-encoder');
+var StarPrntEncoder = require('star-prnt-encoder');
 
 /**
  * Create a byte stream based on commands for ESC/POS or StarPRNT printers
@@ -36,4 +38,4 @@ class ThermalPrinterEncoder {
   }
 }
 
-export default ThermalPrinterEncoder;
+module.exports = ThermalPrinterEncoder;

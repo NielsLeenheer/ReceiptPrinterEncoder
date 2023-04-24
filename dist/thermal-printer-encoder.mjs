@@ -36,4 +36,4 @@ class ThermalPrinterEncoder {
   }
 }
 
-export default ThermalPrinterEncoder;
+export { ThermalPrinterEncoder as default };

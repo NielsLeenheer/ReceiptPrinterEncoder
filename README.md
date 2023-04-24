@@ -4,17 +4,19 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 ## Usage
 
-First, install the package using npm:
+This package is compatible with browsers and Node. It provides bundled versions for direct use in the browser and can also be used as an input for your own bundler. And of course there are ES6 modules and CommonJS versions for use in Node.
 
-    npm install thermal-printer-encoder --save
+### Direct use in the browser
 
-Then, require the package and use it like so:
+The `dist` folder contains a UMD bundle that can be loaded using RequireJS or simply using a `<script>` tag. Alternatively there is a bundled ES6 module that can be imported.
 
-    let ThermalPrinterEncoder = require('thermal-printer-encoder');
+For example: 
 
-    let encoder = new ThermalPrinterEncoder({
-        language: 'esc-pos'
-    });
+In the browser you can import `ThermalPrinterEncoder` from the `thermal-printer-encoder.esm.js` file located in the `dist` folder.
+
+    import ThermalPrinterEncoder from 'thermal-printer-encoder.esm.js';
+
+    let encoder = new ThermalPrinterEncoder();
 
     let result = encoder
         .initialize()
@@ -23,6 +25,51 @@ Then, require the package and use it like so:
         .qrcode('https://nielsleenheer.com')
         .encode();
 
+
+Alternatively you can load the `thermal-printer-encoder.umd.js` file located in the `dist` folder and instantiate a `ThermalPrinterEncoder` object. 
+
+    <script src='dist/thermal-printer-encoder.umd.js'></script>
+
+    <script>
+
+        let encoder = new ThermalPrinterEncoder();
+
+    </script>
+
+Or if you prefer a loader like RequireJS, you could use this:
+
+    requirejs([ 'dist/thermal-printer-encoder.umd' ], ThermalPrinterEncoder => {
+        let encoder = new ThermalPrinterEncoder();
+    });
+
+### Using with Node (or in the browser, if you use your own bundler)
+
+If you want to use this libary, first install the package using npm:
+
+    npm install thermal-printer-encoder --save
+
+If you prefer ES6 modules, then import `ThermalPrinterEncoder` from `thermal-printer-encoder` and use it like so:
+
+    import ThermalPrinterEncoder from 'thermal-printer-encoder';
+
+    let encoder = new ThermalPrinterEncoder();
+
+    let result = encoder
+        .initialize()
+        .text('The quick brown fox jumps over the lazy dog')
+        .newline()
+        .qrcode('https://nielsleenheer.com')
+        .encode();
+
+Alternatively you could use the CommonJS way of doing things and require the package:
+
+    let ThermalPrinterEncoder = require('thermal-printer-encoder');
+
+    let encoder = new ThermalPrinterEncoder();
+
+## Options
+
+When you create the `ThermalPrinterEncoder` object you can specify a number of options to help with the library with generating receipts. 
 
 ### Printer language
 
@@ -38,15 +85,26 @@ Or for StarPRNT use:
         language: 'star-prnt'
     });
 
-### Legacy mode
+### Width
 
-If you have an ESC/POS printer, depending on how new it is you might want to use 'legacy' mode or 'modern' mode. The default is 'modern'. The main difference is how images are encoded. Some newer printers do not support the legacy way of encoding images, while some older printer do not support the modern way of encoding images. It may depend on the printer model what mode you should use.
+To set the width of the paper you can use the `width` property. This is option, as text automatically wraps to a new line if the edge of the paper is reached, but if you want to use word wrap, you need to specify this.
 
-To opt in to 'legacy' mode you need to provide the constructor of the `ThermalPrinterEncoder` class with an options object with the property `legacy` set to `true`.
+    let encoder = new ThermalPrinterEncoder({
+        width:    42
+    });
 
-    let encoder = new ThermalPrinterEncoder({ 
-        language: 'esc-pos',
-        legacy: true 
+If you use 57mm wide paper, it allows you to print up to 32 or 35 characters horizontally, depending on the resolution of the printer.
+
+If you use 80mm wide paper, it allows you to print up to 42 or 48 characters horizontally, depending on the resolution of the printer.
+
+
+## Word wrap
+
+If you want text to automatically word wrap at the edge of the paper you can turn on `wordWrap`. If you use this option you also must specify a paper width using the `width` property.
+
+    let encoder = new ThermalPrinterEncoder({
+        width:      48,
+        wordWrap:   true
     });
 
 
@@ -85,6 +143,70 @@ The following code pages are supported for ESC/POS printers: cp437, cp737, cp850
 
 The following code pages are supported for StarPRNT printers: cp437, cp858, cp852, cp860, cp861, cp863, cp865, cp866, cp855, cp857, cp862, cp864, cp737, cp869, cp874, windows1252, windows1250, windows1251.
 
+#### Printer support
+
+Support for one specific code pages is not only dependant on this library, even more important is that the printer understands it. And support for code pages depend on manufacturer and model. Some only support a few, some support most of these. There are probably no printers that support all of them. 
+
+Before choosing a code page, check the technical manual of your printer which codepages are supported. If your printer does not support a code page that you need, you are out of luck and nothing this library does can help you solve this problem. 
+
+#### Advanced text compositing
+
+For some languages it might even be better to print text as an image, because receipt printers do not support advanced text compositing required by some languages, such as Arabic. You can do this by creating a Canvas and drawing your text on there. When finished, you can then use the canvas as a parameter of the `.image()` method to send it to the printer.
+
+#### Code page mappings
+
+When using the ESC/POS langauge this library uses the Epson code page mappings and Epson printers will support most of the code pages out of the box. However, other manufacturers might support the same code pages, but use a different mapping. That means that even though the printer supports the code page, the way to activate it is different for that printer. This library does support a number of code page mappings for other manufacturers, such as `bixolon`, `citizen`, `zjiang` and `star` (in ESC/POS emulation mode).
+
+You can activate these alternative mappings with a parameter when the library is instantiated:
+
+    let encoder = new ThermalPrinterEncoder({ 
+        codepageMapping: 'bixolon' 
+    });
+
+If you want to use a code page mapping that is specific to your printer, you can also specify an object with the correct mappings:
+
+    let encoder = new ThermalPrinterEncoder({ 
+        codepageMapping: {
+            'cp437': 0x00,
+            'cp850': 0x02,
+            'cp860': 0x03,
+            'cp863': 0x04,
+            'cp865': 0x05,
+            'cp851': 0x0b,
+            'cp858': 0x13,
+        } 
+    });
+
+Each property name must be one of the code pages supported by this library and the value is the number which is used for that code page on your printer. 
+
+If you use the StarPRNT language, you do not need to specify a `codepageMapping`.
+
+#### Auto encoding
+
+It is also possible to enable auto encoding of code pages. The library will then automatically switch between code pages depending on the text that you want to print. 
+
+    let result = encoder
+        .codepage('auto')
+        .text('Iñtërnâtiônàlizætiøn')
+        .text('διεθνοποίηση')
+        .text('интернационализация')
+        .encode()
+
+Or even mix code pages within the same text:
+
+    let result = encoder
+        .codepage('auto')
+        .text('You can mix ελληνική γλώσσα and русский язык')
+        .encode()
+
+By default the library only considers some of the most common code pages when detecting the right code page for each letter. If you want to add another code page candidate or remove on, because it is not supported by your printer, you can. You can customize the candidate code pages by setting an option during instantiation of the library:
+
+    let encoder = new ThermalPrinterEncoder({ 
+        codepageCandidates: [
+            'cp437', 'cp858', 'cp860', 'cp861', 'cp863', 'cp865',
+            'cp852', 'cp857', 'cp855', 'cp866', 'cp869',
+        ]
+    });
 
 ### Text
 
@@ -278,6 +400,104 @@ Also, you can combine this command with the width command to make the text bigge
         .height(1)
         .encode()
 
+### Table
+
+Insert a table with multiple columns. The contents of each cell can be a string, or a callback function.
+
+    let result = encoder
+        .table(
+            [
+                { width: 36, marginRight: 2, align: 'left' },
+                { width: 10, align: 'right' }
+            ], 
+            [
+                [ 'Item 1', '€ 10,00' ],
+                [ 'Item 2', '15,00' ],
+                [ 'Item 3', '9,95' ],
+                [ 'Item 4', '4,75' ],
+                [ 'Item 5', '211,05' ],
+                [ '', '='.repeat(10) ],
+                [ 'Total', (encoder) => encoder.bold().text('€ 250,75').bold() ],
+            ]
+        )	
+        .encode()
+
+The table function takes two parameters. 
+
+The first parameter is an array of column definitions. Each column can have the folowing properties:
+
+- `width`:  determines the width of the column. 
+- `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
+- `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
+- `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
+
+The second parameter contains the data and is an array that contains each row. There can be as many rows as you would like.
+
+Each row is an array with a value for each cell. The number of cells in each row should be equal to the number of columns you defined previously.
+
+    [
+        /* Row one, with two columns */
+        [ 'Cell one', 'Cell two' ],
+
+        /* Row two, with two columns */
+        [ 'Cell three', 'Cell four' ]
+    ]
+
+The value can either be a string or a callback function. 
+
+If you want to style text inside of a cell, can use the callback function instead. The first parameter of the called function contains the encoder object which you can use to chain additional commands.
+
+    [
+        /* Row one, with two columns */
+        [ 
+            'Cell one',
+            (encoder) => encoder.bold().text('Cell two').bold()
+        ],
+    ]
+
+
+### Box
+
+Insert a bordered box. 
+
+The first parameter is an object with additional configuration options.
+
+- `style`: The style of the border, either `single` or `double`
+- `width`: The width of the box, by default the width of the paper
+- `marginLeft`: Space between the left border and the left edge
+- `marginRight`: Space between the right border and the right edge
+- `paddingLeft`: Space between the contents and the left border of the box
+- `paddingRight`: Space between the contents and the right border of the box
+- `align`: The alignment of the text within the box, can be `left` or `right`.
+
+The second parameter is the content of the box and it can be a string, or a callback function.
+
+For example:
+
+    let result = encoder
+        .box(
+            { width: 30, align: 'right', style: 'double', marginLeft: 10 }, 
+            'The quick brown fox jumps over the lazy dog
+        )
+        .encode()
+
+
+### Rule
+
+Insert a horizontal rule.
+
+The first parameters is an object with additional styling options:
+
+- `style`: The style of the line, either `single` or `double`
+- `width`: The width of the line, by default the width of the paper
+
+For example:
+
+    let result = encoder
+        .rule({ style: 'double' })  
+        .encode()
+        
+
 ### Barcode
 
 Print a barcode of a certain symbology. The first parameter is the value of the barcode as a string, the second is the symbology and finally the height of the barcode.
@@ -394,6 +614,17 @@ The fifth paramter is the threshold that will be used by the threshold and bayer
             .image(img, 320, 320, 'atkinson')
             .encode()
     }
+
+#### Column or raster image mode
+
+If you use the ESC/POS langauge, depending on how new your printer is you might want to use 'column' mode or 'raster' mode. The default is 'column'. The main difference is how images are encoded. Some newer printers do not support 'raster' mode images, while some older printer do not support 'column' mode images. It may depend on the printer model what mode you should use.
+
+To opt in to 'raster' mode you need to provide the constructor of the `ThermalPrinterEncoder` class with an options object with the property `imageMode` set to `raster`.
+
+    let encoder = new ThermalPrinterEncoder({ 
+        imageMode: 'raster' 
+    });
+
 
 ### Pulse
 
