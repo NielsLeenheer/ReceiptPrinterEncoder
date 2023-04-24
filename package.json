@@ -47,7 +47,7 @@
         "rollup": "^3.20.7"
     },
     "dependencies": {
-        "esc-pos-encoder": "^2.0.0",
-        "star-prnt-encoder": "^2.0.0"
+        "esc-pos-encoder": "^2.0.1",
+        "star-prnt-encoder": "^2.0.1"
     }
 }
