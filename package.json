@@ -1,6 +1,6 @@
 {
     "name": "thermal-printer-encoder",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS or StarPRNT",
     "type": "module",
     "exports": {
