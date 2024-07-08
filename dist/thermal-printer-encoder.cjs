@@ -16,6 +16,7 @@ class ThermalPrinterEncoder {
     const languages = {
       'esc-pos': EscPosEncoder,
       'star-prnt': StarPrntEncoder,
+      'star-line': StarPrntEncoder,
     };
 
     if (typeof options === 'undefined' || typeof options.language === 'undefined') {
