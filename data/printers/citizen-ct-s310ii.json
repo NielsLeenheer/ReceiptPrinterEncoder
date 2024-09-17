@@ -1,0 +1,34 @@
+{
+    "vendor": "Citizen",
+    "model": "CT-S310II",
+    
+    "media": {
+        "dpi": 203,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "citizen",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 48
+            },
+            "B": {
+                "size": "9x24",
+                "columns": 64
+            },
+            "C": {
+                "size": "8x16",
+                "columns": 72
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 3
+        }
+    }
+}

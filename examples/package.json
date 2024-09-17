@@ -1,0 +1,15 @@
+{
+    "name": "examples",
+    "version": "0.0.0",
+    "type": "module",
+    "devDependencies": {
+        "@canvas/image": "^2.0.0",
+        "canvas": "^2.11.2",
+        "canvas-txt": "^4.1.1",
+        "get-pixels": "^3.3.3",
+        "image-pixels": "^2.2.2",
+        "png-js": "^1.0.0",
+        "readimage": "^1.1.1",
+        "sharp": "^0.33.5"
+    }
+}

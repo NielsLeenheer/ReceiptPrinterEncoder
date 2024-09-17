@@ -1,0 +1,39 @@
+{
+    "vendor": "Epson",
+    "model": "TM-T70II",
+    
+    "interface": {
+        "usb": {
+            "productName": "TM-T70II"
+        }
+    },
+
+    "media": {
+        "dpi": 180,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "epson",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 42
+            },
+            "B": {
+                "size": "9x17",
+                "columns": 56
+            }
+        }    
+    },
+
+    "features": {
+        "images": {
+            "mode": "raster"
+        },
+        "cutter": {
+            "feed": 4
+        }
+    }
+}

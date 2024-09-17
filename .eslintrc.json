@@ -1,20 +1,21 @@
 {
-    "parserOptions": {
-      "ecmaVersion": 6,
-      "sourceType": "module"
-    },
-    "env": {
-      "node": true,
-      "es6": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "google"
-    ],
-    "rules": {
-      "max-len": [
-        1,
-        120
-      ]
-    }
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "google"
+  ],
+  "rules": {
+    "max-len": [
+      1,
+      120
+    ]
   }
+}

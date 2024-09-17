@@ -1,0 +1,36 @@
+{
+    "vendor": "Star",
+    "model": "mC-Print2",
+    
+    "interfaces": {
+        "usb": {
+            "productName": "mC-Print2"
+        }
+    },
+
+    "media": {
+        "dpi": 203,
+        "width": 58
+    },
+
+    "capabilities": {
+        "language": "star-prnt",
+        "codepages": "star",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 32
+            },
+            "B": {
+                "size": "9x24",
+                "columns": 42
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 3
+        }
+    }
+}

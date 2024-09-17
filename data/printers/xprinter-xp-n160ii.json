@@ -1,0 +1,36 @@
+{
+    "vendor": "Xprinter",
+    "model": "XP-N160II",
+    
+    "interfaces": {
+        "usb": {
+            "productName": "Printer-80\u0000"
+        }
+    },
+
+    "media": {
+        "dpi": 203,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "xprinter",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 48
+            },
+            "B": {
+                "size": "9x17",
+                "columns": 64
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 4
+        }
+    }
+}

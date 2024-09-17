@@ -1,0 +1,30 @@
+{
+    "vendor": "Star",
+    "model": "TSP100IV",
+    
+    "media": {
+        "dpi": 203,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "star-prnt",
+        "codepages": "star",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 48
+            },
+            "B": {
+                "size": "9x24",
+                "columns": 64
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 3
+        }
+    }
+}

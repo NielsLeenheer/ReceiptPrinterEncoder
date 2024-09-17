@@ -1,0 +1,45 @@
+{
+    "vendor": "Epson",
+    "model": "TM-P20II",
+    
+    "media": {
+        "dpi": 203,
+        "width": 58
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "epson",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 32
+            },
+            "B": {
+                "size": "9x24",
+                "columns": 42
+            },
+            "C": {
+                "size": "9x17",
+                "columns": 42
+            },
+            "D": {
+                "size": "10x24",
+                "columns": 38
+            },
+            "E": {
+                "size": "8x16",
+                "columns": 48
+            }
+        }    
+    },
+
+    "features": {
+        "images": {
+            "mode": "raster"
+        },
+        "cutter": {
+            "feed": 3
+        }
+    }
+}

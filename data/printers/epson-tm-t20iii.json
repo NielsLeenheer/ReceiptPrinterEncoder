@@ -1,0 +1,36 @@
+{
+    "vendor": "Epson",
+    "model": "TM-T20III",
+    
+    "interfaces": {
+        "usb": {
+            "productName": "TM-T20III"
+        }
+    },
+
+    "media": {
+        "dpi": 203,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "epson",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 48
+            },
+            "B": {
+                "size": "9x17",
+                "columns": 64
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 4
+        }
+    }
+}

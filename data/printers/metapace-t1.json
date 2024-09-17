@@ -1,0 +1,30 @@
+{
+    "vendor": "Metapace",
+    "model": "T-1",
+
+    "media": {
+        "dpi": 180,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "esc-pos",
+        "codepages": "metapace",
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 42
+            },
+            "B": {
+                "size": "9x17",
+                "columns": 56
+            }
+        }    
+    },
+
+    "features": {
+        "cutter": {
+            "feed": 4
+        }
+    }
+}
