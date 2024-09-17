@@ -1,7 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
-import alias from '@rollup/plugin-alias';
 
 export default [
 
@@ -11,18 +10,11 @@ export default [
 		output: {
 			name: 'ThermalPrinterEncoder',
 			file: 'dist/thermal-printer-encoder.umd.js',
+			sourcemap: true,
 			format: 'umd'
 		},
 		plugins: [
-
-            /* Make sure we force the browser version of canvas */
-            alias({
-                entries: [
-                    { find: 'canvas', replacement: 'node_modules/canvas/browser.js' },
-                ]
-            }),
-
-			resolve(), 
+			resolve({ browser: true }), 
 			commonjs(),
             terser()
 		]
@@ -33,18 +25,11 @@ export default [
 		input: 'src/thermal-printer-encoder.js',
 		output: { 
 			file: 'dist/thermal-printer-encoder.esm.js', 
+			sourcemap: true,
 			format: 'es' 
 		},
 		plugins: [
-
-            /* Make sure we force the browser version of canvas */
-			alias({
-                entries: [
-                    { find: 'canvas', replacement: 'node_modules/canvas/browser.js' },
-                ]
-            }),
-            
-			resolve(), 
+			resolve({ browser: true }), 
 			commonjs(),
             terser()
 		]
@@ -53,7 +38,7 @@ export default [
     // CommonJS (for Node) and ES module (for bundlers) build
     {
 		input: 'src/thermal-printer-encoder.js',
-		external: ['esc-pos-encoder', 'star-prnt-encoder'],
+		external: ['@point-of-sale/receipt-printer-encoder'],
 		output: [
 			{ file: 'dist/thermal-printer-encoder.cjs', format: 'cjs' },
 			{ file: 'dist/thermal-printer-encoder.mjs', format: 'es' }

@@ -1,29 +1,13 @@
 import ThermalPrinterEncoder from '../src/thermal-printer-encoder.js';
 import { assert, expect } from 'chai';
 
-describe('EscPosEncoder', function() {
-    describe('ThermalPrinterEncoder()', function () {
-        it('should throw an "Specify the language" error', function () {
-            expect(function(){
-                new ThermalPrinterEncoder();
-            }).to.throw('You need to specify the language of the thermal printer');
-        });
-    });
-
-    describe('ThermalPrinterEncoder({})', function () {
-        it('should throw an "Specify the language" error', function () {
-            expect(function(){
-                new ThermalPrinterEncoder({});
-            }).to.throw('You need to specify the language of the thermal printer');
-        });
-    });
-
+describe('ThermalPrinterEncoder', function() {
 
     describe('ThermalPrinterEncoder({ language: unknown })', function () {
         it('should throw an "Language not supported" error', function () {
             expect(function(){
                 new ThermalPrinterEncoder({ language: 'unknown' });
-            }).to.throw('Language not supported by this library');
+            }).to.throw('The specified language is not supported');
         });
     });
 
