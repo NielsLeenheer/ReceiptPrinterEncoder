@@ -38,7 +38,7 @@ export default [
     // CommonJS (for Node) and ES module (for bundlers) build
     {
 		input: 'src/receipt-printer-encoder.js',
-		external: ['@canvas/image-data', 'canvas-dither', 'canvas-flatten', 'resize-image-data', 'codepage-encoder'],
+		external: ['@canvas/image-data', 'canvas-dither', 'canvas-flatten', 'resize-image-data', '@point-of-sale/codepage-encoder'],
 		output: [
 			{ file: 'dist/receipt-printer-encoder.cjs', format: 'cjs' },
 			{ file: 'dist/receipt-printer-encoder.mjs', format: 'es' }

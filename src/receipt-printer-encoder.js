@@ -1,6 +1,6 @@
 import Dither from 'canvas-dither';
 import Flatten from 'canvas-flatten';
-import CodepageEncoder from 'codepage-encoder';
+import CodepageEncoder from '@point-of-sale/codepage-encoder';
 import ImageData from '@canvas/image-data';
 import resizeImageData from 'resize-image-data';
 

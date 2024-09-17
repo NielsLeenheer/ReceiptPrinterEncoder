@@ -1,4 +1,4 @@
-import CodepageEncoder from 'codepage-encoder';
+import CodepageEncoder from '@point-of-sale/codepage-encoder';
 
 class LanguageStarPrnt {
 

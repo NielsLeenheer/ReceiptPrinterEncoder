@@ -2,7 +2,7 @@
 
 var Dither = require('canvas-dither');
 var Flatten = require('canvas-flatten');
-var CodepageEncoder = require('codepage-encoder');
+var CodepageEncoder = require('@point-of-sale/codepage-encoder');
 var ImageData = require('@canvas/image-data');
 var resizeImageData = require('resize-image-data');
 
