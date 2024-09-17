@@ -1,5 +1,5 @@
 {
-    "name": "receipt-printer-encoder",
+    "name": "@point-of-sale/receipt-printer-encoder",
     "version": "3.0.0",
     "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT",
     "type": "module",
@@ -55,7 +55,7 @@
       "@canvas/image-data": "^1.0.0",
       "canvas-dither": "^1.0.1",
       "canvas-flatten": "^1.0.1",
-      "codepage-encoder": "^2.0.0",
+      "@point-of-sale/codepage-encoder": "^3.0.0",
       "resize-image-data": "^0.3.1"
     },
     "files": [
