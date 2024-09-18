@@ -218,6 +218,111 @@ class LanguageEscPos {
     }
 
     /**
+     * Generate a PDF417 code
+     * @param {string} value        Value to encode
+     * @param {object} options      Configuration object
+     * @returns {Array}             Array of bytes to send to the printer
+     */
+    pdf417(value, options) {
+        let result = [];
+
+        /* Columns */
+  
+        if (typeof options.columns !== 'number') {
+            throw new Error('Columns must be a number');
+        }
+  
+        if (options.columns !== 0 && (options.columns < 1 || options.columns > 30)) {
+            throw new Error('Columns must be 0, or between 1 and 30');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
+        );
+  
+        /* Rows */
+  
+        if (typeof options.rows !== 'number') {
+            throw new Error('Rows must be a number');
+        }
+  
+        if (options.rows !== 0 && (options.rows < 3 || options.rows > 90)) {
+            throw new Error('Rows must be 0, or between 3 and 90');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+        );
+  
+        /* Width */
+
+        if (typeof options.width !== 'number') {
+            throw new Error('Width must be a number');
+        }
+
+        if (options.width < 2 || options.width > 8) {
+            throw new Error('Width must be between 2 and 8');
+        }
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width
+        );
+
+        /* Height */
+
+        if (typeof options.height !== 'number') {
+            throw new Error('Height must be a number');
+        }
+
+        if (options.height < 2 || options.height > 8) {
+            throw new Error('Height must be between 2 and 8');
+        }
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height
+        );
+
+        /* Error level */
+  
+        if (typeof options.errorlevel !== 'number') {
+            throw new Error('Errorlevel must be a number');
+        }
+
+        if (options.errorlevel < 0 || options.errorlevel > 8) {
+            throw new Error('Errorlevel must be between 0 and 8');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30
+        );
+  
+        /* Model: standard or truncated */
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00
+        );
+
+        /* Data */
+  
+        const bytes = CodepageEncoder.encode(value, 'ascii');
+        const length = bytes.length + 3;
+  
+        result.push(
+            0x1d, 0x28, 0x6b,
+            length & 0xff, (length >> 8) & 0xff,
+            0x30, 0x50, 0x30, ...bytes
+        );
+  
+        /* Print PDF417 code */
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30
+        );
+        
+        return result;
+    }
+
+    /**
      * Encode an image
      * @param {ImageData} image     ImageData object
      * @param {number} width        Width of the image
@@ -630,6 +735,105 @@ class LanguageStarPrnt {
         return result;
     }
 
+    /**
+     * Generate a PDF417 code
+     * @param {string} value        Value to encode
+     * @param {object} options      Configuration object
+     * @returns {Array}             Array of bytes to send to the printer
+     */
+    pdf417(value, options) {
+        let result = [];
+    
+        /* Columns */
+    
+        if (typeof options.columns !== 'number') {
+            throw new Error('Columns must be a number');
+        }
+    
+        if (options.columns !== 0 && (options.columns < 1 || options.columns > 30)) {
+            throw new Error('Columns must be 0, or between 1 and 30');
+        }
+    
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
+        );
+    
+        /* Rows */
+    
+        if (typeof options.rows !== 'number') {
+            throw new Error('Rows must be a number');
+        }
+    
+        if (options.rows !== 0 && (options.rows < 3 || options.rows > 90)) {
+            throw new Error('Rows must be 0, or between 3 and 90');
+        }
+    
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+        );
+    
+        /* Width */
+
+        if (typeof options.width !== 'number') {
+            throw new Error('Width must be a number');
+        }
+
+        if (options.width < 2 || options.width > 8) {
+            throw new Error('Width must be between 2 and 8');
+        }
+
+        result.push(
+            0x1b, 0x1d, 0x78, 0x53, 0x32, options.width
+        );
+
+        /* Height */
+
+        if (typeof options.height !== 'number') {
+            throw new Error('Height must be a number');
+        }
+
+        if (options.height < 2 || options.height > 8) {
+            throw new Error('Height must be between 2 and 8');
+        }
+
+        result.push(
+            0x1b, 0x1d, 0x78, 0x53, 0x33, options.height
+        );
+
+        /* Error level */
+    
+        if (typeof options.errorlevel !== 'number') {
+            throw new Error('Errorlevel must be a number');
+        }
+
+        if (options.errorlevel < 0 || options.errorlevel > 8) {
+            throw new Error('Errorlevel must be between 0 and 8');
+        }
+    
+        result.push(
+            0x1b, 0x1d, 0x78, 0x53, 0x31, options.errorlevel
+        );
+    
+        /* Data */
+    
+        const bytes = CodepageEncoder.encode(value, 'ascii');
+        const length = bytes.length + 3;
+    
+        result.push(
+            0x1b, 0x1d, 0x78, 0x44,
+            length & 0xff, (length >> 8) & 0xff,
+            ...bytes
+        );
+    
+        /* Print PDF417 code */
+    
+        result.push(
+            0x1b, 0x1d, 0x78, 0x50
+        );
+        
+        return result;
+    }
+    
     /**
      * Encode an image
      * @param {ImageData} image     ImageData object
@@ -1390,6 +1594,10 @@ class LineComposer {
     this.#buffer = [];
     this.#cursor = 0;
 
+    if (result.length === 0 && options.forceNewline) {
+      result.push({type: 'empty'});
+    }
+
     return result;
   }
 
@@ -1825,11 +2033,16 @@ class ReceiptPrinterEncoder {
   /**
      * Print a newline
      *
+     * @param  {string}   value  The number of newlines that need to be printed, defaults to 1
      * @return {object}          Return the object, for easy chaining commands
      *
      */
-  newline() {
-    this.#composer.flush({forceNewline: true});
+  newline(value) {
+    value = parseInt(value, 10) || 1;
+
+    for (let i = 0; i < value; i++) {
+      this.#composer.flush({forceNewline: true});
+    }
 
     return this;
   }
@@ -2369,6 +2582,57 @@ class ReceiptPrinterEncoder {
 
     return this;
   }
+
+
+  /**
+     * PDF417 code
+     *
+     * @param  {string}           value     The value of the qr code
+     * @param  {object}           options   Configuration object
+     * @return {object}                     Return the object, for easy chaining commands
+     *
+     */
+  pdf417(value, options) {
+    options = Object.assign({
+      width: 3,
+      height: 3,
+      columns: 0,
+      rows: 0,
+      errorlevel: 1,
+      truncated: false,
+    }, options || {});
+
+    if (this.#options.embedded) {
+      throw new Error('PDF417 codes are not supported in table cells or boxes');
+    }
+
+    /* Force printing the print buffer and moving to a new line */
+
+    this.#composer.flush();
+
+    /* Set alignment */
+
+    if (this.#composer.align !== 'left') {
+      this.#composer.raw(this.#language.align(this.#composer.align));
+    }
+
+    /* PDF417 code */
+
+    this.#composer.raw(
+        this.#language.pdf417(value, options),
+    );
+
+    /* Reset alignment */
+
+    if (this.#composer.align !== 'left') {
+      this.#composer.raw(this.#language.align('left'));
+    }
+
+    this.#composer.flush();
+
+    return this;
+  }
+
 
   /**
      * Image

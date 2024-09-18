@@ -314,6 +314,22 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
             .newline()
 
         encoder
+            .line('PDF417 code:')
+            .align('center')
+            .pdf417('https://nielsleenheer.com')
+            .align('left')
+            .newline()
+            .newline()
+        
+        encoder
+            .line('PDF417 code:')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { width: 4, height: 4, errorlevel: 6, truncated: true })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
             .text('The quick brown fox jumps over the lazy dog. ')
             .text('The quick brown fox jumps over the lazy dog. ')
             .text('The quick brown fox jumps over the lazy dog. ')

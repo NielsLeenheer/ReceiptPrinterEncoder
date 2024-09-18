@@ -212,6 +212,111 @@ class LanguageEscPos {
     }
 
     /**
+     * Generate a PDF417 code
+     * @param {string} value        Value to encode
+     * @param {object} options      Configuration object
+     * @returns {Array}             Array of bytes to send to the printer
+     */
+    pdf417(value, options) {
+        let result = [];
+
+        /* Columns */
+  
+        if (typeof options.columns !== 'number') {
+            throw new Error('Columns must be a number');
+        }
+  
+        if (options.columns !== 0 && (options.columns < 1 || options.columns > 30)) {
+            throw new Error('Columns must be 0, or between 1 and 30');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
+        );
+  
+        /* Rows */
+  
+        if (typeof options.rows !== 'number') {
+            throw new Error('Rows must be a number');
+        }
+  
+        if (options.rows !== 0 && (options.rows < 3 || options.rows > 90)) {
+            throw new Error('Rows must be 0, or between 3 and 90');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+        );
+  
+        /* Width */
+
+        if (typeof options.width !== 'number') {
+            throw new Error('Width must be a number');
+        }
+
+        if (options.width < 2 || options.width > 8) {
+            throw new Error('Width must be between 2 and 8');
+        }
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width
+        );
+
+        /* Height */
+
+        if (typeof options.height !== 'number') {
+            throw new Error('Height must be a number');
+        }
+
+        if (options.height < 2 || options.height > 8) {
+            throw new Error('Height must be between 2 and 8');
+        }
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height
+        );
+
+        /* Error level */
+  
+        if (typeof options.errorlevel !== 'number') {
+            throw new Error('Errorlevel must be a number');
+        }
+
+        if (options.errorlevel < 0 || options.errorlevel > 8) {
+            throw new Error('Errorlevel must be between 0 and 8');
+        }
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30
+        );
+  
+        /* Model: standard or truncated */
+
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00
+        );
+
+        /* Data */
+  
+        const bytes = CodepageEncoder.encode(value, 'ascii');
+        const length = bytes.length + 3;
+  
+        result.push(
+            0x1d, 0x28, 0x6b,
+            length & 0xff, (length >> 8) & 0xff,
+            0x30, 0x50, 0x30, ...bytes
+        );
+  
+        /* Print PDF417 code */
+  
+        result.push(
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30
+        );
+        
+        return result;
+    }
+
+    /**
      * Encode an image
      * @param {ImageData} image     ImageData object
      * @param {number} width        Width of the image

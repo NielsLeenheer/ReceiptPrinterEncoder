@@ -796,6 +796,57 @@ class ReceiptPrinterEncoder {
     return this;
   }
 
+
+  /**
+     * PDF417 code
+     *
+     * @param  {string}           value     The value of the qr code
+     * @param  {object}           options   Configuration object
+     * @return {object}                     Return the object, for easy chaining commands
+     *
+     */
+  pdf417(value, options) {
+    options = Object.assign({
+      width: 3,
+      height: 3,
+      columns: 0,
+      rows: 0,
+      errorlevel: 1,
+      truncated: false,
+    }, options || {});
+
+    if (this.#options.embedded) {
+      throw new Error('PDF417 codes are not supported in table cells or boxes');
+    }
+
+    /* Force printing the print buffer and moving to a new line */
+
+    this.#composer.flush();
+
+    /* Set alignment */
+
+    if (this.#composer.align !== 'left') {
+      this.#composer.raw(this.#language.align(this.#composer.align));
+    }
+
+    /* PDF417 code */
+
+    this.#composer.raw(
+        this.#language.pdf417(value, options),
+    );
+
+    /* Reset alignment */
+
+    if (this.#composer.align !== 'left') {
+      this.#composer.raw(this.#language.align('left'));
+    }
+
+    this.#composer.flush();
+
+    return this;
+  }
+
+
   /**
      * Image
      *

@@ -550,6 +550,37 @@ let result = encoder
 Not all printers support printing QR codes. If the printer does not support it, the QR code will simply not be printed, or the raw data will be printed instead, depending on the model and manufacturer of the printer.
 
 
+### PDF417 code
+
+Print a PDF417 code. The first parameter is the data of the PDF417 code.
+
+```js
+let result = encoder
+    .pdf417('https://nielsleenheer.com')
+    .encode()
+```
+
+This function accepts an object as a second parameter for extra configuration options:
+
+- *width* - the width of a module in pixels, this 3 by default
+- *height* - the height of the module compared to the width, this is 3 by default, making the module 9 pixels high by default
+- *columns* - the number of codewords on the horizontal axis, 0 = auto, otherwise between 1 and 30.
+- *rows* - the number of codewords on the vertical axis, 0 = auto, otherwise between 3 and 90.
+- *errorlevel* - a number between 0 and 8.
+- *truncated* - a boolean, if set to true the stop pattern is not printed.
+
+For example:
+
+```js
+let result = encoder
+    .pdf417('https://nielsleenheer.com', { width: 4, height: 4, errorlevel: 8 })
+    .encode()
+```
+
+Not all printers support printing PDF417 codes. If the printer does not support it, the PDF417 code will simply not be printed, or the raw data will be printed instead, depending on the model and manufacturer of the printer.
+
+
+
 ### Image
 
 Print an image. The image is automatically converted to black and white and can optionally be dithered using different algorithms.
