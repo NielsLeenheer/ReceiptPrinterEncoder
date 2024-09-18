@@ -191,6 +191,10 @@ class LineComposer {
     this.#buffer = [];
     this.#cursor = 0;
 
+    if (result.length === 0 && options.forceNewline) {
+      result.push({type: 'empty'});
+    }
+
     return result;
   }
 
