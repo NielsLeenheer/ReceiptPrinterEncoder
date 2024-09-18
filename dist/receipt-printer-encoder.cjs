@@ -131,12 +131,10 @@ class LanguageEscPos {
     /**
      * Generate a QR code
      * @param {string} value        Value to encode
-     * @param {number} model        QR Code model (1 or 2)
-     * @param {number} size         QR Code size (1 to 8)
-     * @param {string} errorlevel   Error correction level ('l', 'm', 'q', 'h')
+     * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
-    qrcode(value, model, size, errorlevel) {
+    qrcode(value, options) {
         let result = [];
 
         /* Model */
@@ -146,13 +144,9 @@ class LanguageEscPos {
             2: 0x32,
         };
   
-        if (typeof model === 'undefined') {
-            model = 2;
-        }
-  
-        if (model in models) {
+        if (options.model in models) {
             result.push(
-                0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[model], 0x00
+                0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
             );
         } else {
             throw new Error('Model must be 1 or 2');
@@ -160,20 +154,16 @@ class LanguageEscPos {
   
         /* Size */
   
-        if (typeof size === 'undefined') {
-            size = 6;
-        }
-  
-        if (typeof size !== 'number') {
+        if (typeof options.size !== 'number') {
             throw new Error('Size must be a number');
         }
   
-        if (size < 1 || size > 8) {
+        if (options.size < 1 || options.size > 8) {
             throw new Error('Size must be between 1 and 8');
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, size
+            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, options.size
         );
   
         /* Error level */
@@ -185,16 +175,12 @@ class LanguageEscPos {
             'h': 0x33,
         };
   
-        if (typeof errorlevel === 'undefined') {
-            errorlevel = 'm';
-        }
-  
-        if (errorlevel in errorlevels) {
+        if (options.errorlevel in errorlevels) {
             result.push(
-                0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[errorlevel]
+                0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[options.errorlevel]
             );
         } else {
-                throw new Error('Error level must be l, m, q or h');
+            throw new Error('Error level must be l, m, q or h');
         }
   
         /* Data */
@@ -649,12 +635,10 @@ class LanguageStarPrnt {
     /**
      * Generate a QR code
      * @param {string} value        Value to encode
-     * @param {number} model        QR Code model (1 or 2)
-     * @param {number} size         QR Code size (1 to 8)
-     * @param {string} errorlevel   Error correction level ('l', 'm', 'q', 'h')
+     * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
-    qrcode(value, model, size, errorlevel) {
+    qrcode(value, options) {
         let result = [];
 
         /* Model */
@@ -664,13 +648,9 @@ class LanguageStarPrnt {
             2: 0x02,
         };
   
-        if (typeof model === 'undefined') {
-            model = 2;
-        }
-  
-        if (model in models) {
+        if (options.model in models) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x30, models[model],
+                0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model],
             );
         } else {
             throw new Error('Model must be 1 or 2');
@@ -678,20 +658,16 @@ class LanguageStarPrnt {
   
         /* Size */
   
-        if (typeof size === 'undefined') {
-            size = 6;
-        }
-  
-        if (typeof size !== 'number') {
+        if (typeof options.size !== 'number') {
             throw new Error('Size must be a number');
         }
   
-        if (size < 1 || size > 8) {
+        if (options.size < 1 || options.size > 8) {
             throw new Error('Size must be between 1 and 8');
         }
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x53, 0x32, size,
+            0x1b, 0x1d, 0x79, 0x53, 0x32, options.size
         );
   
         /* Error level */
@@ -703,13 +679,9 @@ class LanguageStarPrnt {
             'h': 0x03,
         };
   
-        if (typeof errorlevel === 'undefined') {
-            errorlevel = 'm';
-        }
-  
-        if (errorlevel in errorlevels) {
+        if (options.errorlevel in errorlevels) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x31, errorlevels[errorlevel]
+                0x1b, 0x1d, 0x79, 0x53, 0x31, errorlevels[options.errorlevel]
             );
         } else {
             throw new Error('Error level must be l, m, q or h');
@@ -744,7 +716,7 @@ class LanguageStarPrnt {
     pdf417(value, options) {
         let result = [];
     
-        /* Columns */
+        /* Columns and Rows */
     
         if (typeof options.columns !== 'number') {
             throw new Error('Columns must be a number');
@@ -753,13 +725,7 @@ class LanguageStarPrnt {
         if (options.columns !== 0 && (options.columns < 1 || options.columns > 30)) {
             throw new Error('Columns must be 0, or between 1 and 30');
         }
-    
-        result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
-        );
-    
-        /* Rows */
-    
+
         if (typeof options.rows !== 'number') {
             throw new Error('Rows must be a number');
         }
@@ -769,9 +735,9 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+            0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns
         );
-    
+
         /* Width */
 
         if (typeof options.width !== 'number') {
@@ -817,7 +783,7 @@ class LanguageStarPrnt {
         /* Data */
     
         const bytes = CodepageEncoder.encode(value, 'ascii');
-        const length = bytes.length + 3;
+        const length = bytes.length;
     
         result.push(
             0x1b, 0x1d, 0x78, 0x44,
@@ -2545,13 +2511,34 @@ class ReceiptPrinterEncoder {
      * QR code
      *
      * @param  {string}           value  the value of the qr code
-     * @param  {number}           model  model of the qrcode, either 1 or 2
-     * @param  {number}           size   size of the qrcode, a value between 1 and 8
-     * @param  {string}           errorlevel  the amount of error correction used, either 'l', 'm', 'q', 'h'
+     * @param  {number|object}    model  Either the configuration object, or backwards compatible model of the qrcode, either 1 or 2
+     * @param  {number}           size   Backwards compatible size of the qrcode, a value between 1 and 8
+     * @param  {string}           errorlevel  Backwards compatible the amount of error correction used, either 'l', 'm', 'q', 'h'
      * @return {object}                  Return the object, for easy chaining commands
-     *
      */
   qrcode(value, model, size, errorlevel) {
+    let options = {
+      model: 2,
+      size: 6,
+      errorlevel: 'm'
+    };
+    
+    if (typeof model === 'object') {
+      options = Object.assign(options, model);
+    } 
+
+    if (typeof model === 'number') {
+      options.model = model;
+    }
+
+    if (typeof size === 'number') {
+      options.size = size;
+    }
+
+    if (typeof errorlevel === 'string') {
+      options.errorlevel = errorlevel;
+    }
+    
     if (this.#options.embedded) {
       throw new Error('QR codes are not supported in table cells or boxes');
     }
@@ -2569,7 +2556,7 @@ class ReceiptPrinterEncoder {
     /* QR code */
 
     this.#composer.raw(
-        this.#language.qrcode(value, model, size, errorlevel),
+        this.#language.qrcode(value, options),
     );
 
     /* Reset alignment */

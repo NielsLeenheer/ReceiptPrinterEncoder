@@ -180,7 +180,7 @@ class LanguageStarPrnt {
     pdf417(value, options) {
         let result = [];
     
-        /* Columns */
+        /* Columns and Rows */
     
         if (typeof options.columns !== 'number') {
             throw new Error('Columns must be a number');
@@ -189,13 +189,7 @@ class LanguageStarPrnt {
         if (options.columns !== 0 && (options.columns < 1 || options.columns > 30)) {
             throw new Error('Columns must be 0, or between 1 and 30');
         }
-    
-        result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
-        );
-    
-        /* Rows */
-    
+
         if (typeof options.rows !== 'number') {
             throw new Error('Rows must be a number');
         }
@@ -205,9 +199,9 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+            0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns
         );
-    
+
         /* Width */
 
         if (typeof options.width !== 'number') {
@@ -253,7 +247,7 @@ class LanguageStarPrnt {
         /* Data */
     
         const bytes = CodepageEncoder.encode(value, 'ascii');
-        const length = bytes.length + 3;
+        const length = bytes.length;
     
         result.push(
             0x1b, 0x1d, 0x78, 0x44,
