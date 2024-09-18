@@ -23,7 +23,7 @@ When you create the `ReceiptPrinterEncoder` object you can specify a number of o
 
 ### Printer model
 
-The easiest way to configure this library is by specifying the model of the printer that you are using. It will then automatically configure the most important configuration options, such as the printer language, suppored code pages, image mode and more.
+The easiest way to configure this library is by specifying the model of the printer that you are using. It will then automatically configure the most important configuration options, such as the printer language, supported code pages, image mode and more.
 
 ```js
 let encoder = new ReceiptPrinterEncoder({ 
@@ -31,7 +31,7 @@ let encoder = new ReceiptPrinterEncoder({
 });
 ```
 
-To get a complete list of supported printers, you can call the `printerModels` static property:
+To get a complete list of supported printers, you can look at the `printerModels` static property:
 
 ```js
 console.log(ReceiptPrinterEncoder.printerModels);
@@ -57,7 +57,7 @@ Alternatively you can manually configure this library using the settings below.
 
 ### Printer language
 
-It is possible to specify the language of the printer you want to use by providing a options object with the property 'language' set to either 'esc-pos' or to 'star-prtn'. By default the library uses ESC/POS.
+It is possible to specify the language of the printer you want to use by providing a options object with the property `language` set to either `esc-pos`, `star-prnt` or `star-line`. By default the library uses ESC/POS.
 
 To use the ESC/POS language use:
 
@@ -85,7 +85,7 @@ let encoder = new ReceiptPrinterEncoder({
 
 ### Paper width
 
-To set the width of the paper you can use the `column` property. Specify the number of characters that one line can hold. This will ensure that words properly wrap to the next line at the end of the paper. 
+To set the width of the paper you can use the `columns` property. Specify the number of characters that one line can hold. This will ensure that words will properly wrap to the next line at the end of the paper. 
 
 ```js
 let encoder = new ReceiptPrinterEncoder({
@@ -115,7 +115,7 @@ let encoder = new ReceiptPrinterEncoder({
 
 Most printers use a combination of a newline and carriage return to move the text position to the beginning of the next line. 
 
-However, some more exotic printers only use a newline, causing the printer to insert an empty line between each line of text.
+However, some more exotic printers only use a newline, causing the printer to insert an extra empty line between each line of text.
 
 ```js
 let encoder = new ReceiptPrinterEncoder({
