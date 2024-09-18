@@ -27,6 +27,7 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Box](#box)
   - [Barcode](#barcode)
   - [Qrcode](#qrcode)
+  - [PDF417 code](#pdf417-code)
   - [Image](#image)
   - [Pulse](#pulse)
   - [Cut](#cut)
@@ -654,7 +655,7 @@ let result = encoder
 
 You can find examples for many types of image reading libraries in the `examples` directory.
 
-> [!NOTE]
+> [!TIP]
 > If you are trying to print an image on an ESC/POS printer and it does not work properly, you can try changing the image mode in the [configuration settings](configuration.md#image-mode). Some printers only support `raster` mode, other printers only support `column` mode.
 
 
@@ -693,7 +694,7 @@ let result = encoder
 Not all printer models support cutting paper. And even if they do, they might not support both types of cuts.
 
 
-> [!NOTE]
+> [!TIP]
 > If the location of your printers cutter is higher than the last line of printed text, you may need to feed the paper some extra lines. You can use [the `feedBeforeCut` configuration option](configuration.md#feed-before-cut) to do this automatically.
 
 
