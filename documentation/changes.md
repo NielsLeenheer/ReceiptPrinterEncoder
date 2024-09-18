@@ -1,4 +1,7 @@
 # ReceiptPrinterEncoder
+**Formally known as EscPosEncoder, StarPrntEncoder and ThermalPrinterEncoder**
+
+<br>
 
 Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT.
 
@@ -19,6 +22,8 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Qrcode() now uses a configuration object](#qrcode()-now-uses-a-configuration-object)
   - [Some code page mappings have been renamed](#some-code-page-mappings-have-been-renamed)
   - [Automatic encoding of codepages](#automatic-encoding-of-codepages)
+
+<br>
 
 ## Migrating from version 2 to version 3
 

@@ -32,7 +32,11 @@ let result = encoder
 
 Once you have the encoded commands you need a method to send those commands to the receipt printer - to actually print the receipt. And for that we have a list of sister libraries.
 
+<br>
+
 -----
+
+<br>
 
 This library has been created by Niels Leenheer under the [MIT license](LICENSE). Feel free to use it in your products. The  development of this library is sponsored by Salonhub.
 

@@ -1,4 +1,7 @@
 # ReceiptPrinterEncoder
+**Formally known as EscPosEncoder, StarPrntEncoder and ThermalPrinterEncoder**
+
+<br>
 
 Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT.
 
@@ -15,6 +18,8 @@ Create a set of commands that can be send to any receipt printer that supports E
 - [Commands for creating receipts](commands.md)
 - [Printing receipts](printing.md)
 - [Migrating from version 2 to version 3](changes.md)
+
+<br>
 
 ## Configuration options
 
