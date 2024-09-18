@@ -31,6 +31,15 @@ describe('LanguageStarPrnt', function() {
         });
     });
 
+    describe('text(hello).newline(4)', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
+        let result = encoder.text('hello').newline(4).encode();
+        
+        it('should be [ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]), result);
+        });
+    });
+
     describe('line(hello)', function () {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.line('hello').encode();

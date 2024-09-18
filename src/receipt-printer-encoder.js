@@ -246,11 +246,16 @@ class ReceiptPrinterEncoder {
   /**
      * Print a newline
      *
+     * @param  {string}   value  The number of newlines that need to be printed, defaults to 1
      * @return {object}          Return the object, for easy chaining commands
      *
      */
-  newline() {
-    this.#composer.flush({forceNewline: true});
+  newline(value) {
+    value = parseInt(value, 10) || 1;
+
+    for (let i = 0; i < value; i++) {
+      this.#composer.flush({forceNewline: true});
+    }
 
     return this;
   }

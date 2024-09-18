@@ -108,6 +108,14 @@ let result = encoder
     .encode()
 ```
 
+Optionally you can provide the number of lines you want to insert. The default is one line.
+
+```js
+let result = encoder
+    .newline(4)
+    .encode()
+```
+
 ### Line
 
 Print a line of text. This is similar to the `text()` command, except it will automatically add a `newline()` command.
