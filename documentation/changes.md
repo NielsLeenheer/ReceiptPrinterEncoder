@@ -16,6 +16,7 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Wrap parameter for text() and line() removed](#wrap-parameter-for-text()-and-line()-removed)
   - [Width parameter renamed to columns](#width-parameter-renamed-to-column)
   - [Size() changed functionality](#size()-changed-functionality)
+  - [Qrcode() now uses a configuration object](#qrcode()-now-uses-a-configuration-object)
   - [Some code page mappings have been renamed](#some-code-page-mappings-have-been-renamed)
   - [Automatic encoding of codepages](#automatic-encoding-of-codepages)
 
@@ -149,6 +150,28 @@ encoder
 ```
 
 The old way of using the `size()` function still works, but it has been deprecated and will be removed in a future version.
+
+### Qrcode() now uses a configuration object
+
+Instead of seperate parameters for model, size and errorlevel, the `qrcode()` function now uses a configuration object to set the model, size and errorlevel.
+
+Version 2: 
+
+```js
+let result = encoder
+    .qrcode('https://nielsleenheer.com', 1, 8, 'h')
+    .encode()
+```
+
+Version 3: 
+
+```js
+let result = encoder
+    .qrcode('https://nielsleenheer.com', { model: 1, size: 8, errorlevel: 'h' })
+    .encode()
+```
+
+The old way of using the `qrcode()` function still works, but it has been deprecated and will be removed in a future version.
 
 ### Some code page mappings have been renamed
 

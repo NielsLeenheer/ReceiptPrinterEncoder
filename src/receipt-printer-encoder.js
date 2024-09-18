@@ -758,13 +758,34 @@ class ReceiptPrinterEncoder {
      * QR code
      *
      * @param  {string}           value  the value of the qr code
-     * @param  {number}           model  model of the qrcode, either 1 or 2
-     * @param  {number}           size   size of the qrcode, a value between 1 and 8
-     * @param  {string}           errorlevel  the amount of error correction used, either 'l', 'm', 'q', 'h'
+     * @param  {number|object}    model  Either the configuration object, or backwards compatible model of the qrcode, either 1 or 2
+     * @param  {number}           size   Backwards compatible size of the qrcode, a value between 1 and 8
+     * @param  {string}           errorlevel  Backwards compatible the amount of error correction used, either 'l', 'm', 'q', 'h'
      * @return {object}                  Return the object, for easy chaining commands
-     *
      */
   qrcode(value, model, size, errorlevel) {
+    let options = {
+      model: 2,
+      size: 6,
+      errorlevel: 'm'
+    };
+    
+    if (typeof model === 'object') {
+      options = Object.assign(options, model);
+    } 
+
+    if (typeof model === 'number') {
+      options.model = model;
+    }
+
+    if (typeof size === 'number') {
+      options.size = size;
+    }
+
+    if (typeof errorlevel === 'string') {
+      options.errorlevel = errorlevel;
+    }
+    
     if (this.#options.embedded) {
       throw new Error('QR codes are not supported in table cells or boxes');
     }
@@ -782,7 +803,7 @@ class ReceiptPrinterEncoder {
     /* QR code */
 
     this.#composer.raw(
-        this.#language.qrcode(value, model, size, errorlevel),
+        this.#language.qrcode(value, options),
     );
 
     /* Reset alignment */

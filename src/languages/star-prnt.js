@@ -99,12 +99,10 @@ class LanguageStarPrnt {
     /**
      * Generate a QR code
      * @param {string} value        Value to encode
-     * @param {number} model        QR Code model (1 or 2)
-     * @param {number} size         QR Code size (1 to 8)
-     * @param {string} errorlevel   Error correction level ('l', 'm', 'q', 'h')
+     * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
-    qrcode(value, model, size, errorlevel) {
+    qrcode(value, options) {
         let result = [];
 
         /* Model */
@@ -114,13 +112,9 @@ class LanguageStarPrnt {
             2: 0x02,
         };
   
-        if (typeof model === 'undefined') {
-            model = 2;
-        }
-  
-        if (model in models) {
+        if (options.model in models) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x30, models[model],
+                0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model],
             );
         } else {
             throw new Error('Model must be 1 or 2');
@@ -128,20 +122,16 @@ class LanguageStarPrnt {
   
         /* Size */
   
-        if (typeof size === 'undefined') {
-            size = 6;
-        }
-  
-        if (typeof size !== 'number') {
+        if (typeof options.size !== 'number') {
             throw new Error('Size must be a number');
         }
   
-        if (size < 1 || size > 8) {
+        if (options.size < 1 || options.size > 8) {
             throw new Error('Size must be between 1 and 8');
         }
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x53, 0x32, size,
+            0x1b, 0x1d, 0x79, 0x53, 0x32, options.size
         );
   
         /* Error level */
@@ -153,13 +143,9 @@ class LanguageStarPrnt {
             'h': 0x03,
         };
   
-        if (typeof errorlevel === 'undefined') {
-            errorlevel = 'm';
-        }
-  
-        if (errorlevel in errorlevels) {
+        if (options.errorlevel in errorlevels) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x31, errorlevels[errorlevel]
+                0x1b, 0x1d, 0x79, 0x53, 0x31, errorlevels[options.errorlevel]
             );
         } else {
             throw new Error('Error level must be l, m, q or h');

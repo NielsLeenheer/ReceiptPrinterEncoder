@@ -533,7 +533,7 @@ let result = encoder
     .encode()
 ```
 
-The qrcode function accepts the following additional parameters:
+This function accepts an object as a second parameter for extra configuration options:
 
 - *model* - a number that can be 1 for Model 1 and 2 for Model 2
 - *size* - a number that can be between 1 and 8 for determining the size of the QR code
@@ -543,7 +543,7 @@ For example:
 
 ```js
 let result = encoder
-    .qrcode('https://nielsleenheer.com', 1, 8, 'h')
+    .qrcode('https://nielsleenheer.com', { model: 1, size: 8, errorlevel: 'h' })
     .encode()
 ```
 
