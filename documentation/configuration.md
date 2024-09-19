@@ -42,14 +42,14 @@ To get a complete list of supported printers, you can look at the `printerModels
 ```js
 console.log(ReceiptPrinterEncoder.printerModels);
 
-{
-    "bixolon-srp350":     "Bixolon SRP-350",
-    "bixolon-srp350iii":  "Bixolon SRP-350III",
-    "citizen-ct-s310ii":  "Citizen CT-S310II",
-    "epson-tm-p20ii":     "Epson TM-P20II",
-    "epson-tm-t20iii":    "Epson TM-T20III",
+[
+    { id: "bixolon-srp350":     name: "Bixolon SRP-350" },
+    { id: "bixolon-srp350iii":  name: "Bixolon SRP-350III" },
+    { id: "citizen-ct-s310ii":  name: "Citizen CT-S310II" },
+    { id: "epson-tm-p20ii":     name: "Epson TM-P20II" },
+    { id: "epson-tm-t20iii":    name: "Epson TM-T20III" },
     ...
-}
+]
 ```
 
 Our database of devices has some of the most used devices. However if you device is not supported, you may be able to try a similar printer model. 

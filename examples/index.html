@@ -19,12 +19,10 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
     window.addEventListener('DOMContentLoaded', async () => {
         printerModel = document.getElementById('printerModel');
 
-        console.log(ReceiptPrinterEncoder.printerModels)
-        
-        for (let printer in ReceiptPrinterEncoder.printerModels) {
+        for (let printer of ReceiptPrinterEncoder.printerModels) {
             let option = document.createElement('option');
-            option.value = printer;
-            option.text = ReceiptPrinterEncoder.printerModels[printer];
+            option.value = printer.id;
+            option.text = printer.name;
             printerModel.appendChild(option);
         }
     });

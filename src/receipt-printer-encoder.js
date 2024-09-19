@@ -1239,7 +1239,7 @@ class ReceiptPrinterEncoder {
    * @return {object}         An object with all supported printer models
    */
   static get printerModels() {
-    return Object.fromEntries(Object.entries(printerDefinitions).map((i) => [i[0], i[1].vendor + ' ' + i[1].model]));
+    return Object.entries(printerDefinitions).map(i => ({ id: i[0], name: i[1].vendor + ' ' + i[1].model}))
   }
 
   /**
