@@ -17,7 +17,8 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Default language](#default-language)
   - [Dependency on canvas removed](#dependency-on-canvas-removed)
   - [Wrap parameter for text() and line() removed](#wrap-parameter-for-text-and-line-removed)
-  - [Width parameter renamed to columns](#width-parameter-renamed-to-columns)
+  - [Width parameter renamed to columns and now has a default value](#width-parameter-renamed-to-columns-and-now-has-a-default-value)
+  - [Alignment now uses spaces](#alignment-now-uses-spaces)
   - [Size() changed functionality](#size-changed-functionality)
   - [Qrcode() now uses a configuration object](#qrcode-now-uses-a-configuration-object)
   - [Some code page mappings have been renamed](#some-code-page-mappings-have-been-renamed)
@@ -121,9 +122,18 @@ encoder
 
 <br>
 
-### Width parameter renamed to columns
+### Width parameter renamed to columns and now has a default value
 
-The `width` parameter has now been changed to the `columns` parameter. The `width` parameter still works, but is deprecated and will be removed in future releases.
+The `width` parameter has now been changed to the `columns` parameter. The `width` parameter still works, but is deprecated and will be removed in future releases. 
+In previous versions this parameter did not have a default value, but that is now set to 42 characters.
+
+<br>
+
+### Alignment now uses spaces
+
+In previous version of this library, we used the build-in alignment functionality of the printer to create right aligned or centered text. This has been changed in version 3. From now on we always use left aligned text and align the text ourselves inserting spaces before the text. This allows us to control word wrapping better and also works in tables and boxes.
+
+Images and barcodes still use the build-in alignment of the printer.
 
 <br>
 
