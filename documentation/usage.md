@@ -22,7 +22,9 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 This package is compatible with browsers and Node. It provides bundled versions for direct use in the browser and can also be used as an input for your own bundler. And of course there are ES6 modules and CommonJS versions for use in Node and Deno.
 
-## Using in the browser
+<br>
+
+### Using in the browser
 
 The `dist` folder contains bundles that can be directly used in the browser. We both have a modern ES6 module, or a legacy UMD bundle.
 
@@ -60,7 +62,9 @@ requirejs([ 'dist/receipt-printer-encoder.umd' ], ReceiptPrinterEncoder => {
 });
 ```
 
-## Using with Node
+<br>
+
+### Using with Node
 
 If you want to use this libary, first install the package using npm:
 
@@ -89,7 +93,9 @@ let ReceiptPrinterEncoder = require('@point-of-sale/receipt-printer-encoder');
 let encoder = new ReceiptPrinterEncoder();
 ```
 
-## Using with Deno
+<br>
+
+### Using with Deno
 
 This library does not have a dedicated package on `deno.land/x`, but you can directly import the NPM package. It is fully compatible with Deno.
 
