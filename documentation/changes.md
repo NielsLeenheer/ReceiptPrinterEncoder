@@ -16,10 +16,10 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Standalone](#standalone)
   - [Default language](#default-language)
   - [Dependency on canvas removed](#dependency-on-canvas-removed)
-  - [Wrap parameter for text() and line() removed](#wrap-parameter-for-text()-and-line()-removed)
-  - [Width parameter renamed to columns](#width-parameter-renamed-to-column)
-  - [Size() changed functionality](#size()-changed-functionality)
-  - [Qrcode() now uses a configuration object](#qrcode()-now-uses-a-configuration-object)
+  - [Wrap parameter for text() and line() removed](#wrap-parameter-for-text-and-line-removed)
+  - [Width parameter renamed to columns](#width-parameter-renamed-to-columns)
+  - [Size() changed functionality](#size-changed-functionality)
+  - [Qrcode() now uses a configuration object](#qrcode-now-uses-a-configuration-object)
   - [Some code page mappings have been renamed](#some-code-page-mappings-have-been-renamed)
   - [Automatic encoding of codepages](#automatic-encoding-of-codepages)
 
@@ -29,6 +29,7 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 ReceiptPrinterEncoder has been completely rewritten in version 3, but we've attempted to keep the API backwards compatible. And for the most part that is true, except when dealing with images in Node. See below for the details.
 
+<br>
 
 ### New name
 
@@ -42,6 +43,7 @@ Version 3:
 
     npm i @point-of-sale/receipt-printer-encoder
 
+<br>
 
 ### Standalone
 
@@ -49,9 +51,13 @@ Previously this library had a dependancy on EscPosEncoder and StarPrntEncoder. T
 
 If you are still using EscPosEncoder or StarPrntEncoder, the dependancy is now the other way around. EscPosEncoder and StarPrntEncoder have been updated to use ReceiptPrinterEncoder as a dependency and it is advised to use ReceiptPrinterEncoder instead.
 
+<br>
+
 ### Default language
 
 In previous versions of this library you had to specify a language, such as `esc-pos` or `star-prnt`. If you did not specify the language, you would get an exception. In the latest version the langauge will default to `esc-pos`.
+
+<br>
 
 ### Dependency on canvas removed
 
@@ -91,6 +97,8 @@ encoder.image(image, ...)
 
 If all you want to do is print already existing image files, you might even want to move away from `canvas` altogether to a more lightweight image library. There are examples on how to use various libraries in the `examples` directory.
 
+<br>
+
 ### Wrap parameter for text() and line() removed
 
 It is no longer possible to specify the number of columns after which to wrap when using the `text()` or `line()` command. Instead you could use the `box()` function with a border style of `none`.
@@ -111,9 +119,13 @@ encoder
     )
 ```
 
+<br>
+
 ### Width parameter renamed to columns
 
 The `width` parameter has now been changed to the `columns` parameter. The `width` parameter still works, but is deprecated and will be removed in future releases.
+
+<br>
 
 ### Size() changed functionality
 
@@ -156,6 +168,8 @@ encoder
 
 The old way of using the `size()` function still works, but it has been deprecated and will be removed in a future version.
 
+<br>
+
 ### Qrcode() now uses a configuration object
 
 Instead of seperate parameters for model, size and errorlevel, the `qrcode()` function now uses a configuration object to set the model, size and errorlevel.
@@ -178,9 +192,13 @@ let result = encoder
 
 The old way of using the `qrcode()` function still works, but it has been deprecated and will be removed in a future version.
 
+<br>
+
 ### Some code page mappings have been renamed
 
 The previous version of this library had an optional code page mapping with the name of `zijang`. This has been renamed to `pos-5890` to match the model number of this device. 
+
+<br>
 
 ### Automatic encoding of codepages
 
