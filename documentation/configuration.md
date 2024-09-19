@@ -25,6 +25,7 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 When you create the `ReceiptPrinterEncoder` object you can specify a number of options to help with the library with generating receipts. 
 
+<br>
 
 ### Printer model
 
@@ -57,8 +58,15 @@ For example, if if your printer is a newer or older version of a model that is s
 
 Or if you are using a cheap printer without a proper brandname, you can try `pos-5890` or `pos-8360`. Many cheap printers that you can find on AliExpress or TEMU use the same internals or firmware. 
 
-Alternatively you can manually configure this library using the settings below.
+<br>
 
+-----
+
+<br>
+
+If your printer is not in the list, you can manually configure the settings for your printer with the options below. You can also use this to overwrite the default settings of the printer, for example if you want to use a Star printer in ESC/POS mode, or if you put 57 mm paper in a 80 mm printer.
+
+<br>
 
 ### Printer language
 
@@ -88,6 +96,8 @@ let encoder = new ReceiptPrinterEncoder({
 });
 ```
 
+<br>
+
 ### Paper width
 
 To set the width of the paper you can use the `columns` property. Specify the number of characters that one line can hold. This will ensure that words will properly wrap to the next line at the end of the paper. 
@@ -104,6 +114,8 @@ If you use 57mm wide paper, it allows you to print up to 32 or 35 characters hor
 
 If you use 80mm wide paper, it allows you to print up to 42, 44 or 48 characters horizontally, depending on the resolution of the printer.
 
+<br>
+
 ### Feed before cut
 
 In most printers the cutter is located above the printing mechanism, that means that if you cut immediately after printing a line of text, the cut will be above the text. 
@@ -115,6 +127,8 @@ let encoder = new ReceiptPrinterEncoder({
     feedBeforeCut: 4
 });
 ```
+
+<br>
 
 ### Newline
 
@@ -128,13 +142,15 @@ let encoder = new ReceiptPrinterEncoder({
 });
 ```
 
+<br>
+
 ### Image mode
 
-If you use the ESC/POS language, depending on how new your printer is you might want to use 'column' mode or 'raster' image encoding mode. The default is 'column'. 
+If you use the ESC/POS language, depending on how new your printer is you might want to use `column` mode or `raster` image encoding mode. The default is `column`. 
 
-The main difference is how images are encoded. Some newer printers do not support 'raster' mode images, while some older printer do not support 'column' mode images. It may depend on the printer model what mode you should use.
+The main difference is how images are encoded. Some newer printers do not support `raster` mode images, while some older printer do not support `column` mode images. It may depend on the printer model what mode you should use.
 
-To opt in to 'raster' mode you need to provide the constructor of the `ReceiptPrinterEncoder` class with an options object with the property `imageMode` set to `raster`.
+To opt in to `raster` mode you need to provide the constructor of the `ReceiptPrinterEncoder` class with an options object with the property `imageMode` set to `raster`.
 
 ```js
 let encoder = new ReceiptPrinterEncoder({ 
