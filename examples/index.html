@@ -70,11 +70,13 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
         document.getElementById('baudrate').disabled = false;
         document.getElementById('connect').hidden = false;
         document.getElementById('disconnect').hidden = true;
-        document.getElementById('kick').disabled = true;
-        document.getElementById('print').disabled = true;        
+
+        document.querySelectorAll('.print').forEach((button) => {
+            button.disabled = true;
+        });
     }
 
-    function kick() {
+    async function kick() {
     }
 
     async function print() {
@@ -122,7 +124,11 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
         encoder
             .initialize()
             .codepage('auto')
-            
+            .line(document.querySelector('#printerModel option:checked').textContent)
+            .rule()
+            .line('Text')
+            .newline()
+
             .line('Font A')
             .line('48═════════════════════════════════════════════╣')
             .line('44═════════════════════════════════════════╣')
@@ -140,15 +146,15 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
             .line('42═══════════════════════════════════════╣')
             .newline()
 
-            .font('A')
-            .line('Font C')
-            .font('C')
-            .line('64═════════════════════════════════════════════════════════════╣')
-            .line('56═════════════════════════════════════════════════════╣')
-            .line('48═════════════════════════════════════════════╣')
-            .line('42═══════════════════════════════════════╣')
-            .newline()
-            .newline()
+            // .font('A')
+            // .line('Font C')
+            // .font('C')
+            // .line('64═════════════════════════════════════════════════════════════╣')
+            // .line('56═════════════════════════════════════════════════════╣')
+            // .line('48═════════════════════════════════════════════╣')
+            // .line('42═══════════════════════════════════════╣')
+            // .newline()
+            // .newline()
 
 
             .font('A')
@@ -232,13 +238,6 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
         
         
             .rule({ style: 'single' })
-
-            // .codepage('epson/katakana')
-            // .box(
-            //     { width: 20, align: 'center', style: 'single' }, 
-            //     'イロハニホヘト チリヌルヲ ワカヨタレソ ツネナラム. イロハニホヘト チリヌルヲ ワカヨタレソ ツネナラム.'
-            // )
-            // .codepage('auto')
             .newline();
 
 
@@ -255,77 +254,6 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
         if (!widePaper) {
             encoder.font('A');
         }
-
-        encoder
-            .newline()
-            .line('EAN13:')
-            .align('right')
-            .barcode('123456789012', 'ean13', 60)
-            .align('left')
-            .newline()
-
-        encoder
-            .line('EAN8:')
-            .align('center')
-            .barcode('12345678', 'ean8', 60)
-            .align('left')
-            .newline()   
-
-        encoder
-            .line('UPC:')
-            .barcode('12345678901', 'upca', 60)
-            .newline()        
-
-        encoder
-            .line('Code 39:')
-            .barcode('1234ABCDEF$', 'code39', 60)
-            .newline()      
-
-        if (encoder.language === 'escpos') {
-            encoder
-                .line('Codabar:')
-                .barcode('1234ABCDEF$', 'codabar', 60)
-                .newline()        
-        }
-
-        encoder
-            .line('Code 93:')
-            .barcode('1234ABCDEF', 'code93', 60)
-            .newline()       
-
-        encoder
-            .line('Code 128:')
-            .barcode('12345678', 'code128', 60)
-            .newline()            
-
-        encoder
-            .line('ITF:')
-            .barcode('12345678', 'itf', 60)
-            .newline()            
-
-        encoder
-            .line('QR code:')
-            .align('center')
-            .qrcode('https://nielsleenheer.com')
-            .align('left')
-            .newline()
-            .newline()
-
-        encoder
-            .line('PDF417 code:')
-            .align('center')
-            .pdf417('https://nielsleenheer.com')
-            .align('left')
-            .newline()
-            .newline()
-        
-        encoder
-            .line('PDF417 code:')
-            .align('center')
-            .pdf417('https://nielsleenheer.com', { width: 4, height: 4, errorlevel: 6, truncated: true })
-            .align('left')
-            .newline()
-            .newline()
 
         encoder
             .text('The quick brown fox jumps over the lazy dog. ')
@@ -384,12 +312,388 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
             .newline()
 
         let data = encoder.encode();
-
-        console.hex(data);
-
         receiptPrinter.print(data);
     }
     
+
+    async function barcodes() {
+        encoder = new ReceiptPrinterEncoder({
+            printerModel: printerModel.value,
+            debug: true
+        });
+
+        encoder
+            .initialize()
+            .codepage('auto')
+            .line(document.querySelector('#printerModel option:checked').textContent)
+            .rule()
+            .line('Barcodes')
+            .newline()
+
+        encoder
+            .newline()
+            .line('EAN13:')
+            .barcode('123456789012', 'ean13', { width: 2 })
+            .newline()
+
+        encoder
+            .line('EAN8:')
+            .barcode('12345678', 'ean8', { width: 2 })
+            .newline()   
+
+        encoder
+            .line('UPC-A:')
+            .barcode('12345678901', 'upca', { width: 2 })
+            .newline()        
+
+        encoder
+            .line('UPC-E:')
+            .barcode('023456000073', 'upce', { width: 2 })
+            .newline()        
+
+        encoder
+            .line('Code 39:')
+            .barcode('1234ABCDEF$', 'code39', { width: 1 })
+            .newline()      
+
+        encoder
+            .line('Code 93:')
+            .barcode('1234ABCDEF', 'code93', { width: 1 })
+            .newline()       
+
+        encoder
+            .line('Code 128 (CODE128):')
+            .barcode('CODE128', 'code128', { width: 1 })
+            .line('Code 128 (Code128):')
+            .barcode('CODE128', 'code128', { width: 1 })
+            .line('Code 128 (50859935):')
+            .barcode('50859935', 'code128', { width: 1 })
+            .newline()            
+
+        encoder
+            .line('ITF:')
+            .barcode('12345678', 'itf', { width: 2 })
+            .newline()            
+
+        encoder
+            .line('Codabar / NW-7:')
+            .barcode('A1234B', 'codabar', { width: 2 })
+            .newline()        
+
+        encoder
+            .line('GS1-128 (0130012345678906):')
+            .barcode('0130012345678906', 'gs1-128', { width: 2 })
+            .line('GS1-128 ((01)30012345678906):')
+            .barcode('(01)30012345678906', 'gs1-128', { width: 2 })
+            .newline()            
+
+        encoder
+            .line('GS1 Databar Omni:')
+            .barcode('1234567890123', 'gs1-databar-omni', { width: 2 })
+            .newline()            
+
+        encoder
+            .line('GS1 Databar Truncated:')
+            .barcode('1234567890123', 'gs1-databar-truncated', { width: 2 })
+            .newline()            
+
+        encoder
+            .line('GS1 Databar Limited:')
+            .barcode('1234567890123', 'gs1-databar-limited', { width: 2 })
+            .newline()            
+
+        encoder
+            .line('GS1 Databar Expanded:')
+            .barcode('0130012345678906', 'gs1-databar-expanded', { width: 2 })
+            .newline()            
+
+        encoder.rule();
+
+        encoder
+            .newline()
+            .line('Without checksum:')
+            .barcode('123456789012', 'ean13', 60)
+            .newline()
+
+        encoder
+            .newline()
+            .line('With checksum:')
+            .barcode('1234567890128', 'ean13', 60)
+            .newline()
+
+        encoder
+            .newline()
+            .line('Invalid checksum:')
+            .barcode('1234567890124', 'ean13', 60)
+            .newline()
+
+        encoder.rule();
+
+        encoder
+            .newline()
+            .line('{ width: 1 }')
+            .barcode('123456789012', 'ean13', { width: 1 })
+            .barcode('12345678', 'itf', { width: 1 })
+            .newline()
+
+        encoder
+            .newline()
+            .line('{ width: 2 }')
+            .barcode('123456789012', 'ean13', { width: 2 })
+            .barcode('12345678', 'itf', { width: 2 })
+            .newline()
+
+        encoder
+            .newline()
+            .line('{ width: 3 }')
+            .barcode('123456789012', 'ean13', { width: 3 })
+            .barcode('12345678', 'itf', { width: 3 })
+            .newline()
+
+        encoder.rule();
+
+        encoder
+            .newline()
+            .line('{ height: 40 }')
+            .barcode('123456789012', 'ean13', { height: 40 })
+            .newline()
+
+        encoder
+            .newline()
+            .line('{ height: 60 }')
+            .barcode('1234567890128', 'ean13', { height: 60 })
+            .newline()
+
+        encoder
+            .newline()
+            .line('{ height: 100 }')
+            .barcode('1234567890128', 'ean13', { height: 100 })
+            .newline()
+
+        encoder.rule();
+
+        encoder
+            .newline()
+            .line('{ text: true }')
+            .barcode('123456789012', 'ean13', { text: true })
+            .newline()
+
+        encoder
+            .newline()
+            .line('{ text: true }')
+            .barcode('1234567890128', 'ean13', { text: true })
+            .newline()
+
+        encoder.rule();
+
+        encoder
+            .newline()
+            .line('Left aligned:')
+            .align('left')
+            .barcode('12345678', 'ean8', 60)
+            .align('left')
+            .newline()
+
+        encoder
+            .newline()
+            .line('Centered:')
+            .align('center')
+            .barcode('12345678', 'ean8', 60)
+            .align('left')
+            .newline()
+
+        encoder
+            .newline()
+            .line('Right aligned:')
+            .align('right')
+            .barcode('12345678', 'ean8', 60)
+            .align('left')
+            .newline()
+
+        encoder.cut();
+
+        let data = encoder.encode();
+        receiptPrinter.print(data);
+    }
+
+    async function qrcode() {
+        encoder = new ReceiptPrinterEncoder({
+            printerModel: printerModel.value,
+            debug: true
+        });
+
+        encoder
+            .initialize()
+            .codepage('auto')
+            .line(document.querySelector('#printerModel option:checked').textContent)
+            .rule()
+            .line('QR Code')
+            .newline()
+
+        encoder
+            .line('{}')
+            .align('center')
+            .qrcode('https://nielsleenheer.com')
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ model: 1 }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { model: 1 })
+            .align('left')
+            .newline()
+            .newline()
+
+
+        encoder
+            .line('{ model: 2 }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { model: 2 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ size: 4 }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { size: 4 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ size: 8 }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { size: 8 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: l }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { errorlevel: 'l' })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: m }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { errorlevel: 'm' })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: q }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { errorlevel: 'q' })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: h }')
+            .align('center')
+            .qrcode('https://nielsleenheer.com', { errorlevel: 'h' })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder.cut();
+
+        let data = encoder.encode();
+        receiptPrinter.print(data);
+    }
+
+    async function pdf417() {
+        encoder = new ReceiptPrinterEncoder({
+            printerModel: printerModel.value,
+            debug: true
+        });
+
+        encoder
+            .initialize()
+            .codepage('auto')
+            .line(document.querySelector('#printerModel option:checked').textContent)
+            .rule()
+            .line('PDF417')
+            .newline()
+
+        encoder
+            .line('{}')
+            .align('center')
+            .pdf417('https://nielsleenheer.com')
+            .align('left')
+            .newline()
+            .newline()
+        
+        encoder
+            .line('{ width: 4, height: 4 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { width: 4, height: 4 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: 2 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { errorlevel: 2 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ errorlevel: 4 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { errorlevel: 4 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ columns: 1 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { columns: 1 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ columns: 2 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { columns: 2 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ columns: 3 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { columns: 3 })
+            .align('left')
+            .newline()
+            .newline()
+
+        encoder
+            .line('{ columns: 4 }')
+            .align('center')
+            .pdf417('https://nielsleenheer.com', { columns: 4 })
+            .align('left')
+            .newline()
+            .newline()
+            
+        encoder.cut();
+
+        let data = encoder.encode();
+        receiptPrinter.print(data);
+    }
+
+
     function connected(device) {
         console.log('Connected to', device);
 
@@ -400,10 +704,10 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
         document.getElementById('baudrate').disabled = true;
         document.getElementById('connect').hidden = true;
         document.getElementById('disconnect').hidden = false;
-        document.getElementById('kick').disabled = false;
-        document.getElementById('print').disabled = false;
 
-        console.log(device);    
+        document.querySelectorAll('.print').forEach((button) => {
+            button.disabled = false;
+        });
     }
 
 </script>
@@ -465,8 +769,10 @@ r + (v > 31 && v < 127 || v > 159 ? String.fromCharCode(v) : '.'), '  ') + '\n' 
 
 
 <main>
-    <button id="kick" onclick="kick()" disabled>Kick</button>
-    <button id="print" onclick="print()" disabled>Print</button>
-    <pre id="output"></pre>
-    <pre id="status"></pre>
+    <button class="print" onclick="kick()" disabled>Kick</button>
+    <button class="print" onclick="print()" disabled>Print</button>
+    <hr>
+    <button class="print" onclick="barcodes()" disabled>Barcodes</button>
+    <button class="print" onclick="qrcode()" disabled>QR Code</button>
+    <button class="print" onclick="pdf417()" disabled>PDF417</button>
 </main>
