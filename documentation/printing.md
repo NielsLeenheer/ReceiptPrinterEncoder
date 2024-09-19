@@ -23,6 +23,8 @@ The first thing to mention is that this library does in fact not have any method
 
 But we do have a number of sister libraries which will help you print your receipt in the browser or in Node.
 
+<br>
+
 ### Printing in the browser
 
 If you use a Chromium-based browser that supports APIs such as WebUSB, WebSerial or WebBluetooth you can send data directly to the printer from a web application. 
@@ -32,6 +34,8 @@ Look at the following libraries:
 - [WebBluetoothReceiptPrinter](https://github.com/NielsLeenheer/WebBluetoothReceiptPrinter)
 - [WebSerialReceiptPrinter](https://github.com/NielsLeenheer/WebSerialReceiptPrinter)
 - [WebUSBReceiptPrinter](https://github.com/NielsLeenheer/WebUSBReceiptPrinter)
+
+<br>
 
 ### Printing from Node
 
