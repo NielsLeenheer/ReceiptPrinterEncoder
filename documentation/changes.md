@@ -21,6 +21,10 @@ Create a set of commands that can be send to any receipt printer that supports E
   - [Alignment now uses spaces](#alignment-now-uses-spaces)
   - [Size() changed functionality](#size-changed-functionality)
   - [Qrcode() now uses a configuration object](#qrcode-now-uses-a-configuration-object)
+  - [Barcode() now uses a configuration object](#barcode-now-uses-a-configuration-object)
+  - [Barcode() default size changed](#barcode-default-size-changed)
+  - [Codabar and NW-7 barcodes are the same](#codabar-and-nw-7-barcodes-are-the-same)
+  - [Code-128 code sets are no longer supported](#code-128-code-sets-are-no-longer-supported)
   - [Some code page mappings have been renamed](#some-code-page-mappings-have-been-renamed)
   - [Automatic encoding of codepages](#automatic-encoding-of-codepages)
 
@@ -201,6 +205,52 @@ let result = encoder
 ```
 
 The old way of using the `qrcode()` function still works, but it has been deprecated and will be removed in a future version.
+
+<br>
+
+### Barcode() now uses a configuration object
+
+Instead of a seperate parameter for height, the `barcode()` function now uses a configuration object to set the height and a couple of new options..
+
+Version 2: 
+
+```js
+let result = encoder
+    .barcode('313063057461', 'ean13', 40)
+    .encode()
+```
+
+Version 3: 
+
+```js
+let result = encoder
+    .barcode('313063057461', 'ean13', { height: 40 })
+    .encode()
+```
+
+The old way of using the `barcode()` function still works, but it has been deprecated and will be removed in a future version.
+
+<br>
+
+### Barcode() default size changed
+
+There was an inconsitency in size of the barcode between StarPRNT and ESC/POS. The barcodes printed on a Star printer appeared much larger. This inconsistency has been fixed and Star printers now appear similar to ESC/POS printers. 
+
+Additionally a new `width` option has been added so you can adjust the size of the barcode yourself.
+
+<br>
+
+### Codabar and NW-7 barcodes are the same
+
+In previous versions ESC/POS printers supported Codabar barcodes and Star printers supported NW-7 barcodes. On most printers these types are completely identical. 
+
+So from now on Codabar is supported for ESC/POS and StarPRNT and NW-7 is an alias for Codabar. And it is no longer needed to choose one for one language and pick the other one for the other language. Both will work in both languages.
+
+<br>
+
+### Code-128 code sets are no longer supported 
+
+Version 2 allowed you to specify which code set you wanted to use for Code-128 barcodes. This functionality has been deprecated, because it did not work correctly in StarPRNT. As of version 3, the code set will be automatically selected for both languages.
 
 <br>
 

@@ -55,10 +55,10 @@ class LanguageEscPos {
      * Generate a barcode
      * @param {string} value        Value to encode
      * @param {string} symbology    Barcode symbology
-     * @param {number} height       Height of the barcode
+     * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
-    barcode(value, symbology, height) {
+    barcode(value, symbology, options) {
         let result = [];
 
         const symbologies = {
@@ -69,39 +69,61 @@ class LanguageEscPos {
             'code39': 0x04,
             'coda39': 0x04, /* typo, leave here for backwards compatibility */
             'itf': 0x05,
+            'nw-7': 0x06,
             'codabar': 0x06,
             'code93': 0x48,
             'code128': 0x49,
-            'gs1-128': 0x50,
-            'gs1-databar-omni': 0x51,
-            'gs1-databar-truncated': 0x52,
-            'gs1-databar-limited': 0x53,
-            'gs1-databar-expanded': 0x54,
-            'code128-auto': 0x55,
+            'gs1-128': 0x48,
+            'gs1-databar-omni': 0x4b,
+            'gs1-databar-truncated': 0x4c,
+            'gs1-databar-limited': 0x4d,
+            'gs1-databar-expanded': 0x4e,
+            'code128-auto': 0x4f,
         };
       
         if (typeof symbologies[symbology] === 'undefined') {
             throw new Error('Symbology not supported by printer');
         }
 
-        const bytes = CodepageEncoder.encode(value, 'ascii');
-      
+        /* Calculate segment width */
+
+        if (options.width < 1 || options.width > 3) {
+            throw new Error('Width must be between 1 and 3');
+        }
+
+        let width = options.width + 1;
+
+        if (symbology === 'itf') {
+            width = options.width * 2;
+        }
+
+        if (symbology === 'gs1-128' || symbology == 'gs1-databar-omni' || symbology == 'gs1-databar-truncated' || symbology == 'gs1-databar-limited' || symbology == 'gs1-databar-expanded') {
+            width = options.width;
+        }
+
+        /* Set barcode options */
+
         result.push(
-            0x1d, 0x68, height,
-            0x1d, 0x77, symbology === 'code39' ? 0x02 : 0x03,
+            0x1d, 0x68, options.height,
+            0x1d, 0x77, width,
+            0x1d, 0x48, options.text ? 0x02 : 0x00,
         );
-      
         
-        if (symbology == 'code128' && bytes[0] !== 0x7b) {
-            /* Not yet encodeded Code 128, assume data is Code B, which is similar to ASCII without control chars */
-    
-            result.push(
-                0x1d, 0x6b, symbologies[symbology],
-                bytes.length + 2,
-                0x7b, 0x42,
-                ...bytes
-            );
-        } else if (symbologies[symbology] > 0x40) {
+
+        /* Encode barcode */
+
+        if (symbology == 'code128' && !value.startsWith('{')) {
+            value = '{B' + value;
+        }
+
+        if (symbology == 'gs1-128') {
+            console.log('gs1-128', value, value.replace(/[\(\)\*]/g, ''));
+            value = value.replace(/[\(\)\*]/g, '');
+        }
+
+        const bytes = CodepageEncoder.encode(value, 'ascii');
+        
+        if (symbologies[symbology] > 0x40) {
             /* Function B symbologies */
     
             result.push(

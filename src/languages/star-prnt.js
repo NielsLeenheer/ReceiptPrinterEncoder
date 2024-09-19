@@ -57,10 +57,10 @@ class LanguageStarPrnt {
      * Generate a barcode
      * @param {string} value        Value to encode
      * @param {string} symbology    Barcode symbology
-     * @param {number} height       Height of the barcode
+     * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
-    barcode(value, symbology, height) {
+    barcode(value, symbology, options) {
         let result = [];
 
         const symbologies = {
@@ -73,6 +73,7 @@ class LanguageStarPrnt {
             'code128': 0x06,
             'code93': 0x07,
             'nw-7': 0x08,
+            'codabar': 0x08,
             'gs1-128': 0x09,
             'gs1-databar-omni': 0x0a,
             'gs1-databar-truncated': 0x0b,
@@ -84,12 +85,26 @@ class LanguageStarPrnt {
             throw new Error('Symbology not supported by printer');
         }
 
+        if (options.width < 1 || options.width > 3) {
+            throw new Error('Width must be between 1 and 3');
+        }
+
+        /* Selecting mode A, B or C for Code128 is not supported for StarPRNT, so ignore it and let the printer choose */
+
+        if (symbology === 'code128' && value.startsWith('{')) {
+            value = value.slice(2);
+        }
+
+        /* Encode the barcode value */
 
         const bytes = CodepageEncoder.encode(value, 'ascii');
       
         result.push(
             0x1b, 0x62,
-            symbologies[symbology], 0x01, 0x03, height,
+            symbologies[symbology], 
+            options.text ? 0x02 : 0x01, 
+            options.width, 
+            options.height,
             ...bytes, 0x1e
         );
     

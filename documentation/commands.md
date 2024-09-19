@@ -485,13 +485,9 @@ let result = encoder
 
 ### Barcode
 
-Print a barcode of a certain symbology. The first parameter is the value of the barcode as a string, the second is the symbology and finally the height of the barcode.
+Print a barcode of a certain symbology. The first parameter is the value of the barcode as a string, the second is the symbology.
 
-The following symbologies can be used for both ESC/POS and StarPRNT: `upca`, `ean13`, `ean8`, `code39`, `itf`, `code93`, `code128`, `gs1-128`, `gs1-databar-omni`, `gs1-databar-truncated`, `gs1-databar-limited`, `gs1-databar-expanded`, `code128-auto`.
-
-The following symbologies can be used for ESC/POS: `codabar`
-
-The following symbologies can be used for StarPRNT: `upce`, `nw-7`
+The following symbologies can be used: `upca`, `upce`, `ean13`, `ean8`, `code39`, `itf`, `code93`, `code128`, `codabar`, `gs1-128`, `gs1-databar-omni`, `gs1-databar-truncated`, `gs1-databar-limited`, `gs1-databar-expanded`, `code128-auto`.
 
 > [!NOTE]
 > Just because the symbology is suppored by this library does not mean that the printer will actually support it. If the symbology is not supported, the barcode will simply not be printed, or the raw data will be printed instead, depending on the model and manufacturer of the printer.
@@ -502,7 +498,7 @@ For example with the checksum provided in the data:
 
 ```js
 let result = encoder
-    .barcode('3130630574613', 'ean13', 60)
+    .barcode('3130630574613', 'ean13')
     .encode()
 ```
 
@@ -510,7 +506,7 @@ Or without a checksum:
 
 ```js
 let result = encoder
-    .barcode('313063057461', 'ean13', 60)
+    .barcode('313063057461', 'ean13')
     .encode()
 ```
 
@@ -529,39 +525,32 @@ Furthermore, depending on the symbology the data must be handled differently:
 | code93 | 1 - 255 | ASCII character (0 - 127) |
 | code128 | 1 - 253 | ASCII character (32 - 127) |
 
-The Code 128 symbology specifies three different code sets which contain different characters. For example: CODE A contains ASCII control characters, special characters, digits and uppercase letters. CODE B contains special characters, digits, uppercase letters and lowercase letters. CODE C prints 2 digits numbers that correspond to the ASCII value of the letter.  
+This function accepts an object as a third parameter for extra configuration options:
 
-By default Code 128 uses CODE B. It is possible to use a different code set, by using the code set selector character { followed by the uppercase letter of the character set.
+- *height* - the height of the barcode in pixels, defaults to 60.
+- *width* - the width of a segment of the barcode, can be a number from 1 to 3, defaults to 2.
+- *text* - a boolean that indicates if a human readable version of the value should be printed below the barcode, defaults to false.
 
-For example with the default CODE B set: 
-
-```js
-let result = encoder
-    .barcode('CODE128 test', 'code128', 60)
-    .encode()
-```
-
-Is equivalent to manually selecting CODE B:
+For example to show the number of the barcode:
 
 ```js
 let result = encoder
-    .barcode('{B' + 'CODE128 test', 'code128', 60)
+    .barcode('313063057461', 'ean13', {
+        height: 100,
+        text: true
+    })
     .encode()
 ```
 
-And Code C only supports numbers, but you must encode it as a string:
+Or to increase the size of the barcode:
 
 ```js
 let result = encoder
-    .barcode('{C' + '2Uc#', 'code128', 60)
+    .barcode('313063057461', 'ean13', {
+        width: 3,
+    })
     .encode()
 ```
-
-If you look up the value of the characters in an ASCII table, you will see that 2 = 50, U = 85, c = 99 and # = 35.
-
-The printed barcode will be `50859935`.
-
-All of the other symbologies require even more complicated encoding specified in the Espon ESC/POS printer language specification. To use these other symbologies you need to encode these barcodes yourself.
 
 <br>
 

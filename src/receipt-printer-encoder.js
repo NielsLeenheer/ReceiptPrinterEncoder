@@ -720,11 +720,25 @@ class ReceiptPrinterEncoder {
      *
      * @param  {string}           value  the value of the barcode
      * @param  {string}           symbology  the type of the barcode
-     * @param  {number}           height  height of the barcode
+     * @param  {number|object}    height  Either the configuration object, or backwards compatible height of the barcode
      * @return {object}                  Return the object, for easy chaining commands
      *
      */
   barcode(value, symbology, height) {
+    let options = {
+      height: 60,
+      width: 2,
+      text: false,
+    };
+
+    if (typeof height === 'object') {
+      options = Object.assign(options, height);
+    }
+
+    if (typeof height === 'number') {
+      options.height = height;
+    }
+
     if (this.#options.embedded) {
       throw new Error('Barcodes are not supported in table cells or boxes');
     }
@@ -740,7 +754,7 @@ class ReceiptPrinterEncoder {
     /* Barcode */
 
     this.#composer.raw(
-        this.#language.barcode(value, symbology, height),
+        this.#language.barcode(value, symbology, options),
     );
 
     /* Reset alignment */
