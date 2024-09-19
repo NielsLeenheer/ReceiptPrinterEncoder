@@ -37,11 +37,15 @@ And additionally there are also the following printer specific code pages:
 
 But...
 
+<br>
+
 ### Printer support
 
 Support for one specific code pages is not only dependant on this library, even more important is that the printer understands it. And support for code pages depend on manufacturer and model. Some only support a few, some support most of these. There are probably no printers that support all of them. 
 
 Before choosing a code page, check the technical manual of your printer which code pages are supported. If your printer does not support a code page that you need, you are out of luck and nothing this library does can help you solve this problem. 
+
+<br>
 
 ### Code page mappings
 
@@ -84,6 +88,8 @@ Each property name must be one of the code pages supported by this library and t
 
 If you use the StarPRNT language, you do not need to specify a `codepageMapping`.
 
+<br>
+
 ### Auto encoding
 
 It is also possible to enable auto encoding of code pages. The library will then automatically switch between code pages depending on the text that you want to print. 
@@ -117,6 +123,8 @@ let encoder = new ReceiptPrinterEncoder({
     ]
 });
 ```
+
+<br>
 
 ### Advanced text compositing
 
