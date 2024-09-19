@@ -52,7 +52,11 @@ All commands can be chained, except for `encode()` which will return the result 
 
 The following commands are available:
 
+<br>
+
 ---
+
+<br>
 
 ### Initialize
 
@@ -63,6 +67,8 @@ let result = encoder
     .initialize()
     .encode()
 ```
+
+<br>
 
 ### Codepage
 
@@ -94,6 +100,8 @@ let result = encoder
 
 See the chapter [Handling text](text.md) for more information about code pages.
 
+<br>
+
 ### Text
 
 Print a string of text. Word are wrapped automatically at the width specified by the `columns` property set at initialisation. 
@@ -103,6 +111,8 @@ let result = encoder
     .text('The quick brown fox jumps over the lazy dog')
     .encode()
 ```
+
+<br>
 
 ### Newline
 
@@ -121,6 +131,8 @@ let result = encoder
     .newline(4)
     .encode()
 ```
+
+<br>
 
 ### Line
 
@@ -143,6 +155,8 @@ let result = encoder
     .newline()
     .encode()
 ```
+
+<br>
 
 ### Underline
 
@@ -168,6 +182,8 @@ let result = encoder
     .encode()
 ```
 
+<br>
+
 ### Bold
 
 Change the text style to bold. 
@@ -191,6 +207,8 @@ let result = encoder
     .bold(false)
     .encode()
 ```
+
+<br>
 
 ### Italic
 
@@ -218,6 +236,8 @@ let result = encoder
 
 Note: this text style is not supported by most ESC/POS receipt printers and not at all by StarPRNT receipt printers.
 
+<br>
+
 ### Invert
 
 Change the style to white text on a black background. 
@@ -242,6 +262,8 @@ let result = encoder
     .encode()
 ```
 
+<br>
+
 ### Align
 
 Change the alignment of the text. You can specify the alignment using a parameter which can be either "left", "center" or "right".
@@ -256,6 +278,8 @@ let result = encoder
     .line('This line is aligned to the left')
     .encode()
 ```
+
+<br>
 
 ### Font
 
@@ -284,6 +308,7 @@ let result = encoder
 
 Please keep in mind that not all printers support all sizes. Please take a look at the specifications of your printer to see which fonts are supported. Additionally, not all printers use the same name for the same sizes. On some printers font "B" can be 9x17 pixels, on some other printers it can be 9x24 pixels. But generally font "A" is the larger default, and font "B" is the smaller optional one.
 
+<br>
 
 ### Width
 
@@ -302,6 +327,8 @@ let result = encoder
 
 Not all printers support all widths, it is probably best to not go over 4x at the most just to be safe.
 
+<br>
+
 ### Height
 
 Change the text height. You can specify the height using a parameter which can be a number from 1 to 6 for StarPRNT or 1 to 8 for ESC/POS.
@@ -318,6 +345,8 @@ let result = encoder
 ```
 
 Not all printers support all heights, it is probably best to not go over 4x at the most just to be safe.
+
+<br>
 
 ### Size
 
@@ -340,6 +369,8 @@ let result = encoder
     .size(1)
     .encode()
 ```
+
+<br>
 
 ### Table
 
@@ -402,6 +433,7 @@ If you want to style text inside of a cell, can use the callback function instea
 ]
 ```
 
+<br>
 
 ### Box
 
@@ -430,6 +462,8 @@ let result = encoder
     .encode()
 ```
 
+<br>
+
 ### Rule
 
 Insert a horizontal rule.
@@ -446,6 +480,8 @@ let result = encoder
     .rule({ style: 'double' })  
     .encode()
 ```     
+
+<br>
 
 ### Barcode
 
@@ -527,7 +563,7 @@ The printed barcode will be `50859935`.
 
 All of the other symbologies require even more complicated encoding specified in the Espon ESC/POS printer language specification. To use these other symbologies you need to encode these barcodes yourself.
 
-
+<br>
 
 ### Qrcode
 
@@ -555,6 +591,7 @@ let result = encoder
 
 Not all printers support printing QR codes. If the printer does not support it, the QR code will simply not be printed, or the raw data will be printed instead, depending on the model and manufacturer of the printer.
 
+<br>
 
 ### PDF417 code
 
@@ -585,7 +622,7 @@ let result = encoder
 
 Not all printers support printing PDF417 codes. If the printer does not support it, the PDF417 code will simply not be printed, or the raw data will be printed instead, depending on the model and manufacturer of the printer.
 
-
+<br>
 
 ### Image
 
@@ -663,6 +700,7 @@ You can find examples for many types of image reading libraries in the `examples
 > [!TIP]
 > If you are trying to print an image on an ESC/POS printer and it does not work properly, you can try changing the image mode in the [configuration settings](configuration.md#image-mode). Some printers only support `raster` mode, other printers only support `column` mode.
 
+<br>
 
 ### Pulse
 
@@ -686,6 +724,8 @@ let result = encoder
     .encode()
 ```
 
+<br>
+
 ### Cut
 
 Cut the paper. Optionally a parameter can be specified which can be either be "partial" or "full". If not specified, a full cut will be used. 
@@ -702,6 +742,7 @@ Not all printer models support cutting paper. And even if they do, they might no
 > [!TIP]
 > If the location of your printers cutter is higher than the last line of printed text, you may need to feed the paper some extra lines. You can use [the `feedBeforeCut` configuration option](configuration.md#feed-before-cut) to do this automatically.
 
+<br>
 
 ### Raw
 
