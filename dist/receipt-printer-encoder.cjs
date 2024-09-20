@@ -75,6 +75,7 @@ class LanguageEscPos {
             'code39': 0x04,
             'coda39': 0x04, /* typo, leave here for backwards compatibility */
             'itf': 0x05,
+            'interleaved-2-of-5': 0x05,
             'nw-7': 0x06,
             'codabar': 0x06,
             'code93': 0x48,
@@ -628,6 +629,7 @@ class LanguageStarPrnt {
             'ean13': 0x03,
             'code39': 0x04,
             'itf': 0x05,
+            'interleaved-2-of-5': 0x05,
             'code128': 0x06,
             'code93': 0x07,
             'nw-7': 0x08,

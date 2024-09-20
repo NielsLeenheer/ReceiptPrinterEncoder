@@ -70,6 +70,7 @@ class LanguageStarPrnt {
             'ean13': 0x03,
             'code39': 0x04,
             'itf': 0x05,
+            'interleaved-2-of-5': 0x05,
             'code128': 0x06,
             'code93': 0x07,
             'nw-7': 0x08,
