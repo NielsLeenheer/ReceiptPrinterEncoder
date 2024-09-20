@@ -13,11 +13,11 @@
         "fonts": {
             "A": {
                 "size": "12x24",
-                "columns": 32
+                "columns": 48
             },
             "B": {
                 "size": "9x17",
-                "columns": 42
+                "columns": 64
             }
         }    
     },
