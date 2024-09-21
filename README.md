@@ -15,6 +15,11 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 <br>
 
+[![npm](https://img.shields.io/npm/v/@point-of-sale/receipt-printer-encoder)](https://www.npmjs.com/@point-of-sale/receipt-printer-encoder)
+![GitHub License](https://img.shields.io/github/license/NielsLeenheer/ReceiptPrinterEncoder)
+
+<br>
+
 ## About ReceiptPrinterEncoder
 
 This library allows you to run commands to add content, such as text, images and barcodes to a receipt and encode that content to ESC/POS, StarLine and StarPRNT commands. 
