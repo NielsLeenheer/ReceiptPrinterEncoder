@@ -1533,6 +1533,34 @@ class LineComposer {
       return result;
     }
 
+    /* Check the alignment of the current line */
+
+    const align = {
+      current: this.#align,
+      next: null,
+    };
+
+    for (let i = 0; i < this.#buffer.length - 1; i++) {
+      if (this.#buffer[i].type === 'align') {
+        align.current = this.#buffer[i].value;
+      }
+    }
+
+    /* Check the last item in the buffer, to see if it changes the alignment, then save it for the next line */
+
+    if (this.#buffer.length) {
+      const last = this.#buffer[this.#buffer.length - 1];
+
+      if (last.type === 'align') {
+        align.next = last.value;
+      }
+    }
+
+    this.#align = align.current;
+
+    /* Fetch the contents of the line buffer */
+
+
     let result = [];
 
     const restore = this.style.restore();
@@ -1601,6 +1629,11 @@ class LineComposer {
       result.push({type: 'empty'});
     }
 
+    if (align.next) {
+      this.#align = align.next;
+    }
+
+
     return result;
   }
 
@@ -1614,40 +1647,10 @@ class LineComposer {
       forceNewline: false,
     }, options || {});
 
-    const align = {
-      current: this.#align,
-      next: null,
-    };
-
-    for (let i = 0; i < this.#buffer.length - 1; i++) {
-      if (this.#buffer[i].type === 'align') {
-        align.current = this.#buffer[i].value;
-      }
-    }
-
-    /* Check the last item in the buffer, to see if it changes the alignment, then save it for the next line */
-
-    if (this.#buffer.length) {
-      const last = this.#buffer[this.#buffer.length - 1];
-
-      if (last.type === 'align') {
-        align.next = last.value;
-      }
-    }
-
-
-    /* Fetch the contents of the line buffer */
-
-    this.#align = align.current;
-
     const result = this.fetch(options);
 
     if (result.length) {
       this.#callback(result);
-    }
-
-    if (align.next) {
-      this.#align = align.next;
     }
   }
 
@@ -2306,7 +2309,7 @@ class ReceiptPrinterEncoder {
           embedded: true,
         }));
 
-        columnEncoder._codepage = this.#codepage;
+        columnEncoder.codepage(this.#codepage);
         columnEncoder.align(columns[c].align);
 
         if (typeof data[r][c] === 'string') {
