@@ -516,7 +516,7 @@ class ReceiptPrinterEncoder {
           embedded: true,
         }));
 
-        columnEncoder._codepage = this.#codepage;
+        columnEncoder.codepage(this.#codepage);
         columnEncoder.align(columns[c].align);
 
         if (typeof data[r][c] === 'string') {
