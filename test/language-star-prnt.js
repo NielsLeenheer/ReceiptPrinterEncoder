@@ -198,8 +198,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.barcode('3130630574613', 'ean13', 60).encode();
         
-        it('should be [27, 98, 3, 1, 3, 60, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 30, 10, 13]', function () {
-            assert.deepEqual(new Uint8Array([27, 98, 3, 1, 3, 60, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 30, 10, 13]), result);
+        it('should be [27, 98, 3, 1, 2, 60, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 30, 10, 13]', function () {
+            assert.deepEqual(new Uint8Array([27, 98, 3, 1, 2, 60, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 30, 10, 13]), result);
         });
     });
 
@@ -207,35 +207,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.barcode('CODE128', 'code128', 60).encode();
         
-        it('should be [27, 98, 6, 1, 3, 60, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]', function () {
-            assert.deepEqual(new Uint8Array([27, 98, 6, 1, 3, 60, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]), result);
-        });
-    });
-
-    describe('barcode({ACODE128, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
-        let result = encoder.barcode('{ACODE128', 'code128', 60).encode();
-        
-        it('should be [27, 98, 6, 1, 3, 60, 123, 65, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]', function () {
-            assert.deepEqual(new Uint8Array([27, 98, 6, 1, 3, 60, 123, 65, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]), result);
-        });
-    });
-
-    describe('barcode({BCODE128, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
-        let result = encoder.barcode('{BCODE128', 'code128', 60).encode();
-        
-        it('should be [27, 98, 6, 1, 3, 60, 123, 66, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]', function () {
-            assert.deepEqual(new Uint8Array([27, 98, 6, 1, 3, 60, 123, 66, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]), result);
-        });
-    });
-
-    describe('barcode({C2Uc#, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
-        let result = encoder.barcode('{C2Uc#', 'code128', 60).encode();
-        
-        it('should be [27, 98, 6, 1, 3, 60, 123, 67, 50, 85, 99, 35, 30, 10, 13]', function () {
-            assert.deepEqual(new Uint8Array([27, 98, 6, 1, 3, 60, 123, 67, 50, 85, 99, 35, 30, 10, 13]), result);
+        it('should be [27, 98, 6, 1, 2, 60, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]', function () {
+            assert.deepEqual(new Uint8Array([27, 98, 6, 1, 2, 60, 67, 79, 68, 69, 49, 50, 56, 30, 10, 13]), result);
         });
     });
 

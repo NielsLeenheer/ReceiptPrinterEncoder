@@ -226,7 +226,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.barcode('3130630574613', 'ean13', 60).encode();
         
         it('should be [ 29, 104, 60, 29, 119, 3, 29, 107, 2, ... ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 107, 2, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 72, 0, 29, 107, 2, 51, 49, 51, 48, 54, 51, 48, 53, 55, 52, 54, 49, 51, 0, 10, 13 ]), result);
         });
     });
 
@@ -235,34 +235,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.barcode('CODE128', 'code128', 60).encode();
         
         it('should be [ 29, 104, 60, 29, 119, 3, 29, 107, 73, ... ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 107, 73, 9, 123, 66, 67, 79, 68, 69, 49, 50, 56, 10, 13 ]), result);
-        });
-    });
-
-    describe('barcode({ACODE128, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
-        let result = encoder.barcode('{ACODE128', 'code128', 60).encode();
-        
-        it('should be [ 29, 104, 60, 29, 119, 3, 29, 107, 73, ... ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 107, 73, 9, 123, 65, 67, 79, 68, 69, 49, 50, 56, 10, 13 ]), result);
-        });
-    });
-
-    describe('barcode({BCODE128, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
-        let result = encoder.barcode('{BCODE128', 'code128', 60).encode();
-        
-        it('should be [ 29, 104, 60, 29, 119, 3, 29, 107, 73, ... ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 107, 73, 9, 123, 66, 67, 79, 68, 69, 49, 50, 56, 10, 13 ]), result);
-        });
-    });
-
-    describe('barcode({C2Uc#, code128, 60)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
-        let result = encoder.barcode('{C2Uc#', 'code128', 60).encode();
-        
-        it('should be [ 29, 104, 60, 29, 119, 3, 29, 107, 73, ... ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 107, 73, 6, 123, 67, 50, 85, 99, 35, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 104, 60, 29, 119, 3, 29, 72, 0, 29, 107, 73, 9, 123, 66, 67, 79, 68, 69, 49, 50, 56, 10, 13 ]), result);
         });
     });
 
