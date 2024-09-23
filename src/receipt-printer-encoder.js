@@ -743,7 +743,7 @@ class ReceiptPrinterEncoder {
       throw new Error('Barcodes are not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -763,7 +763,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -808,7 +808,7 @@ class ReceiptPrinterEncoder {
 
     /* Force printing the print buffer and moving to a new line */
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -828,7 +828,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -858,7 +858,7 @@ class ReceiptPrinterEncoder {
 
     /* Force printing the print buffer and moving to a new line */
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -878,7 +878,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -1015,7 +1015,7 @@ class ReceiptPrinterEncoder {
     }
 
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -1035,7 +1035,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -1052,17 +1052,17 @@ class ReceiptPrinterEncoder {
       throw new Error('Cut is not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
-
     for (let i = 0; i < this.#options.feedBeforeCut; i++) {
       this.#composer.flush({forceNewline: true});
     }
+
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     this.#composer.raw(
         this.#language.cut(value),
     );
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -1081,13 +1081,13 @@ class ReceiptPrinterEncoder {
       throw new Error('Pulse is not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     this.#composer.raw(
         this.#language.pulse(device, on, off),
     );
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -1177,7 +1177,7 @@ class ReceiptPrinterEncoder {
   commands() {
     const result = [];
 
-    const remaining = this.#composer.fetch({forceStyles: true});
+    const remaining = this.#composer.fetch({forceFlush: true, ignoreAlignment: true});
 
     if (remaining.length) {
       this.#queue.push(remaining);

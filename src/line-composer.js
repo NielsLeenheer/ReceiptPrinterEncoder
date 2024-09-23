@@ -113,33 +113,11 @@ class LineComposer {
      * @return {array}               Array of items in the line buffer
      */
   fetch(options) {
-    /* Output the buffer without any modifications */
-
-    if (this.#cursor === 0 && options.ignoreAlignment) {
-      const result = this.#merge([...this.#buffer]);
-      this.#buffer = [];
-      return result;
-    }
-
-    /* If there is not text in the buffer, and we are forced to output styles, do so */
-
-    if (this.#cursor === 0 && options.forceStyles) {
-      const hasText = this.#buffer.some((item) => item.type === 'text');
-
-      if (!hasText) {
-        const result = this.#merge([...this.#buffer]);
-        this.#buffer = [];
-        return result;
-      }
-    }
-
     /* Unless forced keep style changes for the next line */
 
-    if (this.#cursor === 0 && !options.forceNewline && !options.forceStyles) {
+    if (this.#cursor === 0 && !options.forceNewline && !options.forceFlush) {
       return [];
     }
-
-    /* Process the buffer */
 
     /* Check the alignment of the current line */
 
@@ -173,59 +151,67 @@ class LineComposer {
     const restore = this.style.restore();
     const store = this.style.store();
 
-    if (this.#align === 'right') {
-      let last;
+    if (this.#cursor === 0 && options.ignoreAlignment) {
+      result = this.#merge([
+        ...this.#stored,
+        ...this.#buffer,
+        ...store,
+      ]);
+    } else {
+      if (this.#align === 'right') {
+        let last;
 
-      /* Find index of last text or space element */
+        /* Find index of last text or space element */
 
-      for (let i = this.#buffer.length - 1; i >= 0; i--) {
-        if (this.#buffer[i].type === 'text' || this.#buffer[i].type === 'space') {
-          last = i;
-          break;
+        for (let i = this.#buffer.length - 1; i >= 0; i--) {
+          if (this.#buffer[i].type === 'text' || this.#buffer[i].type === 'space') {
+            last = i;
+            break;
+          }
         }
+
+        /* Remove trailing spaces from lines */
+
+        if (typeof last === 'number') {
+          if (this.#buffer[last].type === 'space' && this.#buffer[last].size > this.style.width) {
+            this.#buffer[last].size -= this.style.width;
+            this.#cursor -= this.style.width;
+          }
+
+          if (this.#buffer[last].type === 'text' && this.#buffer[last].value.endsWith(' ')) {
+            this.#buffer[last].value = this.#buffer[last].value.slice(0, -1);
+            this.#cursor -= this.style.width;
+          }
+        }
+
+        result = this.#merge([
+          {type: 'space', size: this.#columns - this.#cursor},
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+        ]);
       }
 
-      /* Remove trailing spaces from lines */
+      if (this.#align === 'center') {
+        const left = (this.#columns - this.#cursor) >> 1;
 
-      if (typeof last === 'number') {
-        if (this.#buffer[last].type === 'space' && this.#buffer[last].size > this.style.width) {
-          this.#buffer[last].size -= this.style.width;
-          this.#cursor -= this.style.width;
-        }
-
-        if (this.#buffer[last].type === 'text' && this.#buffer[last].value.endsWith(' ')) {
-          this.#buffer[last].value = this.#buffer[last].value.slice(0, -1);
-          this.#cursor -= this.style.width;
-        }
+        result = this.#merge([
+          {type: 'space', size: left},
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
+        ]);
       }
 
-      result = this.#merge([
-        {type: 'space', size: this.#columns - this.#cursor},
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-      ]);
-    }
-
-    if (this.#align === 'center') {
-      const left = (this.#columns - this.#cursor) >> 1;
-
-      result = this.#merge([
-        {type: 'space', size: left},
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-        {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
-      ]);
-    }
-
-    if (this.#align === 'left') {
-      result = this.#merge([
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-        {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
-      ]);
+      if (this.#align === 'left') {
+        result = this.#merge([
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
+        ]);
+      }
     }
 
     this.#stored = restore;
@@ -251,7 +237,7 @@ class LineComposer {
   flush(options) {
     options = Object.assign({
       forceNewline: false,
-      forceStyles: false,
+      forceFlush: false,
       ignoreAlignment: false,
     }, options || {});
 

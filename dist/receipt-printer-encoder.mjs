@@ -1519,33 +1519,11 @@ class LineComposer {
      * @return {array}               Array of items in the line buffer
      */
   fetch(options) {
-    /* Output the buffer without any modifications */
-
-    if (this.#cursor === 0 && options.ignoreAlignment) {
-      const result = this.#merge([...this.#buffer]);
-      this.#buffer = [];
-      return result;
-    }
-
-    /* If there is not text in the buffer, and we are forced to output styles, do so */
-
-    if (this.#cursor === 0 && options.forceStyles) {
-      const hasText = this.#buffer.some((item) => item.type === 'text');
-
-      if (!hasText) {
-        const result = this.#merge([...this.#buffer]);
-        this.#buffer = [];
-        return result;
-      }
-    }
-
     /* Unless forced keep style changes for the next line */
 
-    if (this.#cursor === 0 && !options.forceNewline && !options.forceStyles) {
+    if (this.#cursor === 0 && !options.forceNewline && !options.forceFlush) {
       return [];
     }
-
-    /* Process the buffer */
 
     /* Check the alignment of the current line */
 
@@ -1579,59 +1557,67 @@ class LineComposer {
     const restore = this.style.restore();
     const store = this.style.store();
 
-    if (this.#align === 'right') {
-      let last;
+    if (this.#cursor === 0 && options.ignoreAlignment) {
+      result = this.#merge([
+        ...this.#stored,
+        ...this.#buffer,
+        ...store,
+      ]);
+    } else {
+      if (this.#align === 'right') {
+        let last;
 
-      /* Find index of last text or space element */
+        /* Find index of last text or space element */
 
-      for (let i = this.#buffer.length - 1; i >= 0; i--) {
-        if (this.#buffer[i].type === 'text' || this.#buffer[i].type === 'space') {
-          last = i;
-          break;
+        for (let i = this.#buffer.length - 1; i >= 0; i--) {
+          if (this.#buffer[i].type === 'text' || this.#buffer[i].type === 'space') {
+            last = i;
+            break;
+          }
         }
+
+        /* Remove trailing spaces from lines */
+
+        if (typeof last === 'number') {
+          if (this.#buffer[last].type === 'space' && this.#buffer[last].size > this.style.width) {
+            this.#buffer[last].size -= this.style.width;
+            this.#cursor -= this.style.width;
+          }
+
+          if (this.#buffer[last].type === 'text' && this.#buffer[last].value.endsWith(' ')) {
+            this.#buffer[last].value = this.#buffer[last].value.slice(0, -1);
+            this.#cursor -= this.style.width;
+          }
+        }
+
+        result = this.#merge([
+          {type: 'space', size: this.#columns - this.#cursor},
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+        ]);
       }
 
-      /* Remove trailing spaces from lines */
+      if (this.#align === 'center') {
+        const left = (this.#columns - this.#cursor) >> 1;
 
-      if (typeof last === 'number') {
-        if (this.#buffer[last].type === 'space' && this.#buffer[last].size > this.style.width) {
-          this.#buffer[last].size -= this.style.width;
-          this.#cursor -= this.style.width;
-        }
-
-        if (this.#buffer[last].type === 'text' && this.#buffer[last].value.endsWith(' ')) {
-          this.#buffer[last].value = this.#buffer[last].value.slice(0, -1);
-          this.#cursor -= this.style.width;
-        }
+        result = this.#merge([
+          {type: 'space', size: left},
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
+        ]);
       }
 
-      result = this.#merge([
-        {type: 'space', size: this.#columns - this.#cursor},
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-      ]);
-    }
-
-    if (this.#align === 'center') {
-      const left = (this.#columns - this.#cursor) >> 1;
-
-      result = this.#merge([
-        {type: 'space', size: left},
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-        {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
-      ]);
-    }
-
-    if (this.#align === 'left') {
-      result = this.#merge([
-        ...this.#stored,
-        ...this.#buffer,
-        ...store,
-        {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
-      ]);
+      if (this.#align === 'left') {
+        result = this.#merge([
+          ...this.#stored,
+          ...this.#buffer,
+          ...store,
+          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
+        ]);
+      }
     }
 
     this.#stored = restore;
@@ -1657,7 +1643,7 @@ class LineComposer {
   flush(options) {
     options = Object.assign({
       forceNewline: false,
-      forceStyles: false,
+      forceFlush: false,
       ignoreAlignment: false,
     }, options || {});
 
@@ -2550,7 +2536,7 @@ class ReceiptPrinterEncoder {
       throw new Error('Barcodes are not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -2570,7 +2556,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2578,11 +2564,13 @@ class ReceiptPrinterEncoder {
   /**
      * QR code
      *
-     * @param  {string}           value  the value of the qr code
-     * @param  {number|object}    model  Either the configuration object, or backwards compatible model of the qrcode, either 1 or 2
-     * @param  {number}           size   Backwards compatible size of the qrcode, a value between 1 and 8
-     * @param  {string}           errorlevel  Backwards compatible the amount of error correction used, either 'l', 'm', 'q', 'h'
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {string}           value       The value of the qr code
+     * @param  {number|object}    model       Either the configuration object, or
+     *                                        backwards compatible model of the qrcode, either 1 or 2
+     * @param  {number}           size        Backwards compatible size of the qrcode, a value between 1 and 8
+     * @param  {string}           errorlevel  Backwards compatible the amount of error correction used,
+     *                                        either 'l', 'm', 'q', 'h'
+     * @return {object}                       Return the object, for easy chaining commands
      */
   qrcode(value, model, size, errorlevel) {
     let options = {
@@ -2613,7 +2601,7 @@ class ReceiptPrinterEncoder {
 
     /* Force printing the print buffer and moving to a new line */
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -2633,7 +2621,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2663,7 +2651,7 @@ class ReceiptPrinterEncoder {
 
     /* Force printing the print buffer and moving to a new line */
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -2683,7 +2671,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2820,7 +2808,7 @@ class ReceiptPrinterEncoder {
     }
 
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
 
@@ -2840,7 +2828,7 @@ class ReceiptPrinterEncoder {
       this.#composer.raw(this.#language.align('left'));
     }
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2857,17 +2845,17 @@ class ReceiptPrinterEncoder {
       throw new Error('Cut is not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
-
     for (let i = 0; i < this.#options.feedBeforeCut; i++) {
       this.#composer.flush({forceNewline: true});
     }
+
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     this.#composer.raw(
         this.#language.cut(value),
     );
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2886,13 +2874,13 @@ class ReceiptPrinterEncoder {
       throw new Error('Pulse is not supported in table cells or boxes');
     }
 
-    this.#composer.flush({forceStyles: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     this.#composer.raw(
         this.#language.pulse(device, on, off),
     );
 
-    this.#composer.flush({ignoreAlignment: true});
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -2982,10 +2970,9 @@ class ReceiptPrinterEncoder {
   commands() {
     const result = [];
 
-    const remaining = this.#composer.fetch({forceStyles: true});
+    const remaining = this.#composer.fetch({forceFlush: true, ignoreAlignment: true});
 
     if (remaining.length) {
-      console.log('remaining', remaining);
       this.#queue.push(remaining);
     }
 
