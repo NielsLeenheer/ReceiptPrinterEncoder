@@ -113,19 +113,21 @@ class LineComposer {
      * @return {array}               Array of items in the line buffer
      */
   fetch(options) {
-    if (this.#cursor === 0 && !options.forceNewline) {
-      /* If the buffer is empty, return an empty array */
+    /* Output the buffer without any modifications */
 
-      if (!this.#buffer.length) {
-        return [];
-      }
-
-      /* Otherwise return the buffer without any modifications */
-
-      const result = this.#merge([...this.#buffer]);
+    if (this.#cursor === 0 && options.ignoreAlignment) {
+      let result = this.#merge([ ...this.#buffer ]);
       this.#buffer = [];
       return result;
     }
+
+    /* Unless forced keep style changes for the next line */
+
+    if (this.#cursor === 0 && !options.forceNewline && !options.forceStyles) {
+      return [];
+    }
+
+    /* Process the buffer */
 
     /* Check the alignment of the current line */
 
@@ -153,7 +155,6 @@ class LineComposer {
     this.#align = align.current;
 
     /* Fetch the contents of the line buffer */
-
 
     let result = [];
 
@@ -227,7 +228,6 @@ class LineComposer {
       this.#align = align.next;
     }
 
-
     return result;
   }
 
@@ -239,6 +239,8 @@ class LineComposer {
   flush(options) {
     options = Object.assign({
       forceNewline: false,
+      forceStyles: false,
+      ignoreAlignment: false,
     }, options || {});
 
     const result = this.fetch(options);
