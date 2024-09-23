@@ -116,9 +116,21 @@ class LineComposer {
     /* Output the buffer without any modifications */
 
     if (this.#cursor === 0 && options.ignoreAlignment) {
-      let result = this.#merge([ ...this.#buffer ]);
+      const result = this.#merge([...this.#buffer]);
       this.#buffer = [];
       return result;
+    }
+
+    /* If there is not text in the buffer, and we are forced to output styles, do so */
+
+    if (this.#cursor === 0 && options.forceStyles) {
+      const hasText = this.#buffer.some((item) => item.type === 'text');
+
+      if (!hasText) {
+        const result = this.#merge([...this.#buffer]);
+        this.#buffer = [];
+        return result;
+      }
     }
 
     /* Unless forced keep style changes for the next line */
