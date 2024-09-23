@@ -1206,6 +1206,10 @@ class ReceiptPrinterEncoder {
       });
     }
 
+    if (this.#options.debug) {
+      console.log('commands', result);
+    }
+
     this.#reset();
 
     return result;
