@@ -74,6 +74,7 @@ class ReceiptPrinterEncoder {
       newline: '\n\r',
       codepageMapping: 'epson',
       codepageCandidates: null,
+      errors: 'relaxed',
     };
 
     /* Determine default settings based on the printer language */
@@ -458,8 +459,8 @@ class ReceiptPrinterEncoder {
 
     /* Check if the font is supported */
 
-    if (typeof this.#fontMapping[value] === 'undefined') {
-      throw new Error('Unsuppored font');
+    if (typeof this.#printerCapabilities.fonts[value] === 'undefined') {
+      return this.#error('This font is not supported by this printer', 'relaxed');
     }
 
     /* Change the font */
@@ -1265,6 +1266,24 @@ class ReceiptPrinterEncoder {
     }
 
     return Uint8Array.from(result.flat());
+  }
+
+  /**
+   * Throw an error
+   * 
+   * @param  {string}          message  The error message
+   * @param  {string}          level    The error level, if level is strict, 
+   *                                    an error will be thrown, if level is relaxed, 
+   *                                    a warning will be logged
+   */
+  #error(message, level) {
+    if (level === 'strict' || this.#options.errors === 'strict') {
+      throw new Error(message);
+    }
+
+    console.warn(message);
+
+    return this;
   }
 
   /**
