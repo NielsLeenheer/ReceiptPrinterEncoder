@@ -28,8 +28,8 @@ class ReceiptPrinterEncoder {
 
   #printerCapabilities = {
     'fonts': {
-    'A': {size: '12x24', columns: 42},
-    'B': {size: '9x24', columns: 56},
+      'A': {size: '12x24', columns: 42},
+      'B': {size: '9x24', columns: 56},
     },
     'barcodes': {
       'supported': true,
@@ -734,7 +734,7 @@ class ReceiptPrinterEncoder {
      * Barcode
      *
      * @param  {string}           value  the value of the barcode
-     * @param  {string}           symbology  the type of the barcode
+     * @param  {string|number}    symbology  the type of the barcode
      * @param  {number|object}    height  Either the configuration object, or backwards compatible height of the barcode
      * @return {object}                  Return the object, for easy chaining commands
      *
@@ -890,6 +890,12 @@ class ReceiptPrinterEncoder {
     }
 
     if (this.#printerCapabilities.pdf417.supported === false) {
+      /* If possible, fallback to a barcode with symbology */
+
+      if (typeof this.#printerCapabilities.pdf417.fallback === 'object') {
+        return this.barcode(value, this.#printerCapabilities.pdf417.fallback.symbology);
+      }
+
       return this.#error('PDF417 codes are not supported by this printer', 'relaxed');
     }
 

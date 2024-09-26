@@ -54,7 +54,7 @@ class LanguageEscPos {
     /**
      * Generate a barcode
      * @param {string} value        Value to encode
-     * @param {string} symbology    Barcode symbology
+     * @param {string|number} symbology    Barcode symbology
      * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
@@ -82,8 +82,8 @@ class LanguageEscPos {
             'code128-auto': 0x4f,
         };
       
-        if (typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by printer');
+        if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
+            throw new Error('Symbology not supported by language');
         }
 
         /* Calculate segment width */
@@ -124,11 +124,13 @@ class LanguageEscPos {
 
         const bytes = CodepageEncoder.encode(value, 'ascii');
         
-        if (symbologies[symbology] > 0x40) {
+        const identifier = typeof symbology === 'string' ? symbologies[symbology] : symbology;
+
+        if (identifier > 0x40) {
             /* Function B symbologies */
     
             result.push(
-                0x1d, 0x6b, symbologies[symbology],
+                0x1d, 0x6b, identifier,
                 bytes.length,
                 ...bytes
             );
@@ -136,7 +138,7 @@ class LanguageEscPos {
             /* Function A symbologies */
     
             result.push(
-                0x1d, 0x6b, symbologies[symbology],
+                0x1d, 0x6b, identifier,
                 ...bytes,
                 0x00
             );

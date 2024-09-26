@@ -56,7 +56,7 @@ class LanguageStarPrnt {
     /**
      * Generate a barcode
      * @param {string} value        Value to encode
-     * @param {string} symbology    Barcode symbology
+     * @param {string|number} symbology    Barcode symbology
      * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
@@ -82,8 +82,8 @@ class LanguageStarPrnt {
             'gs1-databar-expanded': 0x0d,      
         };
       
-        if (typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by printer');
+        if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
+            throw new Error('Symbology not supported by language');
         }
 
         if (options.width < 1 || options.width > 3) {
@@ -99,10 +99,12 @@ class LanguageStarPrnt {
         /* Encode the barcode value */
 
         const bytes = CodepageEncoder.encode(value, 'ascii');
-      
+
+        const identifier = typeof symbology === 'string' ? symbologies[symbology] : symbology;
+
         result.push(
             0x1b, 0x62,
-            symbologies[symbology], 
+            identifier, 
             options.text ? 0x02 : 0x01, 
             options.width, 
             options.height,
