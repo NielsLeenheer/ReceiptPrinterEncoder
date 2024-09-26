@@ -1,0 +1,44 @@
+{
+    "vendor": "Star",
+    "model": "TSP650",
+    
+    "media": {
+        "dpi": 203,
+        "width": 80
+    },
+
+    "capabilities": {
+        "language": "star-line",
+        "codepages": "star",
+
+        "fonts": {
+            "A": {
+                "size": "12x24",
+                "columns": 48
+            },
+            "B": {
+                "size": "9x24",
+                "columns": 64
+            }
+        },
+
+        "barcodes": {
+            "supported": true,
+            "symbologies": [
+                "upca", "upce", "ean13", "ean8", "code39", "itf", "codabar", "code93", 
+                "code128"
+            ]
+        },
+        "qrcode": {
+            "supported": false,
+            "models": []
+        },
+        "pdf417": {
+            "supported": false
+        },
+        
+        "cutter": {
+            "feed": 3
+        }
+    }
+}
