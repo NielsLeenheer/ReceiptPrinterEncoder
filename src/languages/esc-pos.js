@@ -158,17 +158,19 @@ class LanguageEscPos {
 
         /* Model */
 
-        const models = {
-            1: 0x31,
-            2: 0x32,
-        };
-  
-        if (options.model in models) {
-            result.push(
-                0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
-            );
-        } else {
-            throw new Error('Model must be 1 or 2');
+        if (typeof options.model === 'number') {
+            const models = {
+                1: 0x31,
+                2: 0x32,
+            };
+    
+            if (options.model in models) {
+                result.push(
+                    0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
+                );
+            } else {
+                throw new Error('Model must be 1 or 2');
+            }
         }
   
         /* Size */
