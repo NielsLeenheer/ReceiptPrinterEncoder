@@ -65,7 +65,7 @@ class TextWrap {
             }
 
             for (const piece of pieces) {
-              if (length + (piece.length * width) >= columns) {
+              if (length + (piece.length * width) > columns) {
                 result.push(line);
                 line = [];
                 length = 0;
