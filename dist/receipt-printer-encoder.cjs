@@ -60,7 +60,7 @@ class LanguageEscPos {
     /**
      * Generate a barcode
      * @param {string} value        Value to encode
-     * @param {string} symbology    Barcode symbology
+     * @param {string|number} symbology    Barcode symbology
      * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
@@ -88,8 +88,8 @@ class LanguageEscPos {
             'code128-auto': 0x4f,
         };
       
-        if (typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by printer');
+        if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
+            throw new Error('Symbology not supported by language');
         }
 
         /* Calculate segment width */
@@ -130,11 +130,13 @@ class LanguageEscPos {
 
         const bytes = CodepageEncoder.encode(value, 'ascii');
         
-        if (symbologies[symbology] > 0x40) {
+        const identifier = typeof symbology === 'string' ? symbologies[symbology] : symbology;
+
+        if (identifier > 0x40) {
             /* Function B symbologies */
     
             result.push(
-                0x1d, 0x6b, symbologies[symbology],
+                0x1d, 0x6b, identifier,
                 bytes.length,
                 ...bytes
             );
@@ -142,7 +144,7 @@ class LanguageEscPos {
             /* Function A symbologies */
     
             result.push(
-                0x1d, 0x6b, symbologies[symbology],
+                0x1d, 0x6b, identifier,
                 ...bytes,
                 0x00
             );
@@ -162,17 +164,19 @@ class LanguageEscPos {
 
         /* Model */
 
-        const models = {
-            1: 0x31,
-            2: 0x32,
-        };
-  
-        if (options.model in models) {
-            result.push(
-                0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
-            );
-        } else {
-            throw new Error('Model must be 1 or 2');
+        if (typeof options.model === 'number') {
+            const models = {
+                1: 0x31,
+                2: 0x32,
+            };
+    
+            if (options.model in models) {
+                result.push(
+                    0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
+                );
+            } else {
+                throw new Error('Model must be 1 or 2');
+            }
         }
   
         /* Size */
@@ -615,7 +619,7 @@ class LanguageStarPrnt {
     /**
      * Generate a barcode
      * @param {string} value        Value to encode
-     * @param {string} symbology    Barcode symbology
+     * @param {string|number} symbology    Barcode symbology
      * @param {object} options      Configuration object
      * @returns {Array}             Array of bytes to send to the printer
      */
@@ -641,8 +645,8 @@ class LanguageStarPrnt {
             'gs1-databar-expanded': 0x0d,      
         };
       
-        if (typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by printer');
+        if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
+            throw new Error('Symbology not supported by language');
         }
 
         if (options.width < 1 || options.width > 3) {
@@ -658,10 +662,12 @@ class LanguageStarPrnt {
         /* Encode the barcode value */
 
         const bytes = CodepageEncoder.encode(value, 'ascii');
-      
+
+        const identifier = typeof symbology === 'string' ? symbologies[symbology] : symbology;
+
         result.push(
             0x1b, 0x62,
-            symbologies[symbology], 
+            identifier, 
             options.text ? 0x02 : 0x01, 
             options.width, 
             options.height,
@@ -1361,7 +1367,7 @@ class TextWrap {
             }
 
             for (const piece of pieces) {
-              if (length + (piece.length * width) >= columns) {
+              if (length + (piece.length * width) > columns) {
                 result.push(line);
                 line = [];
                 length = 0;
@@ -1782,33 +1788,35 @@ codepageMappings['star-line'] = codepageMappings['star-prnt'];
 codepageMappings['esc-pos']['zijang'] = codepageMappings['esc-pos']['pos-5890'];
 
 const printerDefinitions = {
-	'bixolon-srp350': {vendor:'Bixolon',model:'SRP-350',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'bixolon/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'bixolon-srp350iii': {vendor:'Bixolon',model:'SRP-350III',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'bixolon',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56},C:{size:'9x24',columns:56}}},features:{cutter:{feed:4}}},
-	'citizen-ct-s310ii': {vendor:'Citizen',model:'CT-S310II',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'citizen',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64},C:{size:'8x16',columns:72}}},features:{cutter:{feed:3}}},
-	'epson-tm-p20ii': {vendor:'Epson',model:'TM-P20II',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42},C:{size:'9x17',columns:42},D:{size:'10x24',columns:38},E:{size:'8x16',columns:48}}},features:{images:{mode:'raster'},cutter:{feed:3}}},
-	'epson-tm-t20iii': {vendor:'Epson',model:'TM-T20III',interfaces:{usb:{productName:'TM-T20III'}},media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}}},features:{cutter:{feed:4}}},
-	'epson-tm-t70': {vendor:'Epson',model:'TM-T70',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{images:{mode:'raster'},cutter:{feed:4}}},
-	'epson-tm-t70ii': {vendor:'Epson',model:'TM-T70II','interface':{usb:{productName:'TM-T70II'}},media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{images:{mode:'raster'},cutter:{feed:4}}},
-	'epson-tm-t88ii': {vendor:'Epson',model:'TM-T88II',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'epson-tm-t88iii': {vendor:'Epson',model:'TM-T88III',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'epson-tm-t88iv': {vendor:'Epson',model:'TM-T88IV',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'epson-tm-t88v': {vendor:'Epson',model:'TM-T88V',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'epson-tm-t88vi': {vendor:'Epson',model:'TM-T88VI',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'epson-tm-t88vii': {vendor:'Epson',model:'TM-T88VII',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'fujitsu-fp1000': {vendor:'Fujitsu',model:'FP-1000',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'fujitsu',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:56},C:{size:'8x16',columns:64}}},features:{cutter:{feed:4}}},
-	'hp-a779': {vendor:'HP',model:'A779',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'hp',newline:'\n',fonts:{A:{size:'12x24',columns:44}}},features:{cutter:{feed:4}}},
-	'metapace-t1': {vendor:'Metapace',model:'T-1',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'metapace',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}}},features:{cutter:{feed:4}}},
-	'mpt-ii': {vendor:'',model:'MPT-II',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'mpt',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64},C:{size:'0x0',columns:64}}}},
-	'pos-5890': {vendor:'',model:'POS-5890',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'pos-5890',fonts:{A:{size:'12x24',columns:32},B:{size:'9x17',columns:42}}},features:{images:{mode:'raster'},cutter:{feed:1}}},
-	'pos-8360': {vendor:'',model:'POS-8360',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'pos-8360',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}}},features:{images:{mode:'raster'},cutter:{feed:4}}},
-	'star-mc-print2': {vendor:'Star',model:'mC-Print2',interfaces:{usb:{productName:'mC-Print2'}},media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}}},features:{cutter:{feed:3}}},
-	'star-mpop': {vendor:'Star',model:'mPOP',interfaces:{usb:{productName:'mPOP'}},media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}}},features:{cutter:{feed:3}}},
-	'star-sm-l200': {vendor:'Star',model:'SM-L200',media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42},C:{size:'9x17',columns:42}}}},
-	'star-tsp100iv': {vendor:'Star',model:'TSP100IV',media:{dpi:203,width:80},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}}},features:{cutter:{feed:3}}},
-	'star-tsp650ii': {vendor:'Star',model:'TSP650II',media:{dpi:203,width:80},capabilities:{language:'star-line',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}}},features:{cutter:{feed:3}}},
-	'xprinter-xp-n160ii': {vendor:'Xprinter',model:'XP-N160II',interfaces:{usb:{productName:'Printer-80\u0000'}},media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'xprinter',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}}},features:{cutter:{feed:4}}},
-	'xprinter-xp-t80q': {vendor:'Xprinter',model:'XP-T80Q',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'xprinter',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}}},features:{cutter:{feed:4}}},
-	'youku-58t': {vendor:'Youku',model:'58T',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'youku',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}}}},
+	'bixolon-srp350': {vendor:'Bixolon',model:'SRP-350',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'bixolon/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:false,models:[]},pdf417:{supported:false},cutter:{feed:4}}},
+	'bixolon-srp350iii': {vendor:'Bixolon',model:'SRP-350III',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'bixolon',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56},C:{size:'9x24',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'citizen-ct-s310ii': {vendor:'Citizen',model:'CT-S310II',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'citizen',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64},C:{size:'8x16',columns:72}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'epson-tm-p20ii': {vendor:'Epson',model:'TM-P20II',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42},C:{size:'9x17',columns:42},D:{size:'10x24',columns:38},E:{size:'8x16',columns:48}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded','code128-auto']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},images:{mode:'raster'},cutter:{feed:3}}},
+	'epson-tm-t20iii': {vendor:'Epson',model:'TM-T20III',interfaces:{usb:{productName:'TM-T20III'}},media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t70': {vendor:'Epson',model:'TM-T70',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},images:{mode:'raster'},cutter:{feed:4}}},
+	'epson-tm-t70ii': {vendor:'Epson',model:'TM-T70II','interface':{usb:{productName:'TM-T70II'}},media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},images:{mode:'raster'},cutter:{feed:4}}},
+	'epson-tm-t88ii': {vendor:'Epson',model:'TM-T88II',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t88iii': {vendor:'Epson',model:'TM-T88III',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t88iv': {vendor:'Epson',model:'TM-T88IV',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson/legacy',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t88v': {vendor:'Epson',model:'TM-T88V',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t88vi': {vendor:'Epson',model:'TM-T88VI',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'epson-tm-t88vii': {vendor:'Epson',model:'TM-T88VII',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'epson',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded','code128-auto']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'fujitsu-fp1000': {vendor:'Fujitsu',model:'FP-1000',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'fujitsu',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:56},C:{size:'8x16',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:false},cutter:{feed:4}}},
+	'hp-a779': {vendor:'HP',model:'A779',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'hp',newline:'\n',fonts:{A:{size:'12x24',columns:44}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:false,fallback:{type:'barcode',symbology:75}},cutter:{feed:4}}},
+	'metapace-t1': {vendor:'Metapace',model:'T-1',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'metapace',fonts:{A:{size:'12x24',columns:42},B:{size:'9x17',columns:56}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:false,models:[]},pdf417:{supported:false},cutter:{feed:4}}},
+	'mpt-ii': {vendor:'',model:'MPT-II',media:{dpi:180,width:80},capabilities:{language:'esc-pos',codepages:'mpt',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64},C:{size:'0x0',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:[]},pdf417:{supported:false}}},
+	'pos-5890': {vendor:'',model:'POS-5890',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'pos-5890',fonts:{A:{size:'12x24',columns:32},B:{size:'9x17',columns:42}},barcodes:{supported:true,symbologies:['upca','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true},images:{mode:'raster'},cutter:{feed:1}}},
+	'pos-8360': {vendor:'',model:'POS-8360',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'pos-8360',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}},barcodes:{supported:true,symbologies:['upca','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true},images:{mode:'raster'},cutter:{feed:4}}},
+	'star-mc-print2': {vendor:'Star',model:'mC-Print2',interfaces:{usb:{productName:'mC-Print2'}},media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','itf','codabar','code93','code128','gs1-128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'star-mpop': {vendor:'Star',model:'mPOP',interfaces:{usb:{productName:'mPOP'}},media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','itf','codabar','code93','code128','gs1-128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'star-sm-l200': {vendor:'Star',model:'SM-L200',media:{dpi:203,width:58},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42},C:{size:'9x17',columns:42}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true}}},
+	'star-tsp100iii': {vendor:'Star',model:'TSP100III',media:{dpi:203,width:80},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'star-tsp100iv': {vendor:'Star',model:'TSP100IV',media:{dpi:203,width:80},capabilities:{language:'star-prnt',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'star-tsp650': {vendor:'Star',model:'TSP650',media:{dpi:203,width:80},capabilities:{language:'star-line',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:false,models:[]},pdf417:{supported:false},cutter:{feed:3}}},
+	'star-tsp650ii': {vendor:'Star',model:'TSP650II',media:{dpi:203,width:80},capabilities:{language:'star-line',codepages:'star',fonts:{A:{size:'12x24',columns:48},B:{size:'9x24',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-128','gs1-databar-omni','gs1-databar-truncated','gs1-databar-limited','gs1-databar-expanded']},qrcode:{supported:true,models:['1','2']},pdf417:{supported:true},cutter:{feed:3}}},
+	'xprinter-xp-n160ii': {vendor:'Xprinter',model:'XP-N160II',interfaces:{usb:{productName:'Printer-80\u0000'}},media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'xprinter',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'xprinter-xp-t80q': {vendor:'Xprinter',model:'XP-T80Q',media:{dpi:203,width:80},capabilities:{language:'esc-pos',codepages:'xprinter',fonts:{A:{size:'12x24',columns:48},B:{size:'9x17',columns:64}},barcodes:{supported:true,symbologies:['upca','upce','ean13','ean8','code39','itf','codabar','code93','code128','gs1-128']},qrcode:{supported:true,models:['2']},pdf417:{supported:true},cutter:{feed:4}}},
+	'youku-58t': {vendor:'Youku',model:'58T',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'youku',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}},barcodes:{supported:true,symbologies:['upca','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:false}}},
 };
 
 /**
@@ -1821,9 +1829,26 @@ class ReceiptPrinterEncoder {
   #language;
   #composer;
 
-  #fontMapping = {
-    'A': {size: '12x24', columns: 42},
-    'B': {size: '9x24', columns: 56},
+  #printerCapabilities = {
+    'fonts': {
+      'A': {size: '12x24', columns: 42},
+      'B': {size: '9x24', columns: 56},
+    },
+    'barcodes': {
+      'supported': true,
+      'symbologies': [
+        'upca', 'upce', 'ean13', 'ean8', 'code39', 'itf', 'codabar', 'code93',
+        'code128', 'gs1-databar-omni', 'gs1-databar-truncated',
+        'gs1-databar-limited', 'gs1-databar-expanded',
+      ],
+    },
+    'qrcode': {
+      'supported': true,
+      'models': ['1', '2'],
+    },
+    'pdf417': {
+      'supported': true,
+    },
   };
 
   #codepageMapping = {};
@@ -1852,6 +1877,7 @@ class ReceiptPrinterEncoder {
       newline: '\n\r',
       codepageMapping: 'epson',
       codepageCandidates: null,
+      errors: 'relaxed',
     };
 
     /* Determine default settings based on the printer language */
@@ -1868,20 +1894,16 @@ class ReceiptPrinterEncoder {
         throw new Error('Unknown printer model');
       }
 
-      const printerDefinition = printerDefinitions[options.printerModel];
+      this.#printerCapabilities = printerDefinitions[options.printerModel].capabilities;
 
       /* Apply the printer definition to the defaults */
 
-      defaults.columns = printerDefinition.capabilities.fonts['A'].columns;
-      defaults.language = printerDefinition.capabilities.language;
-      defaults.codepageMapping = printerDefinition.capabilities.codepages;
-      defaults.newline = printerDefinition.capabilities?.newline || defaults.newline;
-      defaults.feedBeforeCut = printerDefinition.features?.cutter?.feed || defaults.feedBeforeCut;
-      defaults.imageMode = printerDefinition.features?.images?.mode || defaults.imageMode;
-
-      /* Apply the font mapping */
-
-      this.#fontMapping = printerDefinition.capabilities.fonts;
+      defaults.columns = this.#printerCapabilities.fonts['A'].columns;
+      defaults.language = this.#printerCapabilities.language;
+      defaults.codepageMapping = this.#printerCapabilities.codepages;
+      defaults.newline = this.#printerCapabilities?.newline || defaults.newline;
+      defaults.feedBeforeCut = this.#printerCapabilities?.cutter?.feed || defaults.feedBeforeCut;
+      defaults.imageMode = this.#printerCapabilities?.images?.mode || defaults.imageMode;
     }
 
     /* Merge options */
@@ -2231,7 +2253,7 @@ class ReceiptPrinterEncoder {
 
     const matches = value.match(/^[0-9]+x[0-9]+$/);
     if (matches) {
-      value = Object.entries(this.#fontMapping).find((i) => i[1].size == matches[0])[0];
+      value = Object.entries(this.#printerCapabilities.fonts).find((i) => i[1].size == matches[0])[0];
     }
 
     /* Make sure the font name is uppercase */
@@ -2240,8 +2262,8 @@ class ReceiptPrinterEncoder {
 
     /* Check if the font is supported */
 
-    if (typeof this.#fontMapping[value] === 'undefined') {
-      throw new Error('Unsuppored font');
+    if (typeof this.#printerCapabilities.fonts[value] === 'undefined') {
+      return this.#error('This font is not supported by this printer', 'relaxed');
     }
 
     /* Change the font */
@@ -2258,7 +2280,8 @@ class ReceiptPrinterEncoder {
       this.#composer.columns = this.#options.columns;
     } else {
       this.#composer.columns =
-        (this.#options.columns / this.#fontMapping['A'].columns) * this.#fontMapping[value].columns;
+        (this.#options.columns / this.#printerCapabilities.fonts['A'].columns) *
+        this.#printerCapabilities.fonts[value].columns;
     }
 
     return this;
@@ -2514,7 +2537,7 @@ class ReceiptPrinterEncoder {
      * Barcode
      *
      * @param  {string}           value  the value of the barcode
-     * @param  {string}           symbology  the type of the barcode
+     * @param  {string|number}    symbology  the type of the barcode
      * @param  {number|object}    height  Either the configuration object, or backwards compatible height of the barcode
      * @return {object}                  Return the object, for easy chaining commands
      *
@@ -2537,6 +2560,16 @@ class ReceiptPrinterEncoder {
     if (this.#options.embedded) {
       throw new Error('Barcodes are not supported in table cells or boxes');
     }
+
+    if (this.#printerCapabilities.barcodes.supported === false) {
+      return this.#error('Barcodes are not supported by this printer', 'relaxed');
+    }
+
+    if (typeof symbology === 'string' && !this.#printerCapabilities.barcodes.symbologies.includes(symbology)) {
+      return this.#error('Symbology not supported by this printer', 'relaxed');
+    }
+
+    /* Force printing the print buffer and moving to a new line */
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
@@ -2601,6 +2634,14 @@ class ReceiptPrinterEncoder {
       throw new Error('QR codes are not supported in table cells or boxes');
     }
 
+    if (this.#printerCapabilities.qrcode.supported === false) {
+      return this.#error('QR codes are not supported by this printer', 'relaxed');
+    }
+
+    if (options.model && !this.#printerCapabilities.qrcode.models.includes(String(options.model))) {
+      return this.#error('QR code model is not supported by this printer', 'relaxed');
+    }
+
     /* Force printing the print buffer and moving to a new line */
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -2649,6 +2690,16 @@ class ReceiptPrinterEncoder {
 
     if (this.#options.embedded) {
       throw new Error('PDF417 codes are not supported in table cells or boxes');
+    }
+
+    if (this.#printerCapabilities.pdf417.supported === false) {
+      /* If possible, fallback to a barcode with symbology */
+
+      if (typeof this.#printerCapabilities.pdf417.fallback === 'object') {
+        return this.barcode(value, this.#printerCapabilities.pdf417.fallback.symbology);
+      }
+
+      return this.#error('PDF417 codes are not supported by this printer', 'relaxed');
     }
 
     /* Force printing the print buffer and moving to a new line */
@@ -3046,6 +3097,24 @@ class ReceiptPrinterEncoder {
     }
 
     return Uint8Array.from(result.flat());
+  }
+
+  /**
+   * Throw an error
+   * 
+   * @param  {string}          message  The error message
+   * @param  {string}          level    The error level, if level is strict, 
+   *                                    an error will be thrown, if level is relaxed, 
+   *                                    a warning will be logged
+   */
+  #error(message, level) {
+    if (level === 'strict' || this.#options.errors === 'strict') {
+      throw new Error(message);
+    }
+
+    console.warn(message);
+
+    return this;
   }
 
   /**
