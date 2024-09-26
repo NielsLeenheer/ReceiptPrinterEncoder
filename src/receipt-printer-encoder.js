@@ -758,6 +758,16 @@ class ReceiptPrinterEncoder {
       throw new Error('Barcodes are not supported in table cells or boxes');
     }
 
+    if (this.#printerCapabilities.barcodes.supported === false) {
+      return this.#error('Barcodes are not supported by this printer', 'relaxed');
+    }
+
+    if (typeof symbology === 'string' && !this.#printerCapabilities.barcodes.symbologies.includes(symbology)) {
+      return this.#error('Symbology not supported by this printer', 'relaxed');
+    }
+
+    /* Force printing the print buffer and moving to a new line */
+
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     /* Set alignment */
@@ -821,6 +831,14 @@ class ReceiptPrinterEncoder {
       throw new Error('QR codes are not supported in table cells or boxes');
     }
 
+    if (this.#printerCapabilities.qrcode.supported === false) {
+      return this.#error('QR codes are not supported by this printer', 'relaxed');
+    }
+
+    if (options.model && !this.#printerCapabilities.qrcode.models.includes(String(options.model))) {
+      return this.#error('QR code model is not supported by this printer', 'relaxed');
+    }
+
     /* Force printing the print buffer and moving to a new line */
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -869,6 +887,10 @@ class ReceiptPrinterEncoder {
 
     if (this.#options.embedded) {
       throw new Error('PDF417 codes are not supported in table cells or boxes');
+    }
+
+    if (this.#printerCapabilities.pdf417.supported === false) {
+      return this.#error('PDF417 codes are not supported by this printer', 'relaxed');
     }
 
     /* Force printing the print buffer and moving to a new line */
