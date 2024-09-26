@@ -19,13 +19,27 @@
                 "size": "9x17",
                 "columns": 56
             }
-        }    
-    },
-
-    "features": {
+        },
+        
+        "barcodes": {
+            "supported": true,
+            "symbologies": [
+                "upca", "upce", "ean13", "ean8", "code39", "itf", "codabar", "code93", 
+                "code128"
+            ]
+        },
+        "qrcode": {
+            "supported": true,
+            "models": ["1", "2"]
+        },
+        "pdf417": {
+            "supported": true
+        },
+        
         "images": {
             "mode": "raster"
         },
+        
         "cutter": {
             "feed": 4
         }

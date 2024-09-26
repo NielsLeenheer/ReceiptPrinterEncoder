@@ -16,6 +16,7 @@
     "capabilities": {
         "language": "esc-pos",
         "codepages": "xprinter",
+
         "fonts": {
             "A": {
                 "size": "12x24",
@@ -25,10 +26,23 @@
                 "size": "9x17",
                 "columns": 64
             }
-        }    
-    },
+        },
 
-    "features": {
+        "barcodes": {
+            "supported": true,
+            "symbologies": [
+                "upca", "upce", "ean13", "ean8", "code39", "itf", "codabar", "code93", 
+                "code128", "gs1-128"
+            ]
+        },
+        "qrcode": {
+            "supported": true,
+            "models": ["2"]
+        },
+        "pdf417": {
+            "supported": true
+        },
+        
         "cutter": {
             "feed": 4
         }

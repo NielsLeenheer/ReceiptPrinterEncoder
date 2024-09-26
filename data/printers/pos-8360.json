@@ -10,6 +10,7 @@
     "capabilities": {
         "language": "esc-pos",
         "codepages": "pos-8360",
+
         "fonts": {
             "A": {
                 "size": "12x24",
@@ -19,13 +20,27 @@
                 "size": "9x17",
                 "columns": 64
             }
-        }    
-    },
+        },
 
-    "features": {
+        "barcodes": {
+            "supported": true,
+            "symbologies": [
+                "upca", "ean13", "ean8", "code39", "itf", "codabar", "code93", 
+                "code128"
+            ]
+        },
+        "qrcode": {
+            "supported": true,
+            "models": ["2"]
+        },
+        "pdf417": {
+            "supported": true
+        },
+        
         "images": {
             "mode": "raster"
         },
+        
         "cutter": {
             "feed": 4
         }

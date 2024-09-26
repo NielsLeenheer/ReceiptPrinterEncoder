@@ -26,9 +26,26 @@ class ReceiptPrinterEncoder {
   #language;
   #composer;
 
-  #fontMapping = {
+  #printerCapabilities = {
+    'fonts': {
     'A': {size: '12x24', columns: 42},
     'B': {size: '9x24', columns: 56},
+    },
+    'barcodes': {
+      'supported': true,
+      'symbologies': [
+        'upca', 'upce', 'ean13', 'ean8', 'code39', 'itf', 'codabar', 'code93',
+        'code128', 'gs1-databar-omni', 'gs1-databar-truncated',
+        'gs1-databar-limited', 'gs1-databar-expanded',
+      ],
+    },
+    'qrcode': {
+      'supported': true,
+      'models': ['1', '2'],
+    },
+    'pdf417': {
+      'supported': true,
+    },
   };
 
   #codepageMapping = {};
@@ -73,20 +90,16 @@ class ReceiptPrinterEncoder {
         throw new Error('Unknown printer model');
       }
 
-      const printerDefinition = printerDefinitions[options.printerModel];
+      this.#printerCapabilities = printerDefinitions[options.printerModel].capabilities;
 
       /* Apply the printer definition to the defaults */
 
-      defaults.columns = printerDefinition.capabilities.fonts['A'].columns;
-      defaults.language = printerDefinition.capabilities.language;
-      defaults.codepageMapping = printerDefinition.capabilities.codepages;
-      defaults.newline = printerDefinition.capabilities?.newline || defaults.newline;
-      defaults.feedBeforeCut = printerDefinition.features?.cutter?.feed || defaults.feedBeforeCut;
-      defaults.imageMode = printerDefinition.features?.images?.mode || defaults.imageMode;
-
-      /* Apply the font mapping */
-
-      this.#fontMapping = printerDefinition.capabilities.fonts;
+      defaults.columns = this.#printerCapabilities.fonts['A'].columns;
+      defaults.language = this.#printerCapabilities.language;
+      defaults.codepageMapping = this.#printerCapabilities.codepages;
+      defaults.newline = this.#printerCapabilities?.newline || defaults.newline;
+      defaults.feedBeforeCut = this.#printerCapabilities?.cutter?.feed || defaults.feedBeforeCut;
+      defaults.imageMode = this.#printerCapabilities?.images?.mode || defaults.imageMode;
     }
 
     /* Merge options */
@@ -436,7 +449,7 @@ class ReceiptPrinterEncoder {
 
     const matches = value.match(/^[0-9]+x[0-9]+$/);
     if (matches) {
-      value = Object.entries(this.#fontMapping).find((i) => i[1].size == matches[0])[0];
+      value = Object.entries(this.#printerCapabilities.fonts).find((i) => i[1].size == matches[0])[0];
     }
 
     /* Make sure the font name is uppercase */
@@ -463,7 +476,8 @@ class ReceiptPrinterEncoder {
       this.#composer.columns = this.#options.columns;
     } else {
       this.#composer.columns =
-        (this.#options.columns / this.#fontMapping['A'].columns) * this.#fontMapping[value].columns;
+        (this.#options.columns / this.#printerCapabilities.fonts['A'].columns) *
+        this.#printerCapabilities.fonts[value].columns;
     }
 
     return this;

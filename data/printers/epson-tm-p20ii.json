@@ -10,6 +10,7 @@
     "capabilities": {
         "language": "esc-pos",
         "codepages": "epson",
+
         "fonts": {
             "A": {
                 "size": "12x24",
@@ -31,13 +32,28 @@
                 "size": "8x16",
                 "columns": 48
             }
-        }    
-    },
+        },
 
-    "features": {
+        "barcodes": {
+            "supported": true,
+            "symbologies": [
+                "upca", "upce", "ean13", "ean8", "code39", "itf", "codabar", "code93", 
+                "code128", "gs1-databar-omni", "gs1-databar-truncated", 
+                "gs1-databar-limited", "gs1-databar-expanded", "code128-auto"
+            ]
+        },
+        "qrcode": {
+            "supported": true,
+            "models": ["1", "2"]
+        },
+        "pdf417": {
+            "supported": true
+        },
+        
         "images": {
             "mode": "raster"
         },
+        
         "cutter": {
             "feed": 3
         }
