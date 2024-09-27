@@ -171,8 +171,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.width(2).height(2).text('hello').width(1).height(1).encode();
         
-        it('should be [ 29, 33, 16, 29, 33, 17, ..., 29, 33, 1, 29, 33, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 16, 29, 33, 17, 104, 101, 108, 108, 111, 29, 33, 1, 29, 33, 0, 10, 13 ]), result);
+        it('should be [ 29, 33, 17, ..., 29, 33, 0, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 29, 33, 17, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
         });
     });
 
