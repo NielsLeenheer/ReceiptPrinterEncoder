@@ -9,13 +9,13 @@ class LanguageEscPos {
     initialize() {        
         return [
             /* Initialize printer */
-            0x1b, 0x40,
+            [ 0x1b, 0x40 ],
 
             /* Cancel Kanji mode */
-            0x1c, 0x2e,
+            [ 0x1c, 0x2e ],
 
             /* Set the font to A */
-            0x1b, 0x4d, 0x00
+            [ 0x1b, 0x4d, 0x00 ]
         ];
     }
 
@@ -105,9 +105,9 @@ class LanguageEscPos {
         /* Set barcode options */
 
         result.push(
-            0x1d, 0x68, options.height,
-            0x1d, 0x77, width,
-            0x1d, 0x48, options.text ? 0x02 : 0x00,
+            [ 0x1d, 0x68, options.height ],
+            [ 0x1d, 0x77, width ],
+            [ 0x1d, 0x48, options.text ? 0x02 : 0x00 ],
         );
         
 
@@ -130,17 +130,13 @@ class LanguageEscPos {
             /* Function B symbologies */
     
             result.push(
-                0x1d, 0x6b, identifier,
-                bytes.length,
-                ...bytes
+                [ 0x1d, 0x6b, identifier, bytes.length, ...bytes ]
             );
         } else {
             /* Function A symbologies */
     
             result.push(
-                0x1d, 0x6b, identifier,
-                ...bytes,
-                0x00
+                [ 0x1d, 0x6b, identifier, ...bytes, 0x00 ]
             );
         }
 
@@ -166,7 +162,7 @@ class LanguageEscPos {
     
             if (options.model in models) {
                 result.push(
-                    0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
+                    [ 0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00 ]
                 );
             } else {
                 throw new Error('Model must be 1 or 2');
@@ -184,7 +180,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, options.size
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, options.size ]
         );
   
         /* Error level */
@@ -198,7 +194,7 @@ class LanguageEscPos {
   
         if (options.errorlevel in errorlevels) {
             result.push(
-                0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[options.errorlevel]
+                [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[options.errorlevel] ]
             );
         } else {
             throw new Error('Error level must be l, m, q or h');
@@ -210,15 +206,13 @@ class LanguageEscPos {
         const length = bytes.length + 3;
   
         result.push(
-            0x1d, 0x28, 0x6b,
-            length & 0xff, (length >> 8) & 0xff,
-            0x31, 0x50, 0x30, ...bytes
+            [ 0x1d, 0x28, 0x6b, length & 0xff, (length >> 8) & 0xff, 0x31, 0x50, 0x30, ...bytes ]
         );
   
         /* Print QR code */
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30 ]
         );
         
         return result;
@@ -244,7 +238,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns ]
         );
   
         /* Rows */
@@ -258,7 +252,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows ]
         );
   
         /* Width */
@@ -272,7 +266,7 @@ class LanguageEscPos {
         }
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width ]
         );
 
         /* Height */
@@ -286,7 +280,7 @@ class LanguageEscPos {
         }
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height ]
         );
 
         /* Error level */
@@ -300,13 +294,13 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30
+            [ 0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30 ]
         );
   
         /* Model: standard or truncated */
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00 ]
         );
 
         /* Data */
@@ -315,15 +309,13 @@ class LanguageEscPos {
         const length = bytes.length + 3;
   
         result.push(
-            0x1d, 0x28, 0x6b,
-            length & 0xff, (length >> 8) & 0xff,
-            0x30, 0x50, 0x30, ...bytes
+            [ 0x1d, 0x28, 0x6b, length & 0xff, (length >> 8) & 0xff, 0x30, 0x50, 0x30, ...bytes ]
         );
   
         /* Print PDF417 code */
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30 ]
         );
         
         return result;
@@ -380,20 +372,17 @@ class LanguageEscPos {
 
         if (mode == 'column') {
             result.push(
-                0x1b, 0x33, 0x24
+                [ 0x1b, 0x33, 0x24 ]
             );
   
             getColumnData(width, height).forEach((bytes) => {
                 result.push(
-                    0x1b, 0x2a, 0x21,
-                    width & 0xff, (width >> 8) & 0xff,
-                    ...bytes,
-                    0x0a
+                    [ 0x1b, 0x2a, 0x21, width & 0xff, (width >> 8) & 0xff, ...bytes, 0x0a ]
                 );
             });
   
             result.push(
-                0x1b, 0x32
+                [ 0x1b, 0x32 ]
             );
         }
   
@@ -401,10 +390,12 @@ class LanguageEscPos {
   
         if (mode == 'raster') {
             result.push(
-                0x1d, 0x76, 0x30, 0x00,
-                (width >> 3) & 0xff, (((width >> 3) >> 8) & 0xff),
-                height & 0xff, ((height >> 8) & 0xff),
-                ...getRowData(width, height)
+                [ 
+                    0x1d, 0x76, 0x30, 0x00, 
+                    (width >> 3) & 0xff, (((width >> 3) >> 8) & 0xff), 
+                    height & 0xff, ((height >> 8) & 0xff), 
+                    ...getRowData(width, height) 
+                ]
             );
         }
 

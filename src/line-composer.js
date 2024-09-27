@@ -76,11 +76,13 @@ class LineComposer {
      * @param  {number}  length  Length in characters of the value
      */
   raw(value, length) {
-    if (value instanceof Array) {
-      value = value.flat();
+    if (value.length && value[0] instanceof Array) {
+      for (let i = 0; i < value.length; i++) {
+        this.add({type: 'raw', value: value[i]}, length || 0);
     }
-
+    } else {
     this.add({type: 'raw', value}, length || 0);
+    }
   }
 
   /**

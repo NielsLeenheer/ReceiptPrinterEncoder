@@ -132,7 +132,7 @@ class LanguageStarPrnt {
   
         if (options.model in models) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model],
+                [ 0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model] ]
             );
         } else {
             throw new Error('Model must be 1 or 2');
@@ -149,7 +149,7 @@ class LanguageStarPrnt {
         }
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x53, 0x32, options.size
+            [ 0x1b, 0x1d, 0x79, 0x53, 0x32, options.size ]
         );
   
         /* Error level */
@@ -175,15 +175,17 @@ class LanguageStarPrnt {
         const length = bytes.length;
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x44, 0x31, 0x00, 
-            length & 0xff, (length >> 8) & 0xff, 
-            ...bytes
+            [ 
+                0x1b, 0x1d, 0x79, 0x44, 0x31, 0x00, 
+                length & 0xff, (length >> 8) & 0xff, 
+                ...bytes
+            ]
         );
   
         /* Print QR code */
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x50
+            [ 0x1b, 0x1d, 0x79, 0x50 ]
         );
         
         return result;
@@ -217,7 +219,7 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns ]
         );
 
         /* Width */
@@ -231,7 +233,7 @@ class LanguageStarPrnt {
         }
 
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x32, options.width
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x32, options.width ]
         );
 
         /* Height */
@@ -245,7 +247,7 @@ class LanguageStarPrnt {
         }
 
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x33, options.height
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x33, options.height ]
         );
 
         /* Error level */
@@ -259,7 +261,7 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x31, options.errorlevel
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x31, options.errorlevel ]
         );
     
         /* Data */
@@ -268,15 +270,17 @@ class LanguageStarPrnt {
         const length = bytes.length;
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x44,
-            length & 0xff, (length >> 8) & 0xff,
-            ...bytes
+            [
+                0x1b, 0x1d, 0x78, 0x44,
+                length & 0xff, (length >> 8) & 0xff,
+                ...bytes
+            ]
         );
     
         /* Print PDF417 code */
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x50
+            [ 0x1b, 0x1d, 0x78, 0x50 ]
         );
         
         return result;
@@ -297,7 +301,7 @@ class LanguageStarPrnt {
                                    image.data[((width * y) + x) * 4] > 0 ? 0 : 1;
 
         result.push(
-            0x1b, 0x30
+            [ 0x1b, 0x30 ]
         );
       
         for (let s = 0; s < height / 24; s++) {
@@ -339,15 +343,17 @@ class LanguageStarPrnt {
             }
       
             result.push(
-                0x1b, 0x58,
-                width & 0xff, (width >> 8) & 0xff,
-                ...bytes,
-                0x0a, 0x0d
+                [ 
+                    0x1b, 0x58,
+                    width & 0xff, (width >> 8) & 0xff,
+                    ...bytes,
+                    0x0a, 0x0d
+                ]
             );
         }
       
         result.push(
-            0x1b, 0x7a, 0x01
+            [ 0x1b, 0x7a, 0x01 ]
         );
 
         return result;
@@ -488,7 +494,8 @@ class LanguageStarPrnt {
      */
     flush() {
         return [
-            0x1b, 0x1d, 0x50, 0x30, 0x1b, 0x1d, 0x50, 0x31
+            [ 0x1b, 0x1d, 0x50, 0x30 ], 
+            [ 0x1b, 0x1d, 0x50, 0x31 ]
         ]
     }
 }
