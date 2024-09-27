@@ -83,7 +83,7 @@ class LanguageEscPos {
         };
       
         if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by language');
+            throw new Error(`Symbology '${symbology}' not supported by language`);
         }
 
         /* Calculate segment width */

@@ -83,7 +83,7 @@ class LanguageStarPrnt {
         };
       
         if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by language');
+            throw new Error(`Symbology '${symbology}' not supported by language`);
         }
 
         if (options.width < 1 || options.width > 3) {

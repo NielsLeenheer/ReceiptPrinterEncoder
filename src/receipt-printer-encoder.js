@@ -763,7 +763,7 @@ class ReceiptPrinterEncoder {
     }
 
     if (typeof symbology === 'string' && !this.#printerCapabilities.barcodes.symbologies.includes(symbology)) {
-      return this.#error('Symbology not supported by this printer', 'relaxed');
+      return this.#error(`Symbology '${symbology}' not supported by this printer`, 'relaxed');
     }
 
     /* Force printing the print buffer and moving to a new line */
