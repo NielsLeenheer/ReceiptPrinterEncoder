@@ -79,9 +79,9 @@ class LineComposer {
     if (value.length && value[0] instanceof Array) {
       for (let i = 0; i < value.length; i++) {
         this.add({type: 'raw', value: value[i]}, length || 0);
-    }
+      }
     } else {
-    this.add({type: 'raw', value}, length || 0);
+      this.add({type: 'raw', value}, length || 0);
     }
   }
 
@@ -285,12 +285,10 @@ class LineComposer {
 
         result.push(item);
         last++;
-      }
-
-      else if (item.type === 'style' && item.property === 'size') {
-        const allowMerge = 
-          last >= 0 && 
-          result[last].type === 'style' && 
+      } else if (item.type === 'style' && item.property === 'size') {
+        const allowMerge =
+          last >= 0 &&
+          result[last].type === 'style' &&
           result[last].property === 'size';
 
         if (allowMerge) {
@@ -300,9 +298,7 @@ class LineComposer {
 
         result.push(item);
         last++;
-      }
-
-      else if (item.type === 'style' || item.type === 'raw') {
+      } else if (item.type === 'style' || item.type === 'raw') {
         result.push(item);
         last++;
       }
