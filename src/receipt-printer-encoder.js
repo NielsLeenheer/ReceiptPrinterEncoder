@@ -1218,18 +1218,22 @@ class ReceiptPrinterEncoder {
    * @return {array}         All the commands currently in the queue
    */
   commands() {
+    /* Flush the printer line buffer if needed */
+
+    if (this.#options.autoFlush && !this.#options.embedded) {
+      this.#composer.raw(
+          this.#language.flush(),
+      );
+    }
+
+    /* Get the remaining from the composer */
+
     const result = [];
 
     const remaining = this.#composer.fetch({forceFlush: true, ignoreAlignment: true});
 
     if (remaining.length) {
       this.#queue.push(remaining);
-    }
-
-    /* Flush the printer line buffer if needed */
-
-    if (this.#options.autoFlush && !this.#options.embedded) {
-      this.#queue.push(this.#language.flush());
     }
 
     /* Process all lines in the queue */
