@@ -15,13 +15,13 @@ class LanguageEscPos {
     initialize() {        
         return [
             /* Initialize printer */
-            0x1b, 0x40,
+            [ 0x1b, 0x40 ],
 
             /* Cancel Kanji mode */
-            0x1c, 0x2e,
+            [ 0x1c, 0x2e ],
 
             /* Set the font to A */
-            0x1b, 0x4d, 0x00
+            [ 0x1b, 0x4d, 0x00 ]
         ];
     }
 
@@ -89,7 +89,7 @@ class LanguageEscPos {
         };
       
         if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by language');
+            throw new Error(`Symbology '${symbology}' not supported by language`);
         }
 
         /* Calculate segment width */
@@ -111,9 +111,9 @@ class LanguageEscPos {
         /* Set barcode options */
 
         result.push(
-            0x1d, 0x68, options.height,
-            0x1d, 0x77, width,
-            0x1d, 0x48, options.text ? 0x02 : 0x00,
+            [ 0x1d, 0x68, options.height ],
+            [ 0x1d, 0x77, width ],
+            [ 0x1d, 0x48, options.text ? 0x02 : 0x00 ],
         );
         
 
@@ -136,17 +136,13 @@ class LanguageEscPos {
             /* Function B symbologies */
     
             result.push(
-                0x1d, 0x6b, identifier,
-                bytes.length,
-                ...bytes
+                [ 0x1d, 0x6b, identifier, bytes.length, ...bytes ]
             );
         } else {
             /* Function A symbologies */
     
             result.push(
-                0x1d, 0x6b, identifier,
-                ...bytes,
-                0x00
+                [ 0x1d, 0x6b, identifier, ...bytes, 0x00 ]
             );
         }
 
@@ -172,7 +168,7 @@ class LanguageEscPos {
     
             if (options.model in models) {
                 result.push(
-                    0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00
+                    [ 0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, models[options.model], 0x00 ]
                 );
             } else {
                 throw new Error('Model must be 1 or 2');
@@ -190,7 +186,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, options.size
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, options.size ]
         );
   
         /* Error level */
@@ -204,7 +200,7 @@ class LanguageEscPos {
   
         if (options.errorlevel in errorlevels) {
             result.push(
-                0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[options.errorlevel]
+                [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, errorlevels[options.errorlevel] ]
             );
         } else {
             throw new Error('Error level must be l, m, q or h');
@@ -216,15 +212,13 @@ class LanguageEscPos {
         const length = bytes.length + 3;
   
         result.push(
-            0x1d, 0x28, 0x6b,
-            length & 0xff, (length >> 8) & 0xff,
-            0x31, 0x50, 0x30, ...bytes
+            [ 0x1d, 0x28, 0x6b, length & 0xff, (length >> 8) & 0xff, 0x31, 0x50, 0x30, ...bytes ]
         );
   
         /* Print QR code */
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30 ]
         );
         
         return result;
@@ -250,7 +244,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x41, options.columns ]
         );
   
         /* Rows */
@@ -264,7 +258,7 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x42, options.rows ]
         );
   
         /* Width */
@@ -278,7 +272,7 @@ class LanguageEscPos {
         }
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x43, options.width ]
         );
 
         /* Height */
@@ -292,7 +286,7 @@ class LanguageEscPos {
         }
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x44, options.height ]
         );
 
         /* Error level */
@@ -306,13 +300,13 @@ class LanguageEscPos {
         }
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30
+            [ 0x1d, 0x28, 0x6b, 0x04, 0x00, 0x30, 0x45, 0x30, options.errorlevel + 0x30 ]
         );
   
         /* Model: standard or truncated */
 
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x46, options.truncated ? 0x01 : 0x00 ]
         );
 
         /* Data */
@@ -321,15 +315,13 @@ class LanguageEscPos {
         const length = bytes.length + 3;
   
         result.push(
-            0x1d, 0x28, 0x6b,
-            length & 0xff, (length >> 8) & 0xff,
-            0x30, 0x50, 0x30, ...bytes
+            [ 0x1d, 0x28, 0x6b, length & 0xff, (length >> 8) & 0xff, 0x30, 0x50, 0x30, ...bytes ]
         );
   
         /* Print PDF417 code */
   
         result.push(
-            0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30
+            [ 0x1d, 0x28, 0x6b, 0x03, 0x00, 0x30, 0x51, 0x30 ]
         );
         
         return result;
@@ -386,20 +378,17 @@ class LanguageEscPos {
 
         if (mode == 'column') {
             result.push(
-                0x1b, 0x33, 0x24
+                [ 0x1b, 0x33, 0x24 ]
             );
   
             getColumnData(width, height).forEach((bytes) => {
                 result.push(
-                    0x1b, 0x2a, 0x21,
-                    width & 0xff, (width >> 8) & 0xff,
-                    ...bytes,
-                    0x0a
+                    [ 0x1b, 0x2a, 0x21, width & 0xff, (width >> 8) & 0xff, ...bytes, 0x0a ]
                 );
             });
   
             result.push(
-                0x1b, 0x32
+                [ 0x1b, 0x32 ]
             );
         }
   
@@ -407,10 +396,12 @@ class LanguageEscPos {
   
         if (mode == 'raster') {
             result.push(
-                0x1d, 0x76, 0x30, 0x00,
-                (width >> 3) & 0xff, (((width >> 3) >> 8) & 0xff),
-                height & 0xff, ((height >> 8) & 0xff),
-                ...getRowData(width, height)
+                [ 
+                    0x1d, 0x76, 0x30, 0x00, 
+                    (width >> 3) & 0xff, (((width >> 3) >> 8) & 0xff), 
+                    height & 0xff, ((height >> 8) & 0xff), 
+                    ...getRowData(width, height) 
+                ]
             );
         }
 
@@ -646,7 +637,7 @@ class LanguageStarPrnt {
         };
       
         if (typeof symbology === 'string' && typeof symbologies[symbology] === 'undefined') {
-            throw new Error('Symbology not supported by language');
+            throw new Error(`Symbology '${symbology}' not supported by language`);
         }
 
         if (options.width < 1 || options.width > 3) {
@@ -695,7 +686,7 @@ class LanguageStarPrnt {
   
         if (options.model in models) {
             result.push(
-                0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model],
+                [ 0x1b, 0x1d, 0x79, 0x53, 0x30, models[options.model] ]
             );
         } else {
             throw new Error('Model must be 1 or 2');
@@ -712,7 +703,7 @@ class LanguageStarPrnt {
         }
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x53, 0x32, options.size
+            [ 0x1b, 0x1d, 0x79, 0x53, 0x32, options.size ]
         );
   
         /* Error level */
@@ -738,15 +729,17 @@ class LanguageStarPrnt {
         const length = bytes.length;
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x44, 0x31, 0x00, 
-            length & 0xff, (length >> 8) & 0xff, 
-            ...bytes
+            [ 
+                0x1b, 0x1d, 0x79, 0x44, 0x31, 0x00, 
+                length & 0xff, (length >> 8) & 0xff, 
+                ...bytes
+            ]
         );
   
         /* Print QR code */
   
         result.push(
-            0x1b, 0x1d, 0x79, 0x50
+            [ 0x1b, 0x1d, 0x79, 0x50 ]
         );
         
         return result;
@@ -780,7 +773,7 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x30, 0x01, options.rows, options.columns ]
         );
 
         /* Width */
@@ -794,7 +787,7 @@ class LanguageStarPrnt {
         }
 
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x32, options.width
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x32, options.width ]
         );
 
         /* Height */
@@ -808,7 +801,7 @@ class LanguageStarPrnt {
         }
 
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x33, options.height
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x33, options.height ]
         );
 
         /* Error level */
@@ -822,7 +815,7 @@ class LanguageStarPrnt {
         }
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x53, 0x31, options.errorlevel
+            [ 0x1b, 0x1d, 0x78, 0x53, 0x31, options.errorlevel ]
         );
     
         /* Data */
@@ -831,15 +824,17 @@ class LanguageStarPrnt {
         const length = bytes.length;
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x44,
-            length & 0xff, (length >> 8) & 0xff,
-            ...bytes
+            [
+                0x1b, 0x1d, 0x78, 0x44,
+                length & 0xff, (length >> 8) & 0xff,
+                ...bytes
+            ]
         );
     
         /* Print PDF417 code */
     
         result.push(
-            0x1b, 0x1d, 0x78, 0x50
+            [ 0x1b, 0x1d, 0x78, 0x50 ]
         );
         
         return result;
@@ -860,7 +855,7 @@ class LanguageStarPrnt {
                                    image.data[((width * y) + x) * 4] > 0 ? 0 : 1;
 
         result.push(
-            0x1b, 0x30
+            [ 0x1b, 0x30 ]
         );
       
         for (let s = 0; s < height / 24; s++) {
@@ -902,15 +897,17 @@ class LanguageStarPrnt {
             }
       
             result.push(
-                0x1b, 0x58,
-                width & 0xff, (width >> 8) & 0xff,
-                ...bytes,
-                0x0a, 0x0d
+                [ 
+                    0x1b, 0x58,
+                    width & 0xff, (width >> 8) & 0xff,
+                    ...bytes,
+                    0x0a, 0x0d
+                ]
             );
         }
       
         result.push(
-            0x1b, 0x7a, 0x01
+            [ 0x1b, 0x7a, 0x01 ]
         );
 
         return result;
@@ -1051,7 +1048,8 @@ class LanguageStarPrnt {
      */
     flush() {
         return [
-            0x1b, 0x1d, 0x50, 0x30, 0x1b, 0x1d, 0x50, 0x31
+            [ 0x1b, 0x1d, 0x50, 0x30 ], 
+            [ 0x1b, 0x1d, 0x50, 0x31 ]
         ]
     }
 }
@@ -1490,11 +1488,13 @@ class LineComposer {
      * @param  {number}  length  Length in characters of the value
      */
   raw(value, length) {
-    if (value instanceof Array) {
-      value = value.flat();
+    if (value.length && value[0] instanceof Array) {
+      for (let i = 0; i < value.length; i++) {
+        this.add({type: 'raw', value: value[i]}, length || 0);
+      }
+    } else {
+      this.add({type: 'raw', value}, length || 0);
     }
-
-    this.add({type: 'raw', value}, length || 0);
   }
 
   /**
@@ -1697,9 +1697,20 @@ class LineComposer {
 
         result.push(item);
         last++;
-      }
+      } else if (item.type === 'style' && item.property === 'size') {
+        const allowMerge =
+          last >= 0 &&
+          result[last].type === 'style' &&
+          result[last].property === 'size';
 
-      if (item.type === 'style' || item.type === 'raw') {
+        if (allowMerge) {
+          result[last].value = item.value;
+          continue;
+        }
+
+        result.push(item);
+        last++;
+      } else if (item.type === 'style' || item.type === 'raw') {
         result.push(item);
         last++;
       }
@@ -2566,7 +2577,7 @@ class ReceiptPrinterEncoder {
     }
 
     if (typeof symbology === 'string' && !this.#printerCapabilities.barcodes.symbologies.includes(symbology)) {
-      return this.#error('Symbology not supported by this printer', 'relaxed');
+      return this.#error(`Symbology '${symbology}' not supported by this printer`, 'relaxed');
     }
 
     /* Force printing the print buffer and moving to a new line */
@@ -3021,18 +3032,22 @@ class ReceiptPrinterEncoder {
    * @return {array}         All the commands currently in the queue
    */
   commands() {
+    /* Flush the printer line buffer if needed */
+
+    if (this.#options.autoFlush && !this.#options.embedded) {
+      this.#composer.raw(
+          this.#language.flush(),
+      );
+    }
+
+    /* Get the remaining from the composer */
+
     const result = [];
 
     const remaining = this.#composer.fetch({forceFlush: true, ignoreAlignment: true});
 
     if (remaining.length) {
       this.#queue.push(remaining);
-    }
-
-    /* Flush the printer line buffer if needed */
-
-    if (this.#options.autoFlush && !this.#options.embedded) {
-      this.#queue.push(this.#language.flush());
     }
 
     /* Process all lines in the queue */
@@ -3101,11 +3116,12 @@ class ReceiptPrinterEncoder {
 
   /**
    * Throw an error
-   * 
+   *
    * @param  {string}          message  The error message
-   * @param  {string}          level    The error level, if level is strict, 
-   *                                    an error will be thrown, if level is relaxed, 
+   * @param  {string}          level    The error level, if level is strict,
+   *                                    an error will be thrown, if level is relaxed,
    *                                    a warning will be logged
+   * @return {object}          Return the object, for easy chaining commands
    */
   #error(message, level) {
     if (level === 'strict' || this.#options.errors === 'strict') {
@@ -3141,6 +3157,14 @@ class ReceiptPrinterEncoder {
    */
   get language() {
     return this.#options.language;
+  }
+
+  /**
+   * Get the capabilities of the printer
+   * @return {object}         The capabilities of the printer
+   */
+  get printerCapabilities() {
+    return this.#printerCapabilities;
   }
 }
 
