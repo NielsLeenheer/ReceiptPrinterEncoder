@@ -1298,11 +1298,12 @@ class ReceiptPrinterEncoder {
 
   /**
    * Throw an error
-   * 
+   *
    * @param  {string}          message  The error message
-   * @param  {string}          level    The error level, if level is strict, 
-   *                                    an error will be thrown, if level is relaxed, 
+   * @param  {string}          level    The error level, if level is strict,
+   *                                    an error will be thrown, if level is relaxed,
    *                                    a warning will be logged
+   * @return {object}          Return the object, for easy chaining commands
    */
   #error(message, level) {
     if (level === 'strict' || this.#options.errors === 'strict') {
