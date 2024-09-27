@@ -1339,6 +1339,14 @@ class ReceiptPrinterEncoder {
   get language() {
     return this.#options.language;
   }
+
+  /**
+   * Get the capabilities of the printer
+   * @return {object}         The capabilities of the printer
+   */
+  get printerCapabilities() {
+    return this.#printerCapabilities;
+  }
 }
 
 export default ReceiptPrinterEncoder;
