@@ -285,7 +285,22 @@ class LineComposer {
         last++;
       }
 
-      if (item.type === 'style' || item.type === 'raw') {
+      else if (item.type === 'style' && item.property === 'size') {
+        const allowMerge = 
+          last >= 0 && 
+          result[last].type === 'style' && 
+          result[last].property === 'size';
+
+        if (allowMerge) {
+          result[last].value = item.value;
+          continue;
+        }
+
+        result.push(item);
+        last++;
+      }
+
+      else if (item.type === 'style' || item.type === 'raw') {
         result.push(item);
         last++;
       }
