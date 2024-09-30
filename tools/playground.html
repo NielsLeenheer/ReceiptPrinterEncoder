@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+
+        <title>@point-of-sale/receipt-printer-encoder playground</title>
+
+        <script src="../dist/receipt-printer-encoder.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@point-of-sale/webbluetooth-receipt-printer/dist/webbluetooth-receipt-printer.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@point-of-sale/webusb-receipt-printer/dist/webusb-receipt-printer.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@point-of-sale/webserial-receipt-printer/dist/webserial-receipt-printer.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min/ace.js"></script>
+
+        <script>
+
+            let driver;
+            let printerModel;
+            let editor;
+
+            let editorDirty = false;
+
+            window.addEventListener('DOMContentLoaded', async () => {
+                
+                /* Set up driver */
+
+                driver = document.getElementById('driver');
+
+                let driverValue = localStorage.getItem('driver');
+
+                if (driverValue) {
+                    driver.value = driverValue;
+                    changeDriver();
+                }
+
+                /* Set up printer model */
+
+                printerModel = document.getElementById('printerModel');
+
+                let printerModelValue = localStorage.getItem('printerModel');
+
+                for (let printer of ReceiptPrinterEncoder.printerModels) {
+                    let option = document.createElement('option');
+                    option.value = printer.id;
+                    option.text = printer.name;
+
+                    if (printerModelValue === printer.id) {
+                        option.selected = true;
+                    }
+
+                    printerModel.appendChild(option);
+                }
+
+                /* Set up editor */
+
+                document.getElementById('editor').style.fontSize='11px';
+
+                editor = ace.edit("editor");
+                editor.setTheme("ace/theme/chrome");
+                editor.session.setMode("ace/mode/javascript");
+                editor.setShowPrintMargin(false);
+                editor.setHighlightActiveLine(false);
+
+                editor.on('change', () => {
+                    editorDirty = true;
+                });
+
+                let session = localStorage.getItem('editor');
+                if (session) {
+                    session = JSON.parse(session);
+
+                    editor.setValue(session.value);
+                    editor.selection.moveCursorToPosition(session.cursor);
+                    editor.selection.setSelectionRange(session.range);
+
+                    updatePreview();
+                }
+                else {
+                    template('new');
+                }
+            });
+        
+            window.addEventListener('beforeunload', () => {
+                if (editor) {
+                    localStorage.setItem('editor', JSON.stringify({
+                        value:  editor.getValue(),
+                        cursor: editor.selection.getCursor(),
+                        range:  editor.getSelectionRange()
+                    }));
+                }
+
+                if (printerModel) {
+                    localStorage.setItem('printerModel', printerModel.value);
+                }
+
+                if (driver) {
+                    localStorage.setItem('driver', driver.value);
+                }
+            });
+
+            setInterval(() => {
+                if (editorDirty) {
+                    updatePreview();
+                }
+            }, 1000);
+
+
+
+            let receiptPrinter;
+            let encoder;
+
+            let productName = '';
+            let manufacturerName = '';
+
+
+            function changeDriver() {
+                let method = driver.value;
+                document.getElementById('baudrate').hidden = method !== 'serial';
+            }
+
+            function connect() {
+                let method = driver.value;
+
+                if (method === 'usb') {
+                    receiptPrinter = new WebUSBReceiptPrinter();
+                }
+
+                if (method === 'serial') {
+                    let baudRate = parseInt(document.getElementById('baudrate').value, 10);
+
+                    receiptPrinter = new WebSerialReceiptPrinter({
+                        baudRate: baudRate,
+                    });
+                }
+
+                if (method === 'bluetooth') {
+                    receiptPrinter = new WebBluetoothReceiptPrinter();
+                }
+
+                receiptPrinter.addEventListener('connected', device => connected(device));
+                receiptPrinter.connect();
+            }
+
+            function disconnect() {
+                receiptPrinter.disconnect();
+
+                document.getElementById('driver').disabled = false;
+                document.getElementById('baudrate').disabled = false;
+                document.getElementById('connect').hidden = false;
+                document.getElementById('disconnect').hidden = true;
+
+                document.querySelectorAll('.print').forEach((button) => {
+                    button.disabled = true;
+                });
+            }
+            
+            function connected(device) {
+                console.log('Connected to', device);
+
+                manufacturerName = device.manufacturerName || ''
+                productName = device.productName || '';
+
+                document.getElementById('driver').disabled = true;
+                document.getElementById('baudrate').disabled = true;
+                document.getElementById('connect').hidden = true;
+                document.getElementById('disconnect').hidden = false;
+
+                document.querySelectorAll('.print').forEach((button) => {
+                    button.disabled = false;
+                });
+            }
+
+            function changeFormat(that) {
+                updatePreview();
+            }
+
+            function updatePreview() {
+                let errors = document.querySelector('#errors').innerHTML = '';
+                let type = document.querySelector('input[name="format"]:checked').value;
+
+                switch(type) {
+                    case 'text':
+                        text();
+                        break;
+
+                    case 'commands':
+                        inspect('commands');
+                        break;
+
+                    case 'lines':
+                        inspect('lines');
+                        break;
+
+                    case 'dump':
+                        dump();
+                        break;
+                }
+
+                editorDirty = false;
+            }
+
+            async function getEncoder(options) {
+                let code = editor.getValue();
+                let model = document.querySelector('#printerModel option:checked').textContent;
+                let errors = document.querySelector('#errors');
+
+                encoder = new ReceiptPrinterEncoder({
+                    printerModel: printerModel.value
+                });
+
+                let script_ended = false;
+                let script_error = null;
+                
+                let warn = console.warn;
+
+                console.warn = function(e) {
+                    warn(e);
+
+                    errors.innerHTML += `
+                        <div class='error'>${e}</div>
+                    `;
+                }
+
+                try {
+                    eval(`
+                        (async function() {
+                            try {
+                                ${code}
+                            } catch (e) {
+                                script_error = e;
+                            }
+
+                            script_ended = true;
+                        })();
+                    `);
+                }
+                catch (e) {
+                    script_ended = true;
+                    script_error = e;
+                }
+
+                while(!script_ended) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                console.warn = warn;
+
+                if (script_error) {
+                    errors.innerHTML += `
+                        <div class='error'>${script_error}</div>
+                    `;
+
+                    return;
+                }
+
+                return encoder;
+            }
+
+            async function print() {
+                let encoder = await getEncoder();
+
+                if (encoder) {
+                    encoder.cut();
+                    receiptPrinter.print(encoder.encode());
+                }
+            }
+
+            async function dump() {
+                let result = '';
+                let encoder = await getEncoder();
+                
+                if (encoder) {
+                    let data = encoder.encode();
+
+                    result = `<pre>${data.reduce((p, c, i, a) => p + (i % 16 === 0 ? '<span class="number">' + 
+                        i.toString(16).padStart(6, 0) + '</span>  ' : ' ') + '<span class="data">' + c.toString(16).padStart(2, 0) + 
+                        '</span>' + (i === a.length - 1 || i % 16 === 15 ? '<span class="chars">' + ' '.repeat((15 - i % 16) * 3) + 
+                        Array.from(a).splice(i - i % 16, 16).reduce((r, v) => r + (v > 31 && v < 127 || v > 159 ? 
+                        String.fromCharCode(v) : '.'), '  ') + '</span>\n' : ''), '')}</pre>`;
+                }
+
+                let output = document.getElementById('output');
+                output.dataset.format = 'array';
+                output.innerHTML = result;
+            }
+
+            async function text() {
+                let result = '';
+                let encoder = await getEncoder();
+
+                if (encoder) {
+                    let columns = encoder.columns;
+                    let data = encoder.encode('commands');
+
+                    let classes = new Set();
+                    let size = 'w1h1';
+                    let font = 'fonta';
+                    let align = 'left';
+
+                    result += `<div class="receipt" style="--columns: ${columns};">`;
+
+                    for (let line of data) {
+                        result += '<div class="text">';
+
+                        for (let command of line.commands) {
+                            if (command.type === 'text') {
+                                result += command.value.split('').map(c => `<span class='character ${font} ${size} ${[...classes.keys()].join(' ')}'>${c}</span>`).join('');
+                            }
+
+                            if (command.type === 'align') {
+                                align = command.value;
+                            }
+
+                            if (command.type === 'font') {
+                                font = `font${command.value.toLowerCase()}`;
+                            }
+
+                            if (command.type === 'style') {
+                                if (command.property === 'size') {
+                                    size = command.value.width > 1 || command.value.height > 1 ? `scale w${command.value.width} h${command.value.height}` : '';
+                                }
+                                else {
+                                    if (command.value) {
+                                        classes.add(command.property);
+                                    }
+                                    else {
+                                        classes.delete(command.property);
+                                    }
+                                }
+                            }
+
+                            if (command.type === 'qrcode' && command.command === 'print') {
+                                result += `<div class='placeholder ${align}'>qrcode</div>`;
+                            }
+
+                            if (command.type === 'pdf417' && command.command === 'print') {
+                                result += `<div class='placeholder ${align}'>pdf417</div>`;
+                            }
+
+                            if (command.type === 'barcode' && ! command.property) {
+                                result += `<div class='placeholder ${align}'>barcode</div>`;
+                            }
+
+                            if (command.type === 'image') {
+                                result += `<div class='placeholder ${align}'>image</div>`;
+                            }
+
+                            if (command.type === 'cut') {
+                                result += `<div class='cut'></div>`;
+                            }
+                        }
+
+                        result += '</div>';
+                    }
+
+                    result += '</div>';
+                }
+
+                let output = document.getElementById('output');
+                output.dataset.format = 'text';
+                output.innerHTML = result;
+            }
+
+            async function inspect(format) {
+                let result = '';
+                let encoder = await getEncoder();
+
+                if (encoder) {
+                    let data = encoder.encode(format);
+
+                    if (format === 'lines') {
+                        for (let line of data) {
+                            result += '<div class="line">';
+
+                            for (let command of line) {
+                                result += `<div class="command" data-type="${command.type}">`;
+                                result += `<span class="type">${command.type === 'style' ? command.property : command.type}</span>`;
+                                result += `<span class="raw">${command.payload.map(i => i.toString(16).padStart(2,0)).join(' ')}</span>`;
+                                result += '</div>';
+                            }
+
+                            result += '<div class="return">⏎</div>';
+                            result += '</div>';
+                        }
+                    }
+
+                    else if (format === 'commands') {
+                        for (let line of data) {
+                            result += '<div class="line">';
+
+                            for (let command of line.commands) {
+
+                                if (command.type !== 'empty') {
+                                    result += `<div class="command" data-type="${command.type}">`;
+
+                                    if (command.type === 'raw') {
+                                        result += `<span class="type">${command.type}</span>`;
+                                        result += `<span class="raw">${command.payload.map(i => i.toString(16).padStart(2,0)).join(' ')}</span>`;
+                                    }
+                                    else if (command.type === 'text') {
+                                        result += `<span class="type">${command.type}</span>`;
+                                        result += `<span class="text">${command.value.replace(/ /g, '<span class="space">&nbsp;</span>')}</span>`;
+
+                                        if (command.codepage) {
+                                            result += `<span class="codepage">${command.codepage}</span>`;
+                                        }
+                                    }                                
+                                    else if (command.type === 'style') {
+                                        result += `<span class="type">${command.property}</span>`;
+
+                                        if (command.property === 'size') {
+                                            result += `<span class="style">${command.value.width}x${command.value.height}</span>`;
+                                        }
+                                        else {
+                                            result += `<span class="style">${command.value}</span>`;
+                                        }
+                                    }
+                                    else {
+                                        result += `<span class="type">${command.type}</span>`;
+
+                                        if (typeof command.command !== 'undefined' || typeof command.value !== 'undefined') {
+                                            result += `<span class="description">
+                                                ${typeof command.command !== 'undefined' ? command.command : ''}
+                                                ${typeof command.property !== 'undefined' ? command.property + ': ' : ''}
+                                                ${typeof command.value !== 'undefined' ? command.value : ''}
+                                            </span>`;
+                                        }
+                                    }
+
+                                    result += '</div>';
+                                }
+                            }
+
+                            result += '<div class="return">⏎</div>';
+                            result += '</div>';
+                        }
+                    }
+                }
+
+                let output = document.getElementById('output');
+                output.dataset.format = format;
+                output.innerHTML = result;
+            }
+
+            function template(template) {
+                let value = document.querySelector('#' + template).content.textContent
+                editor.setValue(value);
+                editor.selection.clearSelection();
+
+                updatePreview();
+            }
+
+        </script>
+
+        <style>
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            select {
+                border: none;
+                border-radius: 6px;
+                padding: 6px;
+
+                margin: 14px 15px 14px 0;
+                font-family: system-ui;
+                font-weight: bold;
+                font-size: 10pt;
+            }
+
+            button {
+                border: none;
+                border-radius: 6px;
+                background: #fff;
+
+                font-family: system-ui;
+                font-weight: bold;
+                font-size: 10pt;
+
+                display: flex;
+                place-items: center;
+                height: 32px;
+                margin: 15px 15px 0 0;
+                padding: 0px 8px;
+                user-select: none;
+            }
+
+            button[hidden] {
+                display: none;
+            }
+
+            button:disabled {
+                opacity: 0.5;
+            }
+
+            button#connect {
+                background-color: #bbdefb;
+                color: #1976d2;
+            }
+
+            button#disconnect,
+            button#connect {
+                margin-right: auto;
+            }
+
+            button svg {
+                height: 75%;
+                margin-right: 3px;
+            }
+
+            button:disabled svg {
+                opacity: 0.5;
+            }
+
+            body {
+                display: grid;
+                grid-template-rows: 61px min-content 1fr;
+                grid-template-columns: 50vw 50vw;
+                height: 100vh;
+            }
+
+            header {
+                grid-row: 1;
+                grid-column: 1 / 3;
+
+                display: flex;
+                box-sizing: border-box;
+                padding: 0 0 0 15px;
+
+                background: #eee;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            #toolbar {
+                grid-row: 2;
+                grid-column: 1 / 3;
+                padding-right: 5px;
+                padding-bottom: 15px;
+
+                display: flex;
+                box-sizing: border-box;
+
+                background: #fafafa;
+                border-bottom: 1px solid #ddd;
+            }
+
+            #toolbar .templates {
+                display: flex;
+                flex-wrap: wrap;
+                align-content: start;
+                margin-right: auto;
+                padding-left: 10px;
+            }
+
+            #toolbar .templates button {
+                font-weight: normal;
+                background: none;
+                margin: 15px 0 0 0;
+                padding: 0 6px;
+            }
+            #toolbar .templates button:first-child {
+                margin-right: 15px;
+            }
+
+            #toolbar .buttons {
+                display: flex;
+                flex-wrap: wrap;
+                align-content: start;
+                justify-content: end;
+                margin-left: auto;
+                padding-right: 10px;
+            }
+
+            #toolbar .tabs {
+                border: none;
+                border-radius: 6px;
+                background: #eaeaea;
+                font-family: system-ui;
+                font-size: 10pt;
+                margin: 15px 0 0 15px;
+                display: flex;
+                height: 32px;
+                align-items: stretch;
+                user-select: none;
+            }   
+
+            #toolbar .tabs label {
+                display: flex;
+                align-items: center;
+                padding: 0px 9px;
+            }
+            #toolbar .tabs label:first-child {
+                border-radius: 6px 0 0 6px;
+            }
+            #toolbar .tabs label:last-child {
+                border-radius: 0 6px 6px 0;
+            }
+            #toolbar .tabs label:has(:focus-visible) {
+                outline: -webkit-focus-ring-color auto 1px;
+            }
+
+            #toolbar .tabs label:has(input:checked) {
+                background: #d5d5d5;
+            }
+
+            #toolbar .tabs svg {
+                height: 70%;
+                margin-right: 4px;
+            }
+            #toolbar .tabs input {
+                position: absolute;
+                opacity: 0;
+            }
+
+
+
+            #editor { 
+                grid-row: 3;
+                grid-column: 1;
+            }
+            
+            #content {
+                grid-row: 3;
+                grid-column: 2;
+                background: #fafafa;
+                border-left: 1px solid #ddd;
+                overflow: scroll;
+            }
+
+            #errors {
+            }
+
+            #errors .error {
+                background: #f0f0f0;
+                border-radius: 6px;
+                font-family: monospace;
+                margin: 8px;
+                padding: 6px 8px 6px 24px;
+                font-size: 11px;
+
+                background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCI+CjxwYXRoIGZpbGw9IiNGRkMxMDciIGQ9Ik00MCw0MEg4Yy0wLjcxNywwLTEuMzc3LTAuMzgzLTEuNzM0LTEuMDA0Yy0wLjM1Ni0wLjYyMS0wLjM1NC0xLjM4NSwwLjAwNy0yLjAwNGwxNi0yOEMyMi42MzEsOC4zNzgsMjMuMjg5LDgsMjQsOHMxLjM2OSwwLjM3OCwxLjcyOCwwLjk5MmwxNiwyOGMwLjM2MSwwLjYxOSwwLjM2MywxLjM4MywwLjAwNywyLjAwNFM0MC43MTYsNDAsNDAsNDB6Ij48L3BhdGg+PHBhdGggZmlsbD0iIzVENDAzNyIgZD0iTTIyLDM0LjE0MmMwLTAuMjY5LDAuMDQ3LTAuNTE1LDAuMTQzLTAuNzQ2YzAuMDk0LTAuMjI4LDAuMjI5LTAuNDI2LDAuNDAzLTAuNTkyYzAuMTcxLTAuMTY4LDAuMzgyLTAuMjk5LDAuNjI0LTAuMzkzYzAuMjQ0LTAuMDkyLDAuNTE4LTAuMTQxLDAuODI0LTAuMTQxYzAuMzA2LDAsMC41ODIsMC4wNDksMC44MjgsMC4xNDFjMC4yNSwwLjA5NCwwLjQ2MSwwLjIyNSwwLjYzMiwwLjM5M2MwLjE3NSwwLjE2NiwwLjMxLDAuMzY0LDAuNDAzLDAuNTkyQzI1Ljk1MywzMy42MjcsMjYsMzMuODczLDI2LDM0LjE0MmMwLDAuMjctMC4wNDcsMC41MTYtMC4xNDMsMC43NGMtMC4wOTQsMC4yMjUtMC4yMjksMC40MTktMC40MDMsMC41ODhjLTAuMTcxLDAuMTY2LTAuMzgyLDAuMjk2LTAuNjMyLDAuMzkyQzI0LjU3NiwzNS45NTQsMjQuMywzNiwyMy45OTQsMzZjLTAuMzA3LDAtMC41OC0wLjA0Ni0wLjgyNC0wLjEzOWMtMC4yNDItMC4wOTYtMC40NTMtMC4yMjYtMC42MjQtMC4zOTJjLTAuMTc1LTAuMTY5LTAuMzEtMC4zNjMtMC40MDMtMC41ODhDMjIuMDQ3LDM0LjY1NywyMiwzNC40MTEsMjIsMzQuMTQyIE0yNS40OCwzMGgtMi45NzNsLTAuNDIxLTEySDI1LjlMMjUuNDgsMzB6Ij48L3BhdGg+Cjwvc3ZnPg==);
+                background-size: 16px;
+                background-repeat: no-repeat;
+                background-position: 4px 4px;
+            }
+            
+            #output {
+                padding: 20px;
+                margin: 0;
+                font-size: 0.75rem;
+                color: #888;
+            }
+
+            #output pre {
+                margin-top: 0;
+                line-height: 130%;
+            }
+
+            #output pre .number {
+                color: #aaa;
+            }
+            #output pre .data {
+                color: #000;
+            }
+            #output pre .chars {
+                color: #3F51B5;
+            }
+
+            #output .line {
+                display: flex;
+                flex-wrap: wrap;    
+            
+                border-bottom: 1px dashed #ccc;
+                padding: 14px 20px 6px 20px;
+                margin: 0px -20px;
+                min-height: 12px;
+            }
+
+            #output .line:first-of-type {
+                padding-top: 0;
+            }
+
+            #output .line .return {
+                display: block;
+                font-family: sans-serif;
+                margin-right: 8px;
+                margin-bottom: 16px;
+                align-self: end;
+            }
+            #output .line .return:first-child {
+                margin-bottom: 8px;
+            }
+
+            #output .line .command {
+                display: flex;
+                position: relative;
+                background: #ddd;
+                border-radius: 5px;
+                font-family: monospace;
+                margin-right: 8px;
+                margin-bottom: 8px;
+                color: #000;
+                font-size: 0.7rem;
+                line-height: 150%;
+            }
+
+            #output[data-format="lines"] .line .command {
+                max-width: calc(100% - 36px);
+            }
+
+            #output[data-format="text"] .receipt {
+                --size-a:   13px; /* 19px; */
+                --width-a:  8px; /* 12px; */
+                --height-a: 16px; /* 24px; */
+
+                --size-b:   10px; /* 14px; */
+                --width-b:  6px; /* 9px;*/
+                --height-b: 16px; /* 24px; */
+
+                --columns:  48;
+
+                --text:     #444;
+                --paper:    #eee;
+
+                color: var(--text);
+                background: var(--paper);
+                border-radius: 8px;
+                padding: 32px;
+                margin: 0 auto;
+                width: calc(var(--columns) * var(--width-a));
+            }
+
+            #output[data-format="text"] .placeholder { 
+                background: #ddd;
+                width: calc(var(--width-a) * 24);
+                height: calc(var(--height-a) * 4);
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;    
+            }
+            #output[data-format="text"] .placeholder.center {
+                margin: 0 auto;
+            }
+            #output[data-format="text"] .placeholder.right {
+                margin-left: auto;
+            }
+
+
+            #output[data-format="text"] .cut { 
+                border-top: 2px dashed #fff;
+                width: calc(100% + 64px);
+                margin: 0 -32px;
+            }
+
+            #output[data-format="text"] .text {
+                --size: var(--size-a);
+                --width: var(--width-a);
+                --height: var(--height-a);
+
+                display: flex;
+                flex-wrap: wrap;
+                font-family: monospace;
+                text-wrap: nowrap;
+                min-height: var(--height);
+                margin-bottom: calc(var(--height-a) / 4);
+            }
+
+            #output[data-format="text"] .fontb {
+                --size: var(--size-b);
+                --width: var(--width-b);
+                --height: var(--height-b);
+            }
+
+            #output[data-format="text"] .character {
+                --scale-x: 1;
+                --scale-y: 1;
+            
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: var(--width);
+                font-size: var(--size);
+                line-height: var(--height);
+            }
+
+            #output[data-format="text"] .bold {
+                font-weight: bold;
+            }
+
+            #output[data-format="text"] .italic {
+                font-style: italic;
+            }
+
+            #output[data-format="text"] .underline {
+                text-decoration: underline;
+            }
+
+            #output[data-format="text"] .invert {
+                background: var(--text);
+                color: var(--paper);
+            }
+
+            #output[data-format="text"] .scale {
+                width: calc(var(--width) * var(--scale-x));
+                line-height: calc(var(--height) * var(--scale-y));
+                transform: scale(var(--scale-x), var(--scale-y));
+            }
+            #output[data-format="text"] .w2 {
+                --scale-x: 2;
+            }
+            #output[data-format="text"] .h2 {
+                --scale-y: 2;
+            }
+            #output[data-format="text"] .w3 {
+                --scale-x: 3;
+            }
+            #output[data-format="text"] .h3 {
+                --scale-y: 3;
+            }
+            #output[data-format="text"] .w4 {
+                --scale-x: 4;
+            }
+            #output[data-format="text"] .h4 {
+                --scale-y: 4;
+            }
+
+
+
+            #output .line .command > * {
+                padding: 6px 8px;
+            }
+
+            #output .line .command div:empty {
+                padding: 0;
+            }
+
+            #output .line .command .type {
+                color: #fff;
+                background: #888;
+                border-radius: 5px;
+                max-height: 17px;
+            }
+            #output .line .command .codepage {
+                color: #aaa;
+            }
+            #output .line .command .text {
+                text-wrap: nowrap;
+            }
+            #output .line .command .text .space::before {
+                position: absolute;
+                content: '.';
+                color: #aaa;
+                margin-top: -2px;
+            }
+
+
+            #output .line .command[data-type="empty"] {
+                display: none;
+            }
+
+            #output .line .command[data-type="character-mode"] .type,
+            #output .line .command[data-type="codepage"] .type {
+                background: #00BCD4;
+            }
+
+            #output .line .command[data-type="text"] .type {
+                background: #4CAF50;
+            }
+
+            #output .line .command[data-type="line-spacing"] .type,
+            #output .line .command[data-type="font"] .type,
+            #output .line .command[data-type="align"] .type {
+                background: #607D8B;
+            }
+
+            #output .line .command[data-type="style"] .type {
+                background: #3F51B5;
+            }
+
+            #output .line .command[data-type="image"] .type,
+            #output .line .command[data-type="qrcode"] .type,
+            #output .line .command[data-type="barcode"] .type,
+            #output .line .command[data-type="pdf417"] .type {
+                background: #9C27B0;
+            }
+
+            #output .line .command[data-type="cut"] .type,
+            #output .line .command[data-type="pulse"] .type {
+                background: #a43d68;
+            }
+
+            #output .line .command[data-type="raw"] .type {
+                background: #D85700;
+            }
+
+        </style>
+    </head>
+    <body>
+        <header>
+            <select id="driver" onchange="changeDriver()">
+                <option value="usb" selected>USB</option>
+                <option value="serial">Serial</option>
+                <option value="bluetooth">Bluetooth</option>
+            </select>
+
+            <select id="baudrate" hidden>
+                <option value="9600" selected>9600</option>
+                <option value="38400">38400</option>
+                <option value="115200">115200</option>
+            </select>
+
+            <select id="printerModel" onchange="updatePreview()"></select>
+
+            <button id="connect" onclick="connect()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <path fill="#2196f3" d="M 17 2 A 1 1 0 0 0 16.123047 2.5214844 L 8.1738281 15.433594 L 8.1738281 15.435547 A 1 1 0 0 0 8 16 A 1 1 0 0 0 9 17 L 14.5 17 L 13.019531 26.800781 A 1 1 0 0 0 13 27 A 1 1 0 0 0 14 28 A 1 1 0 0 0 14.882812 27.466797 L 14.884766 27.466797 L 22.806641 14.589844 L 22.796875 14.572266 C 22.915239 14.407976 23 14.217804 23 14 C 23 13.448 22.552 13 22 13 L 16.5 13 L 17.955078 3.2949219 A 1 1 0 0 0 18 3 A 1 1 0 0 0 17 2 z"></path>
+                </svg>
+                Connect
+            </button>
+
+            <button id="disconnect" onclick="disconnect()" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#9C27B0" d="M21 4H26.001V43H21z" transform="rotate(45.001 23.5 23.5)"></path><path fill="#9C27B0" d="M21 4H26.001V43H21z" transform="rotate(134.999 23.5 23.5)"></path>
+                </svg>
+                Disconnect
+            </button>
+
+
+            <button class="print" onclick="print()" disabled style="margin-left: auto">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#90caf9" d="M36 5L32 9 28 5 24 9 20 5 16 9 12 5 8 9 4 5 4 36.5 36 36.5z"></path><path fill="#1976d2" d="M10 14H22V16H10zM25 14H30V16H25zM10 18H16V20H10zM19 18H30V20H19zM10 22H14V24H10zM17 22H23V24H17zM26 22H30V24H26z"></path><path fill="#bbdefb" d="M38.522,30h-29L9.478,43c0,0,27.579-0.004,29,0c3.038,0.009,5.51-2.894,5.522-6.483 S41.559,30.009,38.522,30z"></path><path fill="#1976d2" d="M10 26H20V28H10zM22 26H30V28H22z"></path><path fill="#42a5f5" d="M9.522,30C6.484,29.991,4.012,32.894,4,36.483C3.988,40.073,6.441,42.991,9.478,43 s5.51-2.894,5.522-6.483S12.559,30.009,9.522,30z"></path><path fill="#1976d2" d="M9.509,33C8.33,33,7.008,34.492,7,36.493c-0.004,1.042,0.351,2.035,0.973,2.725 c0.264,0.291,0.81,0.78,1.514,0.782c0.002,0,0.003,0,0.004,0c1.178,0,2.501-1.492,2.509-3.493c0.007-2.003-1.307-3.504-2.487-3.507 C9.511,33,9.51,33,9.509,33z"></path>
+                </svg>
+                Print
+            </button>
+
+        </header>
+
+        <div id="toolbar">
+            <div class="templates">
+                <button onclick="template('new')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#c5cae9" d="M40,42H9V4h31V42z"></path><rect width="3" height="3" x="13" y="17" fill="#7986cb"></rect><rect width="17" height="3" x="19" y="17" fill="#7986cb"></rect><rect width="3" height="3" x="13" y="23" fill="#7986cb"></rect><rect width="17" height="3" x="19" y="23" fill="#7986cb"></rect><rect width="3" height="3" x="13" y="29" fill="#7986cb"></rect><rect width="17" height="3" x="19" y="29" fill="#7986cb"></rect><rect width="23" height="3" x="13" y="9" fill="#7986cb"></rect><path fill="#43a047" d="M48,38c0,5.5-4.5,10-10,10s-10-4.5-10-10s4.5-10,10-10S48,32.5,48,38L48,38z"></path><polygon fill="#fff" points="44,36 40,36 40,32 36,32 36,36 32,36 32,40 36,40 36,44 40,44 40,40 44,40"></polygon>
+                    </svg>
+                    New...
+                </button>
+
+                <button onclick="template('text')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#9C27B0" d="M30.484,35H18.266l-2.223,7H8.448L20.676,6h7.445l12.178,36h-7.596L30.484,35z M20.203,29h8.344l-4.086-12.964h-0.15L20.203,29z"></path>
+                    </svg>
+                    Text
+                </button>
+                
+                <button onclick="template('tables')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#DCEDC8" d="M42,37c0,2.8-2.2,5-5,5H11c-2.8,0-5-2.2-5-5V11c0-2.8,2.2-5,5-5h26c2.8,0,5,2.2,5,5V37z"></path><path fill="#C5E1A5" d="M9 9H39V18H9z"></path><path fill="#4CAF50" d="M37,10c0.6,0,1,0.4,1,1v26c0,0.6-0.4,1-1,1H11c-0.6,0-1-0.4-1-1V11c0-0.6,0.4-1,1-1H37 M37,6H11c-2.8,0-5,2.2-5,5v26c0,2.8,2.2,5,5,5h26c2.8,0,5-2.2,5-5V11C42,8.2,39.8,6,37,6L37,6z"></path><path fill="#AED581" d="M38,26H10v-2h28V26z M38,31H10v2h28V31z"></path><path fill="#388E3C" d="M38 17L19 17 19 10 17 10 17 17 10 17 10 19 17 19 17 38 19 38 19 19 38 19z"></path>
+                    </svg>
+                    Tables
+                </button>
+
+                <button onclick="template('images')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M40,41H8c-2.209,0-4-1.791-4-4V11c0-2.209,1.791-4,4-4h32c2.209,0,4,1.791,4,4v26C44,39.209,42.209,41,40,41"></path><path fill="#FFF8E1" d="M32,16c0,1.657,1.343,3,3,3s3-1.343,3-3s-1.343-3-3-3S32,14.343,32,16"></path><path fill="#D85700" d="M20 16L9 32 31 32z"></path><path fill="#EF7E03" d="M31 22L23 32 39 32z"></path>
+                    </svg>
+                    Images
+                </button>
+
+                <button onclick="template('barcodes')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#607D8B" d="M11 7H15V43H11zM5 7H9V43H5zM17 7H19V43H17zM31 7H35V43H31zM37 7H41V43H37zM21 7H29V43H21z"></path>
+                    </svg>
+                    Barcodes
+                </button>
+
+                <button onclick="template('qrcode')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#3F51B5" d="M10 10H14V14H10zM10 32H14V36H10zM32 10H36V14H32zM20 20H24V24H20zM24 20H28V24H24zM24 28H28V32H24zM38 24H42V28H38zM8 24H12V28H8zM16 24H20V28H16zM12 20H16V24H12zM20 24H24V28H20zM24 32H28V38H24zM30 30H34V34H30zM20 31H24V35H20zM20 38H24V42H20zM30 24H34V28H30zM26 24H30V28H26zM30 38H34V42H30z"></path><path fill="#3F51B5" d="M26 24H30V28H26zM38 30H42V34H38zM38 38H42V42H38zM34 34H38V38H34zM22 24H26V28H22zM34 20H38V24H34zM26 4v16h16V4H26zM38 16h-8V8h8V16zM4 20h16V4H4V20zM8 8h8v8H8V8zM4 42h16V26H4V42zM8 30h8v8H8V30z"></path>
+                    </svg>
+                    QR Code
+                </button>
+
+                <button onclick="template('pdf417')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                        <path fill="#9C27B0" d="M6 28H42V34H6zM6 14H42V20H6z"></path><path fill="#9C27B0" d="M28 6.001H34V42H28zM14 6.001H20V42H14z"></path>
+                    </svg>
+                    PDF417
+                </button>
+            </div>
+
+
+
+            <div class="buttons">
+                <div class="tabs">
+                    <label>
+                        <input type="radio" name="format" value="text" checked onchange="changeFormat(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <rect width="16" height="4" x="6" y="7" fill="#546e7a"></rect><rect width="16" height="4" x="26" y="17" fill="#546e7a"></rect><rect width="16" height="4" x="6" y="27" fill="#546e7a"></rect><rect width="16" height="4" x="26" y="37" fill="#546e7a"></rect><rect width="6" height="4" x="6" y="17" fill="#546e7a"></rect><rect width="6" height="4" x="6" y="37" fill="#546e7a"></rect><rect width="6" height="4" x="16" y="17" fill="#546e7a"></rect><rect width="6" height="4" x="16" y="37" fill="#546e7a"></rect><rect width="6" height="4" x="26" y="7" fill="#546e7a"></rect><rect width="6" height="4" x="26" y="27" fill="#546e7a"></rect><rect width="6" height="4" x="36" y="7" fill="#546e7a"></rect><rect width="6" height="4" x="36" y="27" fill="#546e7a"></rect>
+                        </svg>
+                        Text
+                    </label>
+
+                    <label>
+                        <input type="radio" name="format" value="commands" onchange="changeFormat(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <path fill="#64B5F6" d="M42 14c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2V8c0-1.104.896-2 2-2h32c1.104 0 2 .896 2 2V14zM42 27c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2v-6c0-1.104.896-2 2-2h32c1.104 0 2 .896 2 2V27zM42 40c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2v-6c0-1.104.896-2 2-2h32c1.104 0 2 .896 2 2V40z"></path>
+                        </svg>
+                        Commands
+                    </label>
+
+                    <label>
+                        <input type="radio" name="format" value="lines" onchange="changeFormat(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <path fill="#8BC34A" d="M39,15c0-2.2-1.8-4-4-4h-6c-0.7,0-1.1-0.8-0.7-1.4c0.6-1,0.9-2.2,0.6-3.5c-0.4-2-1.9-3.6-3.8-4C21.8,1.4,19,3.9,19,7c0,1,0.3,1.8,0.7,2.6c0.4,0.6,0,1.4-0.8,1.4h-6c-2.2,0-4,1.8-4,4v7c0,0.7,0.8,1.1,1.4,0.7c1-0.6,2.2-0.9,3.5-0.6c2,0.4,3.6,1.9,4,3.8c0.7,3.2-1.8,6.1-4.9,6.1c-1,0-1.8-0.3-2.6-0.7C9.8,30.9,9,31.3,9,32v6c0,2.2,1.8,4,4,4h22c2.2,0,4-1.8,4-4V15z"></path>
+                        </svg>
+                        Encoded
+                    </label>
+
+                    <label>
+                        <input type="radio" name="format" value="dump" onchange="changeFormat(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <path fill="#880e4f" d="M12.585 5L6 7.111 6 9.294 10.2 8.11 10.2 20 13 20 13 5zM27.585 28L21 30.111 21 32.294 25.2 31.11 25.2 43 28 43 28 28zM36.989 8.334c.986 0 1.376.34 1.651.705.546.729.844 1.973.86 3.571l-.002.595c0 1.689-.291 2.982-.842 3.738-.316.433-.714.722-1.643.722-.982 0-1.374-.344-1.654-.716-.542-.726-.84-1.969-.86-3.573v-.593c0-2.15.455-3.21.838-3.724C35.619 8.681 36.011 8.334 36.989 8.334M36.989 6c-1.609 0-2.846.574-3.704 1.727C32.429 8.874 32 10.563 32 12.784v.593c.026 2.135.457 3.772 1.311 4.911C34.164 19.427 35.402 20 37.013 20c1.633 0 2.868-.584 3.712-1.746.848-1.168 1.273-2.848 1.273-5.049H42v-.593c-.022-2.135-.457-3.772-1.311-4.911C39.838 6.569 38.6 6 36.989 6L36.989 6zM22.49 10c.887 0 1.239.292 1.486.604.492.625.76 1.691.774 3.061l-.002.51c0 1.448-.262 2.556-.758 3.204-.284.371-.643.619-1.479.619-.883 0-1.237-.295-1.488-.614-.488-.622-.756-1.688-.774-3.063v-.509c0-1.843.41-2.752.754-3.192C21.257 10.298 21.61 10 22.49 10M22.49 8c-1.448 0-2.561.492-3.333 1.48C18.386 10.463 18 11.911 18 13.815v.509c.024 1.83.412 3.233 1.18 4.209C19.947 19.509 21.062 20 22.512 20c1.47 0 2.581-.5 3.341-1.497.763-1.001 1.146-2.441 1.146-4.328H27v-.509c-.02-1.83-.412-3.233-1.18-4.209C25.055 8.488 23.94 8 22.49 8L22.49 8zM37.49 33c.887 0 1.239.292 1.486.604.492.625.76 1.691.774 3.061l-.002.51c0 1.448-.262 2.556-.758 3.204-.284.371-.643.619-1.479.619-.883 0-1.237-.295-1.488-.614-.488-.622-.756-1.688-.774-3.063v-.509c0-1.843.41-2.752.754-3.192C36.257 33.298 36.61 33 37.49 33M37.49 31c-1.448 0-2.561.492-3.333 1.48C33.386 33.463 33 34.911 33 36.815v.509c.024 1.83.412 3.233 1.18 4.209C34.947 42.509 36.062 43 37.512 43c1.47 0 2.581-.5 3.341-1.497.763-1.001 1.146-2.441 1.146-4.328H42v-.509c-.02-1.83-.412-3.233-1.18-4.209C40.055 31.488 38.94 31 37.49 31L37.49 31zM11.989 31.334c.986 0 1.376.34 1.651.705.546.729.844 1.973.86 3.571l-.002.595c0 1.689-.291 2.982-.842 3.738-.316.433-.714.722-1.643.722-.982 0-1.374-.344-1.654-.716-.542-.726-.84-1.969-.86-3.573v-.593c0-2.15.455-3.21.838-3.724C10.619 31.681 11.011 31.334 11.989 31.334M11.989 29c-1.609 0-2.846.574-3.704 1.727C7.429 31.874 7 33.563 7 35.784v.593c.026 2.135.457 3.772 1.311 4.911C9.164 42.427 10.402 43 12.013 43c1.633 0 2.868-.584 3.712-1.746.848-1.168 1.273-2.848 1.273-5.049H17v-.593c-.022-2.135-.457-3.772-1.311-4.911C14.838 29.569 13.6 29 11.989 29L11.989 29z"></path>
+                        </svg>
+                        Output
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="editor"></div>
+
+        <div id="content">
+            <div id="errors"></div>
+            <div id="output"></div>
+        </div>
+
+
+
+
+
+        <template id="new">
+/* 
+    Type your code here. The encoder object is already instantiated.
+    And you do not need to call the encode() method at the end.
+*/
+
+encoder
+    .initialize()
+    .codepage('auto')
+    .line('Hello World!')
+    .newline();
+        </template>
+
+        <template id="text">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('Text')
+    .newline()
+
+    .line('Font A')
+    .line('48═════════════════════════════════════════════╣')
+    .line('44═════════════════════════════════════════╣')
+    .line('42═══════════════════════════════════════╣')
+    .line('35════════════════════════════════╣')
+    .line('32═════════════════════════════╣')
+    .newline()
+
+    .font('A')
+    .line('Font B')
+    .font('B')
+    .line('64═════════════════════════════════════════════════════════════╣')
+    .line('56═════════════════════════════════════════════════════╣')
+    .line('48═════════════════════════════════════════════╣')
+    .line('42═══════════════════════════════════════╣')
+    .newline()
+
+    .font('A')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .italic()
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .italic()
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .bold()
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .bold()
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox ')
+    .size(2, 2)                
+    .text('jumps')
+    .size(1, 1)
+    .text(' over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('€. ')
+    .newline()
+    .newline()
+    .size(2, 2)                
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .size(1, 1)
+    .newline()
+
+encoder
+    .align('center').invert().text('Inverted &').invert().align('left').newline()
+    .align('center').text('Centered!').align('left').newline()
+    .newline()
+
+encoder
+    .box(
+        { width: encoder.columns - 10, align: 'center', style: 'single', marginLeft: 10 }, 
+        'The quick brown fox jumps over the lazy dog'
+    )
+    .newline()
+
+encoder
+    .box(
+        { width: encoder.columns - 10, align: 'right', style: 'double' }, 
+        (encoder) => encoder
+                        .text('The quick brown ')
+                        .height(2)
+                        .text('fox')
+                        .height(1)
+                        .text(' jumps over the lazy dog')
+    )
+    .newline()
+
+    .rule({ style: 'double' })
+    .newline()
+    .rule({ style: 'single' })
+    .newline()
+    .align('center')    
+    .rule({ style: 'single', width: 10 })
+    .align('left')
+    .newline()
+
+encoder
+    .rule({ style: 'single' })
+    .line('ξεσκεπάζω την ψυχοφθόρα βδελυγμία. ξεσκεπάζω την ψυχοφθόρα βδελυγμία. ξεσκεπάζω την ψυχοφθόρα βδελυγμία.')
+
+    .rule({ style: 'single' })
+    .line('Я можу їсти скло, і воно мені не зашкодить. Я можу їсти скло, і воно мені не зашкодить.')
+
+    .rule({ style: 'single' })
+    .line('くうこうから ホテルまで くるまで １じかんぐらいです。')
+    
+    .rule({ style: 'single' })
+    .line('أنا قادر على أكل الزجاج و هذا لا يؤلمني.')
+    
+    .rule({ style: 'single' })
+    .line('אני יכול לאכול זכוכית וזה לא מזיק לי.')
+    
+    .rule({ style: 'single' })
+    .line('ฉันกินกระจกได้ แต่มันไม่ทำให้ฉันเจ็บ')
+    
+    .rule({ style: 'single' })
+    .line('Pchnąć w tę łódź jeża lub ośm skrzyń fig')
+    
+    .rule({ style: 'single' })
+    .line('Árvíztűrő tükörfúrógép')
+
+    .rule({ style: 'single' })
+    .newline();
+
+encoder
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .newline()
+    .newline()
+
+    .font('B')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .newline()
+    .newline()
+
+    .font('A')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .text('The quick brown fox jumps over the lazy dog. ')
+    .newline()
+    .newline()
+
+encoder
+    .newline()
+    .newline()
+    .newline()
+    .newline()
+    .newline()
+    .newline()
+    .line('How many lines do we need to feed before we cut?')
+    .line('8 ----------------------------')
+    .line('7 ----------------------------')
+    .line('6 ----------------------------')
+    .line('5 ----------------------------')
+    .line('4 ----------------------------')
+    .line('3 ----------------------------')
+    .line('2 ----------------------------')
+    .line('1 ----------------------------')
+    .line('0 Last line, cut below! ------')
+    .cut()
+    .newline()
+    .newline()
+        </template>
+
+        <template id="tables">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('Tables')
+    .newline()
+
+let widePaper = encoder.columns >= 42
+
+if (!widePaper) {
+    encoder.font('B');
+}
+
+encoder.table(
+    [
+        { width: 15, align: 'left', marginRight: 1 },
+        { width: 9, align: 'left', marginRight: 1 },
+        { width: 16, align: 'right' }
+    ],    
+    [
+        [
+            (encoder) => encoder.bold(true).text('Name').bold(false),
+            (encoder) => encoder.bold(true).text('Quantity').bold(false),
+            (encoder) => encoder.bold(true).text('Description').bold(false)
+        ],
+        [
+            (encoder) => encoder.rule({ width: 6 }),
+            (encoder) => encoder.rule(),
+            (encoder) => encoder.rule({ style: 'double' }),
+        ],
+        ['Banana', '5', 'Ripe Yellow Bananas'],
+        ['Cherry', '250000000', 'Delicious Sweet Cherries'],
+        [
+            (encoder) => encoder.text('Cherry'),
+            (encoder) => encoder.width(2).text('250000000').width(1),
+            (encoder) => encoder.text('Delicious Sweet Cherries')
+        ],
+        [
+            (encoder) => encoder.bold(true).text('Cherry').bold(false),
+            (encoder) => encoder.text('250000000'),
+            (encoder) => encoder.bold(true).text('Delicious Sweet Cherries').bold(false)
+        ],
+        ['[-------------]', '[-------]', '[--------------]']
+    ]
+)
+
+if (!widePaper) {
+    encoder.font('A');
+}
+
+encoder.newline()
+
+const firstColumnWidth = Math.round(encoder.columns * 0.1);
+const secondColumnWidth = Math.round(encoder.columns * 0.5);
+
+encoder
+    .width(2)
+    .line("-".repeat(encoder.columns / 2))
+    .width(1);
+
+encoder.table(
+    [
+        { width: firstColumnWidth, marginRight: 1, align: "right" },
+        { width: secondColumnWidth, align: "left" },
+        {
+            width: encoder.columns - firstColumnWidth - secondColumnWidth - 1,
+            align: "right",
+        },
+    ],
+    [
+        ["1x", "Spaghetti Bolognese", "€ 10,00"],
+        ["10x", "Spagetti alla carbonara", "€ 100,00"],
+    ],
+);
+
+encoder
+    .width(2)
+    .line("-".repeat(encoder.columns / 2))
+    .width(1);
+        </template>
+
+        <template id="images">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('Images')
+    .newline()
+
+const image = new Image();
+image.src ='data:image/png;base64,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';
+await image.decode();
+
+encoder
+    .align('center')
+    .image(image, 128, 128, 'atkinson')
+    .align('left')
+        </template>
+
+        <template id="barcodes">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('Barcodes')
+    .newline()
+
+encoder
+    .newline()
+    .line('EAN13:')
+    .barcode('123456789012', 'ean13', { width: 2 })
+    .newline()
+
+encoder
+    .line('EAN8:')
+    .barcode('12345670', 'ean8', { width: 2 })
+    .newline()   
+
+encoder
+    .line('UPC-A:')
+    .barcode('12345678901', 'upca', { width: 2 })
+    .newline()        
+
+encoder
+    .line('UPC-E:')
+    .barcode('023456000073', 'upce', { width: 2 })
+    .newline()        
+
+encoder
+    .line('Code 39:')
+    .barcode('1234ABCDEF$', 'code39', { width: 1 })
+    .newline()      
+
+encoder
+    .line('Code 93:')
+    .barcode('1234ABCDEF', 'code93', { width: 1 })
+    .newline()       
+
+encoder
+    .line('Code 128 (CODE128):')
+    .barcode('CODE128', 'code128', { width: 1 })
+    .line('Code 128 (Code128):')
+    .barcode('CODE128', 'code128', { width: 1 })
+    .line('Code 128 (50859935):')
+    .barcode('50859935', 'code128', { width: 1 })
+    .newline()            
+
+encoder
+    .line('ITF:')
+    .barcode('12345678', 'itf', { width: 2 })
+    .newline()            
+
+encoder
+    .line('Codabar / NW-7:')
+    .barcode('A1234B', 'codabar', { width: 2 })
+    .newline()        
+
+encoder
+    .line('GS1-128 (0130012345678906):')
+    .barcode('0130012345678906', 'gs1-128', { width: 2 })
+    .line('GS1-128 ((01)30012345678906):')
+    .barcode('(01)30012345678906', 'gs1-128', { width: 2 })
+    .newline()            
+
+encoder
+    .line('GS1 Databar Omni:')
+    .barcode('1234567890123', 'gs1-databar-omni', { width: 2 })
+    .newline()            
+
+encoder
+    .line('GS1 Databar Truncated:')
+    .barcode('1234567890123', 'gs1-databar-truncated', { width: 2 })
+    .newline()            
+
+encoder
+    .line('GS1 Databar Limited:')
+    .barcode('1234567890123', 'gs1-databar-limited', { width: 2 })
+    .newline()            
+
+encoder
+    .line('GS1 Databar Expanded:')
+    .barcode('0130012345678906', 'gs1-databar-expanded', { width: 2 })
+    .newline()            
+
+encoder.rule();
+
+encoder
+    .newline()
+    .line('Without checksum:')
+    .barcode('123456789012', 'ean13', 60)
+    .newline()
+
+encoder
+    .newline()
+    .line('With checksum:')
+    .barcode('1234567890128', 'ean13', 60)
+    .newline()
+
+encoder
+    .newline()
+    .line('Invalid checksum:')
+    .barcode('1234567890124', 'ean13', 60)
+    .newline()
+
+encoder.rule();
+
+encoder
+    .newline()
+    .line('{ width: 1 }')
+    .barcode('123456789012', 'ean13', { width: 1 })
+    .barcode('12345678', 'itf', { width: 1 })
+    .newline()
+
+encoder
+    .newline()
+    .line('{ width: 2 }')
+    .barcode('123456789012', 'ean13', { width: 2 })
+    .barcode('12345678', 'itf', { width: 2 })
+    .newline()
+
+encoder
+    .newline()
+    .line('{ width: 3 }')
+    .barcode('123456789012', 'ean13', { width: 3 })
+    .barcode('12345678', 'itf', { width: 3 })
+    .newline()
+
+encoder.rule();
+
+encoder
+    .newline()
+    .line('{ height: 40 }')
+    .barcode('123456789012', 'ean13', { height: 40 })
+    .newline()
+
+encoder
+    .newline()
+    .line('{ height: 60 }')
+    .barcode('1234567890128', 'ean13', { height: 60 })
+    .newline()
+
+encoder
+    .newline()
+    .line('{ height: 100 }')
+    .barcode('1234567890128', 'ean13', { height: 100 })
+    .newline()
+
+encoder.rule();
+
+encoder
+    .newline()
+    .line('{ text: true }')
+    .barcode('123456789012', 'ean13', { text: true })
+    .newline()
+
+encoder
+    .newline()
+    .line('{ text: true }')
+    .barcode('1234567890128', 'ean13', { text: true })
+    .newline()
+
+encoder.rule();
+
+encoder
+    .newline()
+    .line('Left aligned:')
+    .align('left')
+    .barcode('12345678', 'ean8', 60)
+    .align('left')
+    .newline()
+
+encoder
+    .newline()
+    .line('Centered:')
+    .align('center')
+    .barcode('12345678', 'ean8', 60)
+    .align('left')
+    .newline()
+
+encoder
+    .newline()
+    .line('Right aligned:')
+    .align('right')
+    .barcode('12345678', 'ean8', 60)
+    .align('left')
+    .newline()    
+        </template>
+
+        <template id="qrcode">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('QR Code')
+    .newline()
+
+encoder
+    .line('{}')
+    .align('center')
+    .qrcode('https://nielsleenheer.com')
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ model: 1 }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { model: 1 })
+    .align('left')
+    .newline()
+    .newline()
+
+
+encoder
+    .line('{ model: 2 }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { model: 2 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ size: 4 }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { size: 4 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ size: 8 }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { size: 8 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: l }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { errorlevel: 'l' })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: m }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { errorlevel: 'm' })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: q }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { errorlevel: 'q' })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: h }')
+    .align('center')
+    .qrcode('https://nielsleenheer.com', { errorlevel: 'h' })
+    .align('left')
+    .newline()
+    .newline()
+        </template>
+
+        <template id="pdf417">
+encoder
+    .initialize()
+    .codepage('auto')
+    .line(model)
+    .rule()
+    .line('PDF417')
+    .newline()
+
+encoder
+    .line('{}')
+    .align('center')
+    .pdf417('https://nielsleenheer.com')
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ width: 4, height: 4 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { width: 4, height: 4 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: 2 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { errorlevel: 2 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ errorlevel: 4 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { errorlevel: 4 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ columns: 1 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { columns: 1 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ columns: 2 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { columns: 2 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ columns: 3 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { columns: 3 })
+    .align('left')
+    .newline()
+    .newline()
+
+encoder
+    .line('{ columns: 4 }')
+    .align('center')
+    .pdf417('https://nielsleenheer.com', { columns: 4 })
+    .align('left')
+    .newline()
+    .newline()    
+        </template>
+    </body>
+</html>

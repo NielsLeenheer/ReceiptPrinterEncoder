@@ -211,7 +211,7 @@ class ReceiptPrinterEncoder {
       throw new Error('Initialize is not supported in table cells or boxes');
     }
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.initialize(),
     );
 
@@ -465,7 +465,7 @@ class ReceiptPrinterEncoder {
 
     /* Change the font */
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.font(value),
     );
 
@@ -614,7 +614,7 @@ class ReceiptPrinterEncoder {
     this.#composer.flush();
 
     this.#composer.text((options.style === 'double' ? '═' : '─').repeat(options.width), 'cp437');
-    this.#composer.flush();
+    this.#composer.flush({forceNewline: true});
 
     return this;
   }
@@ -773,19 +773,19 @@ class ReceiptPrinterEncoder {
     /* Set alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align(this.#composer.align));
+      this.#composer.add(this.#language.align(this.#composer.align));
     }
 
     /* Barcode */
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.barcode(value, symbology, options),
     );
 
     /* Reset alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align('left'));
+      this.#composer.add(this.#language.align('left'));
     }
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -846,19 +846,19 @@ class ReceiptPrinterEncoder {
     /* Set alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align(this.#composer.align));
+      this.#composer.add(this.#language.align(this.#composer.align));
     }
 
     /* QR code */
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.qrcode(value, options),
     );
 
     /* Reset alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align('left'));
+      this.#composer.add(this.#language.align('left'));
     }
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -906,19 +906,19 @@ class ReceiptPrinterEncoder {
     /* Set alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align(this.#composer.align));
+      this.#composer.add(this.#language.align(this.#composer.align));
     }
 
     /* PDF417 code */
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.pdf417(value, options),
     );
 
     /* Reset alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align('left'));
+      this.#composer.add(this.#language.align('left'));
     }
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -1063,19 +1063,19 @@ class ReceiptPrinterEncoder {
     /* Set alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align(this.#composer.align));
+      this.#composer.add(this.#language.align(this.#composer.align));
     }
 
     /* Encode the image data */
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.image(image, width, height, this.#options.imageMode),
     );
 
     /* Reset alignment */
 
     if (this.#composer.align !== 'left') {
-      this.#composer.raw(this.#language.align('left'));
+      this.#composer.add(this.#language.align('left'));
     }
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
@@ -1101,7 +1101,7 @@ class ReceiptPrinterEncoder {
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.cut(value),
     );
 
@@ -1126,7 +1126,7 @@ class ReceiptPrinterEncoder {
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
-    this.#composer.raw(
+    this.#composer.add(
         this.#language.pulse(device, on, off),
     );
 
@@ -1183,6 +1183,14 @@ class ReceiptPrinterEncoder {
    * @return {array}                   Return the encoded bytes
    */
   #encodeText(value, codepage) {
+    if (codepage === null) {
+      const fragment = CodepageEncoder.encode(value, 'ascii');
+
+      return [
+        {type: 'text', payload: [...fragment]},
+      ];
+    }
+
     if (codepage !== 'auto') {
       const fragment = CodepageEncoder.encode(value, codepage);
 
@@ -1190,12 +1198,14 @@ class ReceiptPrinterEncoder {
         this.#state.codepage = this.#codepageMapping[codepage];
 
         return [
-          ...this.#language.codepage(this.#codepageMapping[codepage]),
-          ...fragment,
+          {type: 'codepage', payload: this.#language.codepage(this.#codepageMapping[codepage])},
+          {type: 'text', payload: [...fragment]},
         ];
       }
 
-      return [...fragment];
+      return [
+        {type: 'text', payload: [...fragment]},
+      ];
     }
 
     const fragments = CodepageEncoder.autoEncode(value, this.#codepageCandidates);
@@ -1204,8 +1214,8 @@ class ReceiptPrinterEncoder {
     for (const fragment of fragments) {
       this.#state.codepage = this.#codepageMapping[fragment.codepage];
       buffer.push(
-          ...this.#language.codepage(this.#codepageMapping[fragment.codepage]),
-          ...fragment.bytes,
+          {type: 'codepage', payload: this.#language.codepage(this.#codepageMapping[fragment.codepage])},
+          {type: 'text', payload: [...fragment.bytes]},
       );
     }
 
@@ -1221,7 +1231,7 @@ class ReceiptPrinterEncoder {
     /* Flush the printer line buffer if needed */
 
     if (this.#options.autoFlush && !this.#options.embedded) {
-      this.#composer.raw(
+      this.#composer.add(
           this.#language.flush(),
       );
     }
@@ -1267,37 +1277,62 @@ class ReceiptPrinterEncoder {
   /**
      * Encode all previous commands
      *
-     * @return {Uint8Array}         Return the encoded bytes
+     * @param  {string}          format  The format of the output, either 'commands',
+     *                                   'lines' or 'array', defaults to 'array'
+     * @return {Uint8Array}              Return the encoded bytes in the format specified
      */
-  encode() {
+  encode(format) {
+    /* Get the commands */
+
     const commands = this.commands();
-    const result = [];
+
+    if (format === 'commands') {
+      return commands;
+    }
+
+    /* Build the lines */
+
+    const lines = [];
 
     for (const line of commands) {
+      const buffer = [];
+
       for (const item of line.commands) {
-        if (item.type === 'raw') {
-          result.push(item.value);
-        }
-
         if (item.type === 'text') {
-          result.push(this.#encodeText(item.value, item.codepage));
+          buffer.push(...this.#encodeText(item.value, item.codepage));
+        } else if (item.type === 'style') {
+          buffer.push(Object.assign(item, {payload: this.#encodeStyle(item.property, item.value)}));
+        } else if (item.value || item.payload) {
+          buffer.push(item);
         }
+      }
 
-        if (item.type === 'style') {
-          result.push(this.#encodeStyle(item.property, item.value));
-        }
+      lines.push(buffer);
+    }
+
+    if (format === 'lines') {
+      return lines;
+    }
+
+    /* Build the array */
+
+    const result = [];
+
+    for (const line of lines) {
+      for (const item of line) {
+        result.push(...item.payload);
       }
 
       if (this.#options.newline === '\n\r') {
-        result.push([0x0a, 0x0d]);
+        result.push(0x0a, 0x0d);
       }
 
       if (this.#options.newline === '\n') {
-        result.push([0x0a]);
+        result.push(0x0a);
       }
     }
 
-    return Uint8Array.from(result.flat());
+    return Uint8Array.from(result);
   }
 
   /**

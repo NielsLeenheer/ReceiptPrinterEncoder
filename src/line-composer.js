@@ -76,13 +76,7 @@ class LineComposer {
      * @param  {number}  length  Length in characters of the value
      */
   raw(value, length) {
-    if (value.length && value[0] instanceof Array) {
-      for (let i = 0; i < value.length; i++) {
-        this.add({type: 'raw', value: value[i]}, length || 0);
-      }
-    } else {
-      this.add({type: 'raw', value}, length || 0);
-    }
+    this.add({type: 'raw', payload: value}, length || 0);
   }
 
   /**
@@ -92,6 +86,17 @@ class LineComposer {
      * @param  {number}   length  Length in characters of the value
      */
   add(value, length) {
+    if (value instanceof Array) {
+      for (const item of value) {
+        this.add(item);
+      }
+
+      this.#cursor += length || 0;
+      return;
+    }
+
+    length = length || 0;
+
     if (length + this.#cursor > this.#columns) {
       this.flush();
     }
@@ -129,7 +134,7 @@ class LineComposer {
     };
 
     for (let i = 0; i < this.#buffer.length - 1; i++) {
-      if (this.#buffer[i].type === 'align') {
+      if (this.#buffer[i].type === 'align' && !this.#buffer[i].payload) {
         align.current = this.#buffer[i].value;
       }
     }
@@ -139,12 +144,16 @@ class LineComposer {
     if (this.#buffer.length) {
       const last = this.#buffer[this.#buffer.length - 1];
 
-      if (last.type === 'align') {
+      if (last.type === 'align' && !last.payload) {
         align.next = last.value;
       }
     }
 
     this.#align = align.current;
+
+    /* Create a clean buffer without alignment changes */
+
+    const buffer = this.#buffer.filter((item) => item.type !== 'align' || item.payload);
 
     /* Fetch the contents of the line buffer */
 
@@ -153,10 +162,10 @@ class LineComposer {
     const restore = this.style.restore();
     const store = this.style.store();
 
-    if (this.#cursor === 0 && options.ignoreAlignment) {
+    if (this.#cursor === 0 && (options.ignoreAlignment || !this.#embedded)) {
       result = this.#merge([
         ...this.#stored,
-        ...this.#buffer,
+        ...buffer,
         ...store,
       ]);
     } else {
@@ -165,8 +174,8 @@ class LineComposer {
 
         /* Find index of last text or space element */
 
-        for (let i = this.#buffer.length - 1; i >= 0; i--) {
-          if (this.#buffer[i].type === 'text' || this.#buffer[i].type === 'space') {
+        for (let i = buffer.length - 1; i >= 0; i--) {
+          if (buffer[i].type === 'text' || buffer[i].type === 'space') {
             last = i;
             break;
           }
@@ -175,13 +184,13 @@ class LineComposer {
         /* Remove trailing spaces from lines */
 
         if (typeof last === 'number') {
-          if (this.#buffer[last].type === 'space' && this.#buffer[last].size > this.style.width) {
-            this.#buffer[last].size -= this.style.width;
+          if (buffer[last].type === 'space' && buffer[last].size > this.style.width) {
+            buffer[last].size -= this.style.width;
             this.#cursor -= this.style.width;
           }
 
-          if (this.#buffer[last].type === 'text' && this.#buffer[last].value.endsWith(' ')) {
-            this.#buffer[last].value = this.#buffer[last].value.slice(0, -1);
+          if (buffer[last].type === 'text' && buffer[last].value.endsWith(' ')) {
+            buffer[last].value = buffer[last].value.slice(0, -1);
             this.#cursor -= this.style.width;
           }
         }
@@ -189,7 +198,7 @@ class LineComposer {
         result = this.#merge([
           {type: 'space', size: this.#columns - this.#cursor},
           ...this.#stored,
-          ...this.#buffer,
+          ...buffer,
           ...store,
         ]);
       }
@@ -200,7 +209,7 @@ class LineComposer {
         result = this.#merge([
           {type: 'space', size: left},
           ...this.#stored,
-          ...this.#buffer,
+          ...buffer,
           ...store,
           {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
         ]);
@@ -209,7 +218,7 @@ class LineComposer {
       if (this.#align === 'left') {
         result = this.#merge([
           ...this.#stored,
-          ...this.#buffer,
+          ...buffer,
           ...store,
           {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
         ]);
@@ -261,7 +270,11 @@ class LineComposer {
     let last = -1;
 
     for (let item of items) {
-      if (item.type === 'space' && item.size > 0) {
+      if (item.type === 'space') {
+        if (item.size === 0) {
+          continue;
+        }
+
         item = {type: 'text', value: ' '.repeat(item.size), codepage: null};
       }
 
@@ -298,7 +311,7 @@ class LineComposer {
 
         result.push(item);
         last++;
-      } else if (item.type === 'style' || item.type === 'raw') {
+      } else {
         result.push(item);
         last++;
       }

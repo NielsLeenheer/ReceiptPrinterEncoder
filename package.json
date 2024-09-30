@@ -17,7 +17,7 @@
     "scripts": {
       "build": "npm run generate && rollup -c",
       "generate": "node tools/generate.js",
-      "lint": "eslint --fix src/*.js",
+      "lint": "eslint --fix src/*.js src/**/*.js",
       "mocha": "mocha test/",
       "test": "npm run lint && npm run mocha"
     },
