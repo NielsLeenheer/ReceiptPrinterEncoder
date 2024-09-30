@@ -272,7 +272,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.pulse().encode();
         
         it('should be [ 27, 112, 0, 50, 250 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 112, 0, 50, 250, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 112, 0, 50, 250 ]), result);
         });
     });
 

@@ -231,7 +231,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.pulse().encode();
         
         it('should be [ 27, 7, 20, 20, 7, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 7, 20, 20, 7, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 7, 20, 20, 7 ]), result);
         });
     });
 
