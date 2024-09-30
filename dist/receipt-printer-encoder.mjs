@@ -3364,11 +3364,13 @@ class ReceiptPrinterEncoder {
 
     /* Build the array */
 
-    const result = [];
+    let result = [];
+    let last = null;
 
     for (const line of lines) {
       for (const item of line) {
         result.push(...item.payload);
+        last = item;
       }
 
       if (this.#options.newline === '\n\r') {
@@ -3378,6 +3380,12 @@ class ReceiptPrinterEncoder {
       if (this.#options.newline === '\n') {
         result.push(0x0a);
       }
+    }
+
+    /* If the last command is a pulse, do not feed */
+
+    if (last && last.type === 'pulse') {
+      result = result.slice(0, 0 - this.#options.newline.length);
     }
 
     return Uint8Array.from(result);
