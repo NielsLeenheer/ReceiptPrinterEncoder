@@ -421,6 +421,8 @@ class LanguageStarPrnt {
             type: 'image',
             property: 'data',
             value: 'column',
+            width,
+            height: 24,
             payload: [
               0x1b, 0x58,
               width & 0xff, (width >> 8) & 0xff,

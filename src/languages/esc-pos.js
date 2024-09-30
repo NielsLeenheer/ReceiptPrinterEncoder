@@ -488,6 +488,8 @@ class LanguageEscPos {
               type: 'image',
               property: 'data',
               value: 'column',
+              width,
+              height: 24,
               payload: [0x1b, 0x2a, 0x21, width & 0xff, (width >> 8) & 0xff, ...bytes, 0x0a],
             },
         );
@@ -510,6 +512,8 @@ class LanguageEscPos {
             type: 'image',
             command: 'data',
             value: 'raster',
+            width,
+            height,
             payload: [
               0x1d, 0x76, 0x30, 0x00,
               (width >> 3) & 0xff, (((width >> 3) >> 8) & 0xff),

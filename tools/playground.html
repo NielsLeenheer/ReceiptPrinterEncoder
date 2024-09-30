@@ -330,19 +330,19 @@
                             }
 
                             if (command.type === 'qrcode' && command.command === 'print') {
-                                result += `<div class='placeholder ${align}'>qrcode</div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><div>qrcode</div></div>`;
                             }
 
                             if (command.type === 'pdf417' && command.command === 'print') {
-                                result += `<div class='placeholder ${align}'>pdf417</div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><div>pdf417</div></div>`;
                             }
 
                             if (command.type === 'barcode' && ! command.property) {
-                                result += `<div class='placeholder ${align}'>barcode</div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><div>barcode</div></div>`;
                             }
 
                             if (command.type === 'image') {
-                                result += `<div class='placeholder ${align}'>image</div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><div style='width: ${command.width / 4 * 3}px; height: ${command.height / 4 * 3}px;'>image</div></div>`;
                             }
 
                             if (command.type === 'cut') {
@@ -732,7 +732,11 @@
                 width: calc(var(--columns) * var(--width-a));
             }
 
-            #output[data-format="text"] .placeholder { 
+            #output[data-format="text"] .placeholder {
+                width: 100%;
+                margin-bottom: 1px;
+            }
+            #output[data-format="text"] .placeholder div { 
                 background: #ddd;
                 width: calc(var(--width-a) * 24);
                 height: calc(var(--height-a) * 4);
@@ -740,12 +744,19 @@
                 flex-shrink: 0;
                 align-items: center;
                 justify-content: center;
-                font-size: 10px;    
+                font-size: 8px;    
             }
-            #output[data-format="text"] .placeholder.center {
+            #output[data-format="text"] .placeholder.qrcode div {
+                width: calc(var(--width-a) * 16);
+                height: calc(var(--width-a) * 16);
+            }
+            #output[data-format="text"] .placeholder.pdf417 div {
+                height: calc(var(--height-a) * 6);
+            }
+            #output[data-format="text"] .placeholder.center div {
                 margin: 0 auto;
             }
-            #output[data-format="text"] .placeholder.right {
+            #output[data-format="text"] .placeholder.right div {
                 margin-left: auto;
             }
 
