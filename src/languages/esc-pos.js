@@ -164,7 +164,7 @@ class LanguageEscPos {
       result.push(
           {
             type: 'barcode',
-            value: `symbology: ${symbology}, data: ${value}`,
+            value: {symbology: symbology, data: value},
             payload: [0x1d, 0x6b, identifier, bytes.length, ...bytes],
           },
       );
@@ -174,7 +174,7 @@ class LanguageEscPos {
       result.push(
           {
             type: 'barcode',
-            value: `symbology: ${symbology}, data: ${value}`,
+            value: {symbology: symbology, data: value},
             payload: [0x1d, 0x6b, identifier, ...bytes, 0x00],
           },
       );

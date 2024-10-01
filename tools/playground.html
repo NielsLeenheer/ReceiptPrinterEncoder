@@ -464,7 +464,8 @@
                                             result += `<span class="description">
                                                 ${typeof command.command !== 'undefined' ? command.command : ''}
                                                 ${typeof command.property !== 'undefined' ? command.property + ': ' : ''}
-                                                ${typeof command.value !== 'undefined' ? command.value : ''}
+                                                ${typeof command.value === 'string' ? command.value : ''}
+                                                ${typeof command.value === 'object' ? Object.entries(command.value).map(i => i[0] + ': ' + i[1]).join(', ') : ''}
                                             </span>`;
                                         }
                                     }
