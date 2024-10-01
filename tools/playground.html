@@ -210,9 +210,13 @@
                 let model = document.querySelector('#printerModel option:checked').textContent;
                 let errors = document.querySelector('#errors');
 
-                encoder = new ReceiptPrinterEncoder({
-                    printerModel: printerModel.value
-                });
+                let encoderOptions = {};
+                
+                if (printerModel.value) {
+                    encoderOptions.printerModel = printerModel.value;
+                }
+
+                encoder = new ReceiptPrinterEncoder(encoderOptions);
 
                 let script_ended = false;
                 let script_error = null;
@@ -930,7 +934,10 @@
                 <option value="115200">115200</option>
             </select>
 
-            <select id="printerModel" onchange="updatePreview()"></select>
+            <select id="printerModel" onchange="updatePreview()">
+                <option value="">Generic</option>
+                <hr>
+            </select>
 
             <button id="connect" onclick="connect()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
