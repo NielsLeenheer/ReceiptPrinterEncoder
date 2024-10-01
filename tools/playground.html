@@ -464,6 +464,14 @@
 
         <style>
 
+            :root {
+                --font-stack-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, "Cascadia Mono", Consolas, monospace;
+            }
+
+            .ace_editor {
+                font-family: var(--font-stack-mono);
+            }
+
             body {
                 margin: 0;
                 padding: 0;
@@ -476,7 +484,7 @@
 
                 margin: 14px 15px 14px 0;
                 font-family: system-ui;
-                font-weight: bold;
+                font-weight: 600;
                 font-size: 10pt;
 
                 appearance: none;
@@ -492,7 +500,7 @@
                 background: #fff;
 
                 font-family: system-ui;
-                font-weight: bold;
+                font-weight: 600;
                 font-size: 10pt;
 
                 display: flex;
@@ -652,7 +660,7 @@
             #errors .error {
                 background: #f0f0f0;
                 border-radius: 6px;
-                font-family: monospace;
+                font-family: var(--font-stack-mono);
                 margin: 8px;
                 padding: 6px 8px 6px 24px;
                 font-size: 11px;
@@ -715,7 +723,7 @@
                 position: relative;
                 background: #ddd;
                 border-radius: 5px;
-                font-family: monospace;
+                font-family: var(--font-stack-mono);
                 margin-right: 8px;
                 margin-bottom: 8px;
                 color: #000;
@@ -791,7 +799,7 @@
 
                 display: flex;
                 flex-wrap: wrap;
-                font-family: monospace;
+                font-family: var(--font-stack-mono);
                 text-wrap: nowrap;
                 min-height: var(--height);
                 margin-bottom: calc(var(--height-a) / 4);
