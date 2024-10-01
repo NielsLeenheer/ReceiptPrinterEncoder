@@ -352,7 +352,39 @@
                             }
 
                             if (command.type === 'image') {
-                                result += `<div class='placeholder ${command.type} ${align}'><div style='width: ${command.width / 4 * 3}px; height: ${command.height / 4 * 3}px;'>image</div></div>`;
+                                let canvas = document.createElement('canvas');
+                                canvas.width = command.width;
+                                canvas.height = command.height;
+
+                                let ctx = canvas.getContext('2d');
+                                ctx.fillStyle = 'black';
+
+                                for (let x = 0; x < command.width; x++) {
+                                    for (let y = 0; y < command.height; y++) {
+                                        let bit = 0;
+
+                                        if (command.value == 'raster') {
+                                            let byte = (y * (command.width >> 3)) + (x >> 3) + 8;
+                                            bit = (command.payload[byte] >> (7 - (x % 8))) & 1;
+                                        }
+                                        else {
+                                            let skip = 4;
+
+                                            if (encoder.language == 'esc-pos') {
+                                                skip = 5;
+                                            }
+
+                                            let byte = (x * 3) + Math.floor(y / 8) + skip;
+                                            bit = (command.payload[byte] >> (7 - (y % 8))) & 1;
+                                        }
+
+                                        if (bit) {
+                                            ctx.fillRect(x, y, 1, 1);
+                                        }
+                                    }
+                                }
+
+                                result += `<div class='placeholder ${command.type} ${align}'><img src='${canvas.toDataURL()}'  style='width: ${command.width / 4 * 3}px; height: ${command.height / 4 * 3}px;'></div>`;
                             }
 
                             if (command.type === 'cut') {
@@ -759,7 +791,9 @@
 
             #output[data-format="text"] .placeholder {
                 width: 100%;
-                margin-bottom: 1px;
+            }
+            #output[data-format="text"] .placeholder * { 
+                display: block;
             }
             #output[data-format="text"] .placeholder div { 
                 background: #ddd;
@@ -771,17 +805,17 @@
                 justify-content: center;
                 font-size: 8px;    
             }
-            #output[data-format="text"] .placeholder.qrcode div {
+            #output[data-format="text"] .placeholder.qrcode * {
                 width: calc(var(--width-a) * 16);
                 height: calc(var(--width-a) * 16);
             }
-            #output[data-format="text"] .placeholder.pdf417 div {
+            #output[data-format="text"] .placeholder.pdf417 * {
                 height: calc(var(--height-a) * 6);
             }
-            #output[data-format="text"] .placeholder.center div {
+            #output[data-format="text"] .placeholder.center * {
                 margin: 0 auto;
             }
-            #output[data-format="text"] .placeholder.right div {
+            #output[data-format="text"] .placeholder.right * {
                 margin-left: auto;
             }
 
