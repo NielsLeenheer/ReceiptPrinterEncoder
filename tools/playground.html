@@ -340,15 +340,36 @@
                             }
 
                             if (command.type === 'qrcode' && command.command === 'print') {
-                                result += `<div class='placeholder ${command.type} ${align}'><div>qrcode</div></div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><img src='http://bwipjs-api.metafloor.com/?bcid=qrcode&text=${command.value}' onerror="this.style.display='none'"></div>`;
                             }
 
                             if (command.type === 'pdf417' && command.command === 'print') {
-                                result += `<div class='placeholder ${command.type} ${align}'><div>pdf417</div></div>`;
+                                result += `<div class='placeholder ${command.type} ${align}'><img src='http://bwipjs-api.metafloor.com/?bcid=pdf417&text=${command.value}' onerror="this.style.display='none'"></div>`;
                             }
 
                             if (command.type === 'barcode' && ! command.property) {
-                                result += `<div class='placeholder ${command.type} ${align}'><div>barcode</div></div>`;
+                                let symbologies = {
+                                    'upca': 'upca',
+                                    'upce': 'upce',
+                                    'ean13': 'ean13',
+                                    'ean8': 'ean8',
+                                    'code39': 'code39',
+                                    'coda39': 'code39',
+                                    'itf': 'interleaved2of5',
+                                    'interleaved-2-of-5': 'interleaved2of5',
+                                    'nw-7': 'rationalizedCodabar',
+                                    'codabar': 'rationalizedCodabar',
+                                    'code93': 'code93',
+                                    'code128': 'code128',
+                                    'gs1-128': 'gs1-128',
+                                    'gs1-databar-omni': 'databaromni',
+                                    'gs1-databar-truncated': 'databartruncated',
+                                    'gs1-databar-limited': 'databarlimited',
+                                    'gs1-databar-expanded': 'databarexpanded',
+                                    'code128-auto': 'code128',
+                                }
+
+                                result += `<div class='placeholder ${command.type} ${align}'><img src='http://bwipjs-api.metafloor.com/?bcid=${symbologies[command.value.symbology]}&text=${command.value.data}' onerror="this.style.display='none'"></div>`;
                             }
 
                             if (command.type === 'image') {
@@ -795,6 +816,8 @@
             }
             #output[data-format="text"] .placeholder * { 
                 display: block;
+                width: calc(var(--width-a) * 24);
+                height: calc(var(--height-a) * 4);
             }
             #output[data-format="text"] .placeholder div { 
                 background: #ddd;
