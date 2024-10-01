@@ -30,8 +30,9 @@
 
                 if (driverValue) {
                     driver.value = driverValue;
-                    changeDriver();
                 }
+
+                changeDriver();
 
                 /* Set up printer model */
 
@@ -114,8 +115,13 @@
 
 
             function changeDriver() {
-                let method = driver.value;
-                document.getElementById('baudrate').hidden = method !== 'serial';
+                document.getElementById('connect').disabled = !(
+                    (driver.value === 'bluetooth' && navigator.bluetooth) ||
+                    (driver.value === 'usb' && navigator.usb) ||
+                    (driver.value === 'serial' && navigator.serial)
+                );
+
+                document.getElementById('baudrate').hidden = driver.value !== 'serial';
             }
 
             function connect() {
