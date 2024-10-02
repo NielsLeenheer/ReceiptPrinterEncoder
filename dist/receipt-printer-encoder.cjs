@@ -802,7 +802,7 @@ class LanguageStarPrnt {
     result.push(
         {
           type: 'barcode',
-          value: {symbology: symbology, data: value},
+          value: {symbology: symbology, data: value, width: options.width, height: options.height, text: options.text},
           payload: [
             0x1b, 0x62,
             identifier,

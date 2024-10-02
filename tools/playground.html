@@ -307,6 +307,10 @@
                     let font = 'fonta';
                     let align = 'left';
 
+                    let barcode = {};
+                    let qrcode = {};
+                    let pdf417 = {};
+
                     result += `<div class="receipt" style="--columns: ${columns};">`;
 
                     for (let line of data) {
@@ -339,37 +343,96 @@
                                 }
                             }
 
-                            if (command.type === 'qrcode' && command.command === 'print') {
-                                result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?bcid=qrcode&text=${command.value}' onerror="this.style.display='none'"></div>`;
-                            }
+                            if (command.type === 'qrcode') {
 
-                            if (command.type === 'pdf417' && command.command === 'print') {
-                                result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?bcid=pdf417&text=${command.value}' onerror="this.style.display='none'"></div>`;
-                            }
-
-                            if (command.type === 'barcode' && ! command.property) {
-                                let symbologies = {
-                                    'upca': 'upca',
-                                    'upce': 'upce',
-                                    'ean13': 'ean13',
-                                    'ean8': 'ean8',
-                                    'code39': 'code39',
-                                    'coda39': 'code39',
-                                    'itf': 'interleaved2of5',
-                                    'interleaved-2-of-5': 'interleaved2of5',
-                                    'nw-7': 'rationalizedCodabar',
-                                    'codabar': 'rationalizedCodabar',
-                                    'code93': 'code93',
-                                    'code128': 'code128',
-                                    'gs1-128': 'gs1-128',
-                                    'gs1-databar-omni': 'databaromni',
-                                    'gs1-databar-truncated': 'databartruncated',
-                                    'gs1-databar-limited': 'databarlimited',
-                                    'gs1-databar-expanded': 'databarexpanded',
-                                    'code128-auto': 'code128',
+                                if (command.property) {
+                                    qrcode[command.property] = command.value;
                                 }
 
-                                result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?bcid=${symbologies[command.value.symbology]}&text=${command.value.data}' onerror="this.style.display='none'"></div>`;
+                                if (command.command === 'print') {
+                                    let properties = {
+                                        bcid: 'qrcode',
+                                        text: qrcode.data,
+                                        eclevel: qrcode.errorlevel.toUpperCase(),
+                                        scale: qrcode.size,
+                                    }
+
+                                    result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?${Object.entries(properties).map(i => i[0]+'='+escape(i[1])).join('&')}' onerror="this.style.display='none'"></div>`;
+
+                                    qrcode = {};
+                                }
+                            }
+
+                            if (command.type === 'pdf417') {
+                                if (command.property) {
+                                    pdf417[command.property] = command.value;
+                                }
+
+                                if (command.command === 'print') {
+                                    let properties = {
+                                        bcid: 'pdf417',
+                                        text: pdf417.data,
+                                        eclevel: pdf417.errorlevel,
+                                        rows: pdf417.rows,
+                                        columns: pdf417.columns,
+                                        scale: pdf417.width * 2,
+                                    }
+
+                                    result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?${Object.entries(properties).map(i => i[0]+'='+escape(i[1])).join('&')}' onerror="this.style.display='none'"></div>`;
+
+                                    pdf417 = {};
+                                }
+                            }
+
+                            if (command.type === 'barcode') {
+                                if (command.property) {
+                                    barcode[command.property] = command.value;
+                                }
+                            
+                                else {
+                                    if (command.value) {
+                                        for (let key in command.value) {
+                                            barcode[key] = command.value[key];
+                                        }
+                                    }
+
+                                    let symbologies = {
+                                        'upca': 'upca',
+                                        'upce': 'upce',
+                                        'ean13': 'ean13',
+                                        'ean8': 'ean8',
+                                        'code39': 'code39',
+                                        'coda39': 'code39',
+                                        'itf': 'interleaved2of5',
+                                        'interleaved-2-of-5': 'interleaved2of5',
+                                        'nw-7': 'rationalizedCodabar',
+                                        'codabar': 'rationalizedCodabar',
+                                        'code93': 'code93',
+                                        'code128': 'code128',
+                                        'gs1-128': 'gs1-128',
+                                        'gs1-databar-omni': 'databaromni',
+                                        'gs1-databar-truncated': 'databartruncated',
+                                        'gs1-databar-limited': 'databarlimited',
+                                        'gs1-databar-expanded': 'databarexpanded',
+                                        'code128-auto': 'code128',
+                                    }
+
+                                    let properties = {
+                                        bcid: symbologies[barcode.symbology],
+                                        text: barcode.data,
+                                        height: (barcode.height / barcode.width) / 4,
+                                        scale: barcode.width,
+                                    }
+
+                                    if (barcode.text) {
+                                        properties.includetext = 'true';
+                                        properties.textsize = 8;
+                                    }
+
+                                    result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?${Object.entries(properties).map(i => i[0]+'='+escape(i[1])).join('&')}' onerror="this.style.display='none'"></div>`;
+
+                                    barcode = {};
+                                }
                             }
 
                             if (command.type === 'image') {
@@ -708,9 +771,6 @@
                 overflow: scroll;
             }
 
-            #errors {
-            }
-
             #errors .error {
                 background: #f0f0f0;
                 border-radius: 6px;
@@ -813,28 +873,16 @@
 
             #output[data-format="text"] .placeholder {
                 width: 100%;
+                overflow-x: hidden;
             }
             #output[data-format="text"] .placeholder * { 
                 display: block;
-                width: calc(var(--width-a) * 24);
-                height: calc(var(--height-a) * 4);
-            }
-            #output[data-format="text"] .placeholder div { 
-                background: #ddd;
-                width: calc(var(--width-a) * 24);
-                height: calc(var(--height-a) * 4);
-                display: flex;
-                flex-shrink: 0;
-                align-items: center;
-                justify-content: center;
-                font-size: 8px;    
             }
             #output[data-format="text"] .placeholder.qrcode * {
-                width: calc(var(--width-a) * 16);
-                height: calc(var(--width-a) * 16);
+                zoom: 33%;
             }
             #output[data-format="text"] .placeholder.pdf417 * {
-                height: calc(var(--height-a) * 6);
+                zoom: 33%;
             }
             #output[data-format="text"] .placeholder.center * {
                 margin: 0 auto;
