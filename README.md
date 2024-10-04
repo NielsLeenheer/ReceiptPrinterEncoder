@@ -18,6 +18,8 @@ Create a set of commands that can be send to any receipt printer that supports E
 [![npm](https://img.shields.io/npm/v/@point-of-sale/receipt-printer-encoder)](https://www.npmjs.com/@point-of-sale/receipt-printer-encoder)
 ![GitHub License](https://img.shields.io/github/license/NielsLeenheer/ReceiptPrinterEncoder)
 
+> This library is part of [@point-of-sale](https://point-of-sale.dev), a collection of libraries for interfacing browsers and Node with Point of Sale devices such as receipt printers, barcode scanners and customer facing displays.
+
 <br>
 
 ## About ReceiptPrinterEncoder
