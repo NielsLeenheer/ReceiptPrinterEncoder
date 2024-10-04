@@ -375,7 +375,8 @@
                                         eclevel: pdf417.errorlevel,
                                         rows: pdf417.rows,
                                         columns: pdf417.columns,
-                                        scale: pdf417.width * 2,
+                                        scaleX: pdf417.width * 2,
+                                        scaleY: pdf417.height * pdf417.width,
                                     }
 
                                     result += `<div class='placeholder ${command.type} ${align}'><img src='https://bwipjs-api.metafloor.com/?${Object.entries(properties).map(i => i[0]+'='+escape(i[1])).join('&')}' onerror="this.style.display='none'"></div>`;
