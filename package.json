@@ -1,65 +1,67 @@
 {
-    "name": "@point-of-sale/receipt-printer-encoder",
-    "version": "3.0.2",
-    "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT",
-    "type": "module",
-    "exports": {
-      "browser": {
-        "import": "./dist/receipt-printer-encoder.esm.js",
-        "require": "./dist/receipt-printer-encoder.umd.js",
-        "script": "./dist/receipt-printer-encoder.umd.js"
-      },
-      "import": "./dist/receipt-printer-encoder.mjs",
-      "require": "./dist/receipt-printer-encoder.cjs"
+  "name": "@point-of-sale/receipt-printer-encoder",
+  "version": "3.0.2",
+  "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT",
+  "type": "module",
+  "types": "dist/types/receipt-printer-encoder.d.ts",
+  "exports": {
+    "browser": {
+      "import": "./dist/receipt-printer-encoder.esm.js",
+      "require": "./dist/receipt-printer-encoder.umd.js",
+      "script": "./dist/receipt-printer-encoder.umd.js"
     },
-    "main": "dist/receipt-printer-encoder.cjs",
-    "module": "dist/receipt-printer-encoder.mjs",
-    "scripts": {
-      "build": "npm run generate && rollup -c",
-      "generate": "node tools/generate.js",
-      "lint": "eslint --fix src/*.js src/**/*.js",
-      "mocha": "mocha test/",
-      "test": "npm run lint && npm run mocha"
-    },
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/NielsLeenheer/ReceiptPrinterEncoder.git"
-    },
-    "keywords": [
-      "pos",
-      "escpos",
-      "starline",
-      "starprnt",
-      "receipt",
-      "printer"
-    ],
-    "author": "Niels Leenheer",
-    "license": "MIT",
-    "bugs": {
-      "url": "https://github.com/NielsLeenheer/ReceiptPrinterEncoder/issues"
-    },
-    "homepage": "https://github.com/NielsLeenheer/ReceiptPrinterEncoder#readme",
-    "devDependencies": {
-      "@rollup/plugin-commonjs": "^24.1.0",
-      "@rollup/plugin-node-resolve": "^15.0.2",
-      "@rollup/plugin-terser": "^0.4.1",
-      "canvas": "^2.11.2",
-      "chai": "^4.3.7",
-      "eslint": "^8.39.0",
-      "eslint-config-google": "^0.14.0",
-      "javascript-stringify": "^2.1.0",
-      "mocha": "^10.2.0",
-      "rollup": "^3.20.7"
-    },
-    "dependencies": {
-      "@canvas/image-data": "^1.0.0",
-      "canvas-dither": "^1.0.1",
-      "canvas-flatten": "^1.0.1",
-      "@point-of-sale/codepage-encoder": "^3.0.0",
-      "resize-image-data": "^0.3.1"
-    },
-    "files": [
-      "dist"
-    ]
-  }
-  
+    "import": "./dist/receipt-printer-encoder.mjs",
+    "require": "./dist/receipt-printer-encoder.cjs",
+    "types": "./dist/types/receipt-printer-encoder.d.ts"
+  },
+  "main": "dist/receipt-printer-encoder.cjs",
+  "module": "dist/receipt-printer-encoder.mjs",
+  "scripts": {
+    "build": "npm run generate && rollup -c",
+    "generate": "node tools/generate.js",
+    "lint": "eslint --fix src/*.js src/**/*.js",
+    "mocha": "mocha test/",
+    "test": "npm run lint && npm run mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NielsLeenheer/ReceiptPrinterEncoder.git"
+  },
+  "keywords": [
+    "pos",
+    "escpos",
+    "starline",
+    "starprnt",
+    "receipt",
+    "printer"
+  ],
+  "author": "Niels Leenheer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NielsLeenheer/ReceiptPrinterEncoder/issues"
+  },
+  "homepage": "https://github.com/NielsLeenheer/ReceiptPrinterEncoder#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-terser": "^0.4.1",
+    "rollup-plugin-copy": "^3.5.0",
+    "canvas": "^2.11.2",
+    "chai": "^4.3.7",
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0",
+    "javascript-stringify": "^2.1.0",
+    "mocha": "^10.2.0",
+    "rollup": "^3.20.7"
+  },
+  "dependencies": {
+    "@canvas/image-data": "^1.0.0",
+    "canvas-dither": "^1.0.1",
+    "canvas-flatten": "^1.0.1",
+    "@point-of-sale/codepage-encoder": "^3.0.0",
+    "resize-image-data": "^0.3.1"
+  },
+  "files": [
+    "dist"
+  ]
+}
