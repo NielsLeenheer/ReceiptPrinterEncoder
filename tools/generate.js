@@ -62,8 +62,11 @@ function generateMappings() {
 
             for (let line of lines) {
                 if (line.length > 1 && line.charAt(0) != '#') {
-                    let [ skip, key, value ] = line.split(/\t/);
-                    list.set(parseInt(key, 16), value.trim());
+                    const parts = line.split(/\t/);
+                    if (parts.length >= 3) {
+                        const [, key, value] = parts;
+                        list.set(parseInt(key, 16), value.trim());
+                    }
                 }
             }
 
@@ -96,8 +99,11 @@ function generateMappings() {
 
             for (let line of lines) {
                 if (line.length > 1 && line.charAt(0) != '#') {
-                    let [ skip, key, value ] = line.split(/\t/);
-                    list.set(parseInt(key, 16), value.trim());
+                    const parts = line.split(/\t/);
+                    if (parts.length >= 3) {
+                        const [, key, value] = parts;
+                        list.set(parseInt(key, 16), value.trim());
+                    }
                 }
             }
 
