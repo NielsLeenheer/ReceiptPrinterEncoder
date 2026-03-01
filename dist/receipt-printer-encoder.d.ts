@@ -7,6 +7,8 @@ type Language = 'esc-pos' | 'star-prnt' | 'star-line';
 type Alignment = 'left' | 'center' | 'right';
 type DitherAlgorithm = 'threshold' | 'bayer' | 'floydsteinberg' | 'atkinson';
 type ErrorLevel = 'relaxed' | 'strict';
+type TextSize = 'small' | 'normal';
+type CutType = 'full' | 'partial';
 type BarcodeSymbology = 'upca' | 'upce' | 'ean13' | 'ean8' | 'code39' | 'itf' | 'codabar' | 'code93' | 'code128' | 'code128-auto' | 'gs1-128' | 'gs1-databar-omni' | 'gs1-databar-truncated' | 'gs1-databar-limited' | 'gs1-databar-expanded';
 interface ReceiptPrinterEncoderOptions {
     columns?: number;
@@ -87,7 +89,7 @@ declare class ReceiptPrinterEncoder {
     width(width?: number): ReceiptPrinterEncoder;
     height(height?: number): ReceiptPrinterEncoder;
     size(width: number, height?: number): ReceiptPrinterEncoder;
-    size(value: 'small' | 'normal'): ReceiptPrinterEncoder;
+    size(value: TextSize): ReceiptPrinterEncoder;
     font(value: string): ReceiptPrinterEncoder;
     align(value: Alignment): ReceiptPrinterEncoder;
     table(columns: TableColumn[], data: TableCellContent[][]): ReceiptPrinterEncoder;
@@ -97,7 +99,7 @@ declare class ReceiptPrinterEncoder {
     qrcode(value: string, model?: number | QRCodeOptions, size?: number, errorlevel?: string): ReceiptPrinterEncoder;
     pdf417(value: string, options?: PDF417Options): ReceiptPrinterEncoder;
     image(input: ImageInput | HTMLImageElement | HTMLCanvasElement, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
-    cut(value?: 'full' | 'partial'): ReceiptPrinterEncoder;
+    cut(value?: CutType): ReceiptPrinterEncoder;
     pulse(device?: number, on?: number, off?: number): ReceiptPrinterEncoder;
     raw(data: number[] | Uint8Array): ReceiptPrinterEncoder;
     commands(): {
@@ -117,4 +119,4 @@ declare class ReceiptPrinterEncoder {
 }
 
 export { ReceiptPrinterEncoder as default };
-export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, DitherAlgorithm, ErrorLevel, ImageInput, Language, PDF417Options, PrinterModelInfo, QRCodeOptions, ReceiptPrinterEncoderOptions, RuleOptions, TableColumn };
+export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, CutType, DitherAlgorithm, ErrorLevel, ImageInput, Language, PDF417Options, PrinterModelInfo, QRCodeOptions, ReceiptPrinterEncoderOptions, RuleOptions, TableColumn, TextSize };

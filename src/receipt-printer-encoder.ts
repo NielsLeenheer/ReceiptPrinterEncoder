@@ -9,6 +9,10 @@ export type DitherAlgorithm = 'threshold' | 'bayer' | 'floydsteinberg' | 'atkins
 
 export type ErrorLevel = 'relaxed' | 'strict';
 
+export type TextSize = 'small' | 'normal';
+
+export type CutType = 'full' | 'partial';
+
 export type BarcodeSymbology =
 	| 'upca'
 	| 'upce'
@@ -127,7 +131,7 @@ declare class ReceiptPrinterEncoder {
 	height(height?: number): ReceiptPrinterEncoder;
 
 	size(width: number, height?: number): ReceiptPrinterEncoder;
-	size(value: 'small' | 'normal'): ReceiptPrinterEncoder;
+	size(value: TextSize): ReceiptPrinterEncoder;
 
 	font(value: string): ReceiptPrinterEncoder;
 
@@ -147,7 +151,7 @@ declare class ReceiptPrinterEncoder {
 
 	image(input: ImageInput | HTMLImageElement | HTMLCanvasElement, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
 
-	cut(value?: 'full' | 'partial'): ReceiptPrinterEncoder;
+	cut(value?: CutType): ReceiptPrinterEncoder;
 
 	pulse(device?: number, on?: number, off?: number): ReceiptPrinterEncoder;
 
