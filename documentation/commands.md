@@ -402,7 +402,7 @@ The first parameter is an array of column definitions. Each column can have the 
 
 - `width`:  determines the width of the column. 
 - `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
-- `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
+- `align`: sets the horizontal alignment of the text in the column and can be `left`, `center` or `right`.
 - `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
 
 The second parameter contains the data and is an array that contains each row. There can be as many rows as you would like.
@@ -447,7 +447,7 @@ The first parameter is an object with additional configuration options.
 - `marginRight`: Space between the right border and the right edge
 - `paddingLeft`: Space between the contents and the left border of the box
 - `paddingRight`: Space between the contents and the right border of the box
-- `align`: The alignment of the text within the box, can be `left` or `right`.
+- `align`: The alignment of the text within the box, can be `left`, `center` or `right`.
 
 The second parameter is the content of the box and it can be a string, or a callback function.
 
