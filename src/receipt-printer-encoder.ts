@@ -91,6 +91,13 @@ export interface PDF417Options {
 	truncated?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SharpInput {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface NdarrayInput {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ReadImageInput {}
+
 export interface PrinterModelInfo {
 	id: string;
 	name: string;
@@ -143,7 +150,7 @@ declare class ReceiptPrinterEncoder {
 
 	pdf417(value: string, options?: PDF417Options): ReceiptPrinterEncoder;
 
-	image(input: ImageData | HTMLImageElement | HTMLCanvasElement | object, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
+	image(input: ImageData | HTMLImageElement | HTMLCanvasElement | SharpInput | NdarrayInput | ReadImageInput, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
 
 	cut(value?: CutType): ReceiptPrinterEncoder;
 

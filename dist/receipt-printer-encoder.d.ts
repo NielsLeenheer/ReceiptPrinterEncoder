@@ -64,6 +64,12 @@ interface PDF417Options {
     errorlevel?: number;
     truncated?: boolean;
 }
+interface SharpInput {
+}
+interface NdarrayInput {
+}
+interface ReadImageInput {
+}
 interface PrinterModelInfo {
     id: string;
     name: string;
@@ -93,7 +99,7 @@ declare class ReceiptPrinterEncoder {
     barcode(value: string, symbology: BarcodeSymbology | number, height?: number | BarcodeOptions): ReceiptPrinterEncoder;
     qrcode(value: string, model?: number | QRCodeOptions, size?: number, errorlevel?: string): ReceiptPrinterEncoder;
     pdf417(value: string, options?: PDF417Options): ReceiptPrinterEncoder;
-    image(input: ImageData | HTMLImageElement | HTMLCanvasElement | object, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
+    image(input: ImageData | HTMLImageElement | HTMLCanvasElement | SharpInput | NdarrayInput | ReadImageInput, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
     cut(value?: CutType): ReceiptPrinterEncoder;
     pulse(device?: number, on?: number, off?: number): ReceiptPrinterEncoder;
     raw(data: number[] | Uint8Array): ReceiptPrinterEncoder;
@@ -114,4 +120,4 @@ declare class ReceiptPrinterEncoder {
 }
 
 export { ReceiptPrinterEncoder as default };
-export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, CutType, DitherAlgorithm, ErrorLevel, Language, PDF417Options, PrinterModelInfo, QRCodeOptions, ReceiptPrinterEncoderOptions, RuleOptions, TableColumn, TextSize };
+export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, CutType, DitherAlgorithm, ErrorLevel, Language, NdarrayInput, PDF417Options, PrinterModelInfo, QRCodeOptions, ReadImageInput, ReceiptPrinterEncoderOptions, RuleOptions, SharpInput, TableColumn, TextSize };
