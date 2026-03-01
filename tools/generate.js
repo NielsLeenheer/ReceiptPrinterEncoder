@@ -125,5 +125,51 @@ function generateMappings() {
     fs.writeFileSync('generated/mapping.js', output, 'utf8');
 }
 
+function generateTypes() {
+    let output = '';
+
+    /* Generate PrinterModel type from printer definitions */
+
+    try {
+        let files = fs.readdirSync('data/printers');
+        let models = files.map(file => file.replace(/\.json$/, ''));
+
+        output += `export type PrinterModel =\n`;
+        output += models.map(m => `\t| '${m}'`).join('\n');
+        output += `;\n\n`;
+    }
+    catch (err) {
+        console.error(err);
+    }
+
+    /* Generate CodepageMappingName type from codepage mappings */
+
+    try {
+        let names = new Set();
+
+        let escPosFiles = fs.readdirSync('data/mappings/esc-pos');
+        for (let file of escPosFiles) {
+            names.add(file.replace(/\.txt$/, '').replace(/-legacy/g, '\/legacy'));
+        }
+
+        let starPrntFiles = fs.readdirSync('data/mappings/star-prnt');
+        for (let file of starPrntFiles) {
+            names.add(file.replace(/\.txt$/, '').replace(/-legacy/g, '\/legacy'));
+        }
+
+        let sortedNames = [...names].sort();
+
+        output += `export type CodepageMappingName =\n`;
+        output += sortedNames.map(n => `\t| '${n}'`).join('\n');
+        output += `;\n\n`;
+    }
+    catch (err) {
+        console.error(err);
+    }
+
+    fs.writeFileSync('generated/types.ts', output, 'utf8');
+}
+
 generateMappings();
 generatePrinters();
+generateTypes();
