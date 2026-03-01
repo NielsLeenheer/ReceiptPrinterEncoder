@@ -16,7 +16,7 @@
     "module": "dist/receipt-printer-encoder.mjs",
     "types": "dist/receipt-printer-encoder.d.ts",
     "scripts": {
-        "build": "npm run generate && tsc && rollup -c && rm -rf dist/src dist/generated",
+        "build": "npm run generate && tsc && rollup -c",
         "generate": "node tools/generate.js",
         "lint": "eslint --fix src/*.js src/**/*.js",
         "mocha": "mocha test/",

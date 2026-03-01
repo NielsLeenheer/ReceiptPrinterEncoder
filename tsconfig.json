@@ -5,7 +5,7 @@
 		"moduleResolution": "bundler",
 		"declaration": true,
 		"emitDeclarationOnly": true,
-		"outDir": "dist",
+		"outDir": "build/tmp",
 		"strict": true,
 		"esModuleInterop": true
 	},

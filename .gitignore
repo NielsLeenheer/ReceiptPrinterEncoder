@@ -1,4 +1,5 @@
 node_modules
+build
 .DS_Store
 examples/package-lock.json
 examples/_*
