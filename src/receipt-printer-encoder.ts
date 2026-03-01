@@ -91,6 +91,22 @@ export interface PDF417Options {
 	truncated?: boolean;
 }
 
+export interface SharpInput {
+	data: Uint8Array;
+	info: { width: number; height: number };
+}
+
+export interface NdarrayInput {
+	data: Uint8Array;
+	shape: number[];
+}
+
+export interface ReadImageInput {
+	width: number;
+	height: number;
+	frames: { data: Uint8Array }[];
+}
+
 export interface PrinterModelInfo {
 	id: string;
 	name: string;
@@ -143,7 +159,7 @@ declare class ReceiptPrinterEncoder {
 
 	pdf417(value: string, options?: PDF417Options): ReceiptPrinterEncoder;
 
-	image(input: ImageData | HTMLImageElement | HTMLCanvasElement, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
+	image(input: ImageData | HTMLImageElement | HTMLCanvasElement | SharpInput | NdarrayInput | ReadImageInput, width: number, height: number, algorithm?: DitherAlgorithm, threshold?: number): ReceiptPrinterEncoder;
 
 	cut(value?: CutType): ReceiptPrinterEncoder;
 
