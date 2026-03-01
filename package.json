@@ -4,6 +4,7 @@
     "description": "Create a set of commands that can be send to any receipt printer that supports ESC/POS, StarLine or StarPRNT",
     "type": "module",
     "exports": {
+        "types": "./dist/receipt-printer-encoder.d.ts",
         "browser": {
             "import": "./dist/receipt-printer-encoder.esm.js",
             "require": "./dist/receipt-printer-encoder.umd.js",
