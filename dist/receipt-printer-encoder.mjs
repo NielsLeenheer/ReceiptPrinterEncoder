@@ -3290,12 +3290,12 @@ class ReceiptPrinterEncoder {
 
     /* Determine if the last command is a pulse or cut, the we do not need a flush */
 
-    let lastLine = this.#queue[this.#queue.length - 1];
-  
-    if (lastLine) {
-      let lastCommand = lastLine[lastLine.length - 1];
+    const lastLine = this.#queue[this.#queue.length - 1];
 
-      if (lastCommand && [ 'pulse', 'cut' ].includes(lastCommand.type)) {
+    if (lastLine) {
+      const lastCommand = lastLine[lastLine.length - 1];
+
+      if (lastCommand && ['pulse', 'cut'].includes(lastCommand.type)) {
         requiresFlush = false;
       }
     }
