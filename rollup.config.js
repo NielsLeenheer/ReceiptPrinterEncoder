@@ -48,7 +48,7 @@ export default [
 
 	// Bundled TypeScript declarations
 	{
-		input: 'build/tmp/src/receipt-printer-encoder.d.ts',
+		input: 'dist/tmp/src/receipt-printer-encoder.d.ts',
 		output: {
 			file: 'dist/receipt-printer-encoder.d.ts',
 			format: 'es'
