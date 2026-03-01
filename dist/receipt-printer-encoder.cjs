@@ -2076,6 +2076,101 @@ const printerDefinitions = {
 	'youku-58t': {vendor:'Youku',model:'58T',media:{dpi:203,width:58},capabilities:{language:'esc-pos',codepages:'youku',fonts:{A:{size:'12x24',columns:32},B:{size:'9x24',columns:42}},barcodes:{supported:true,symbologies:['upca','ean13','ean8','code39','itf','codabar','code93','code128']},qrcode:{supported:true,models:['2']},pdf417:{supported:false}}},
 };
 
+/* Type definitions */
+
+/** @import { PrinterModel, CodepageMappingName } from '../generated/types.js' */
+/** @import { Codepage } from '@point-of-sale/codepage-encoder' */
+
+/** @typedef {'esc-pos' | 'star-prnt' | 'star-line'} Language */
+/** @typedef {'left' | 'center' | 'right'} Alignment */
+/** @typedef {'threshold' | 'bayer' | 'floydsteinberg' | 'atkinson'} DitherAlgorithm */
+/** @typedef {'relaxed' | 'strict'} ErrorLevel */
+/** @typedef {'small' | 'normal'} TextSize */
+/** @typedef {'full' | 'partial'} CutType */
+/** @typedef {'upca' | 'upce' | 'ean13' | 'ean8' | 'code39' | 'itf' | 'codabar' | 'code93' | 'code128' | 'code128-auto' | 'gs1-128' | 'gs1-databar-omni' | 'gs1-databar-truncated' | 'gs1-databar-limited' | 'gs1-databar-expanded'} BarcodeSymbology */
+
+/**
+ * @typedef {Object} ReceiptPrinterEncoderOptions
+ * @property {number} [columns]
+ * @property {Language} [language]
+ * @property {'column' | 'raster'} [imageMode]
+ * @property {number} [feedBeforeCut]
+ * @property {'\n\r' | '\n'} [newline]
+ * @property {CodepageMappingName | Record<string, number>} [codepageMapping]
+ * @property {Codepage[]} [codepageCandidates]
+ * @property {ErrorLevel} [errors]
+ * @property {PrinterModel} [printerModel]
+ * @property {boolean} [debug]
+ * @property {boolean} [embedded]
+ * @property {((width: number, height: number) => HTMLCanvasElement) | null} [createCanvas]
+ * @property {number} [width]
+ * @property {boolean} [autoFlush]
+ */
+
+/**
+ * @typedef {Object} TableColumn
+ * @property {number} width
+ * @property {Alignment} [align]
+ * @property {'top' | 'bottom'} [verticalAlign]
+ * @property {number} [marginLeft]
+ * @property {number} [marginRight]
+ */
+
+/**
+ * @typedef {Object} RuleOptions
+ * @property {'single' | 'double'} [style]
+ * @property {number} [width]
+ */
+
+/**
+ * @typedef {Object} BoxOptions
+ * @property {'single' | 'double' | 'none'} [style]
+ * @property {number} [width]
+ * @property {Alignment} [align]
+ * @property {number} [marginLeft]
+ * @property {number} [marginRight]
+ * @property {number} [paddingLeft]
+ * @property {number} [paddingRight]
+ */
+
+/**
+ * @typedef {Object} BarcodeOptions
+ * @property {number} [height]
+ * @property {number} [width]
+ * @property {boolean} [text]
+ */
+
+/**
+ * @typedef {Object} QRCodeOptions
+ * @property {1 | 2} [model]
+ * @property {number} [size]
+ * @property {'l' | 'm' | 'q' | 'h'} [errorlevel]
+ */
+
+/**
+ * @typedef {Object} PDF417Options
+ * @property {number} [width]
+ * @property {number} [height]
+ * @property {number} [columns]
+ * @property {number} [rows]
+ * @property {number} [errorlevel]
+ * @property {boolean} [truncated]
+ */
+
+/** @typedef {Object} SharpInput */
+/** @typedef {Object} NdarrayInput */
+/** @typedef {Object} ReadImageInput */
+
+/**
+ * @typedef {Object} PrinterModelInfo
+ * @property {string} id
+ * @property {string} name
+ */
+
+/** @typedef {string | ((encoder: ReceiptPrinterEncoder) => void)} TableCellContent */
+/** @typedef {string | ((encoder: ReceiptPrinterEncoder) => void)} BoxContent */
+
+
 /**
  * Create a byte stream based on commands for receipt printers
  */
@@ -2121,7 +2216,7 @@ class ReceiptPrinterEncoder {
   /**
      * Create a new object
      *
-     * @param  {object}   options   Object containing configuration options
+     * @param  {ReceiptPrinterEncoderOptions}   [options]   Object containing configuration options
     */
   constructor(options) {
     options = options || {};
@@ -2263,7 +2358,7 @@ class ReceiptPrinterEncoder {
   /**
      * Initialize the printer
      *
-     * @return {object}          Return the object, for easy chaining commands
+     * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
      *
      */
   initialize() {
@@ -2281,8 +2376,8 @@ class ReceiptPrinterEncoder {
   /**
      * Change the code page
      *
-     * @param  {string}   codepage  The codepage that we set the printer to
-     * @return {object}             Return the object, for easy chaining commands
+     * @param  {Codepage | 'auto'}   codepage  The codepage that we set the printer to
+     * @return {ReceiptPrinterEncoder}             Return the object, for easy chaining commands
      *
      */
   codepage(codepage) {
@@ -2308,7 +2403,7 @@ class ReceiptPrinterEncoder {
      * Print text
      *
      * @param  {string}   value  Text that needs to be printed
-     * @return {object}          Return the object, for easy chaining commands
+     * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
      *
      */
   text(value) {
@@ -2320,8 +2415,8 @@ class ReceiptPrinterEncoder {
   /**
      * Print a newline
      *
-     * @param  {string}   value  The number of newlines that need to be printed, defaults to 1
-     * @return {object}          Return the object, for easy chaining commands
+     * @param  {number}   [value]  The number of newlines that need to be printed, defaults to 1
+     * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
      *
      */
   newline(value) {
@@ -2338,7 +2433,7 @@ class ReceiptPrinterEncoder {
      * Print text, followed by a newline
      *
      * @param  {string}   value  Text that needs to be printed
-     * @return {object}          Return the object, for easy chaining commands
+     * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
      *
      */
   line(value) {
@@ -2351,8 +2446,8 @@ class ReceiptPrinterEncoder {
   /**
      * Underline text
      *
-     * @param  {boolean|number}   value  true to turn on underline, false to turn off, or 2 for double underline
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {boolean|number}   [value]  true to turn on underline, false to turn off, or 2 for double underline
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   underline(value) {
@@ -2368,8 +2463,8 @@ class ReceiptPrinterEncoder {
   /**
      * Italic text
      *
-     * @param  {boolean}          value  true to turn on italic, false to turn off
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {boolean}          [value]  true to turn on italic, false to turn off
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   italic(value) {
@@ -2385,8 +2480,8 @@ class ReceiptPrinterEncoder {
   /**
      * Bold text
      *
-     * @param  {boolean}          value  true to turn on bold, false to turn off
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {boolean}          [value]  true to turn on bold, false to turn off
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   bold(value) {
@@ -2402,8 +2497,8 @@ class ReceiptPrinterEncoder {
   /**
      * Invert text
      *
-     * @param  {boolean}          value  true to turn on white text on black, false to turn off
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {boolean}          [value]  true to turn on white text on black, false to turn off
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   invert(value) {
@@ -2419,8 +2514,8 @@ class ReceiptPrinterEncoder {
   /**
      * Change width of text
      *
-     * @param  {number}          width    The width of the text, 1 - 8
-     * @return {object}                   Return the object, for easy chaining commands
+     * @param  {number}          [width]    The width of the text, 1 - 8
+     * @return {ReceiptPrinterEncoder}                   Return the object, for easy chaining commands
      *
      */
   width(width) {
@@ -2444,8 +2539,8 @@ class ReceiptPrinterEncoder {
   /**
      * Change height of text
      *
-     * @param  {number}          height  The height of the text, 1 - 8
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {number}          [height]  The height of the text, 1 - 8
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   height(height) {
@@ -2469,10 +2564,20 @@ class ReceiptPrinterEncoder {
   /**
      * Change text size
      *
-     * @param  {Number|string}   width   The width of the text, 1 - 8
-     * @param  {Number}          height  The height of the text, 1 - 8
-     * @return {object}                  Return the object, for easy chaining commands
-     *
+     * @overload
+     * @param {number} width   The width of the text, 1 - 8
+     * @param {number} [height]  The height of the text, 1 - 8
+     * @return {ReceiptPrinterEncoder}
+     */
+  /**
+     * @overload
+     * @param {TextSize} value  The text size preset
+     * @return {ReceiptPrinterEncoder}
+     */
+  /**
+     * @param {number|TextSize} width
+     * @param {number} [height]
+     * @return {ReceiptPrinterEncoder}
      */
   size(width, height) {
     /* Backwards compatiblity for changing the font */
@@ -2494,7 +2599,7 @@ class ReceiptPrinterEncoder {
      * Choose different font
      *
      * @param  {string}          value   'A', 'B' or others
-     * @return {object}                  Return the object, for easy chaining commands
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   font(value) {
@@ -2547,8 +2652,8 @@ class ReceiptPrinterEncoder {
   /**
      * Change text alignment
      *
-     * @param  {string}          value   left, center or right
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {Alignment}          value   left, center or right
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   align(value) {
@@ -2566,12 +2671,12 @@ class ReceiptPrinterEncoder {
   /**
      * Insert a table
      *
-     * @param  {array}           columns  The column definitions
-     * @param  {array}           data     Array containing rows. Each row is an array containing cells.
-     *                                    Each cell can be a string value, or a callback function.
-     *                                    The first parameter of the callback is the encoder object on
-     *                                    which the function can call its methods.
-     * @return {object}                   Return the object, for easy chaining commands
+     * @param  {TableColumn[]}           columns  The column definitions
+     * @param  {TableCellContent[][]}    data     Array containing rows. Each row is an array containing cells.
+     *                                            Each cell can be a string value, or a callback function.
+     *                                            The first parameter of the callback is the encoder object on
+     *                                            which the function can call its methods.
+     * @return {ReceiptPrinterEncoder}                   Return the object, for easy chaining commands
      *
      */
   table(columns, data) {
@@ -2659,10 +2764,10 @@ class ReceiptPrinterEncoder {
   /**
      * Insert a horizontal rule
      *
-     * @param  {object}          options  And object with the following properties:
-     *                                    - style: The style of the line, either single or double
-     *                                    - width: The width of the line, by default the width of the paper
-     * @return {object}                   Return the object, for easy chaining commands
+     * @param  {RuleOptions}     [options]  And object with the following properties:
+     *                                      - style: The style of the line, either single or double
+     *                                      - width: The width of the line, by default the width of the paper
+     * @return {ReceiptPrinterEncoder}                   Return the object, for easy chaining commands
      *
      */
   rule(options) {
@@ -2682,17 +2787,17 @@ class ReceiptPrinterEncoder {
   /**
      * Insert a box
      *
-     * @param  {object}           options   And object with the following properties:
+     * @param  {BoxOptions}       options   And object with the following properties:
      *                                      - style: The style of the border, either single or double
      *                                      - width: The width of the box, by default the width of the paper
      *                                      - marginLeft: Space between the left border and the left edge
      *                                      - marginRight: Space between the right border and the right edge
      *                                      - paddingLeft: Space between the contents and the left border of the box
      *                                      - paddingRight: Space between the contents and the right border of the box
-     * @param  {string|function}  contents  A string value, or a callback function.
+     * @param  {BoxContent}       contents  A string value, or a callback function.
      *                                      The first parameter of the callback is the encoder object on
      *                                      which the function can call its methods.
-     * @return {object}                     Return the object, for easy chaining commands
+     * @return {ReceiptPrinterEncoder}                     Return the object, for easy chaining commands
      *
      */
   box(options, contents) {
@@ -2793,10 +2898,10 @@ class ReceiptPrinterEncoder {
   /**
      * Barcode
      *
-     * @param  {string}           value  the value of the barcode
-     * @param  {string|number}    symbology  the type of the barcode
-     * @param  {number|object}    height  Either the configuration object, or backwards compatible height of the barcode
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {string}                       value  the value of the barcode
+     * @param  {BarcodeSymbology|number}      symbology  the type of the barcode
+     * @param  {number|BarcodeOptions}        [height]  Either the configuration object, or backwards compatible height of the barcode
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   barcode(value, symbology, height) {
@@ -2856,13 +2961,13 @@ class ReceiptPrinterEncoder {
   /**
      * QR code
      *
-     * @param  {string}           value       The value of the qr code
-     * @param  {number|object}    model       Either the configuration object, or
-     *                                        backwards compatible model of the qrcode, either 1 or 2
-     * @param  {number}           size        Backwards compatible size of the qrcode, a value between 1 and 8
-     * @param  {string}           errorlevel  Backwards compatible the amount of error correction used,
-     *                                        either 'l', 'm', 'q', 'h'
-     * @return {object}                       Return the object, for easy chaining commands
+     * @param  {string}              value       The value of the qr code
+     * @param  {number|QRCodeOptions}    [model]       Either the configuration object, or
+     *                                            backwards compatible model of the qrcode, either 1 or 2
+     * @param  {number}              [size]        Backwards compatible size of the qrcode, a value between 1 and 8
+     * @param  {string}              [errorlevel]  Backwards compatible the amount of error correction used,
+     *                                            either 'l', 'm', 'q', 'h'
+     * @return {ReceiptPrinterEncoder}                       Return the object, for easy chaining commands
      */
   qrcode(value, model, size, errorlevel) {
     let options = {
@@ -2930,9 +3035,9 @@ class ReceiptPrinterEncoder {
   /**
      * PDF417 code
      *
-     * @param  {string}           value     The value of the qr code
-     * @param  {object}           options   Configuration object
-     * @return {object}                     Return the object, for easy chaining commands
+     * @param  {string}           value     The value of the pdf417 code
+     * @param  {PDF417Options}    [options]   Configuration object
+     * @return {ReceiptPrinterEncoder}                     Return the object, for easy chaining commands
      *
      */
   pdf417(value, options) {
@@ -2990,12 +3095,12 @@ class ReceiptPrinterEncoder {
   /**
      * Image
      *
-     * @param  {object}         input  an element, like a canvas or image that needs to be printed
+     * @param  {ImageData|HTMLImageElement|HTMLCanvasElement|SharpInput|NdarrayInput|ReadImageInput}  input  an element, like a canvas or image that needs to be printed
      * @param  {number}         width  width of the image on the printer
      * @param  {number}         height  height of the image on the printer
-     * @param  {string}         algorithm  the dithering algorithm for making the image black and white
-     * @param  {number}         threshold  threshold for the dithering algorithm
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {DitherAlgorithm}  [algorithm]  the dithering algorithm for making the image black and white
+     * @param  {number}         [threshold]  threshold for the dithering algorithm
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   image(input, width, height, algorithm, threshold) {
@@ -3146,8 +3251,8 @@ class ReceiptPrinterEncoder {
   /**
      * Cut paper
      *
-     * @param  {string}          value   full or partial. When not specified a full cut will be assumed
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {CutType}          [value]   full or partial. When not specified a full cut will be assumed
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   cut(value) {
@@ -3173,10 +3278,10 @@ class ReceiptPrinterEncoder {
   /**
      * Pulse
      *
-     * @param  {number}          device  0 or 1 for on which pin the device is connected, default of 0
-     * @param  {number}          on      Time the pulse is on in milliseconds, default of 100
-     * @param  {number}          off     Time the pulse is off in milliseconds, default of 500
-     * @return {object}                  Return the object, for easy chaining commands
+     * @param  {number}          [device]  0 or 1 for on which pin the device is connected, default of 0
+     * @param  {number}          [on]      Time the pulse is on in milliseconds, default of 100
+     * @param  {number}          [off]     Time the pulse is off in milliseconds, default of 500
+     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
   pulse(device, on, off) {
@@ -3198,8 +3303,8 @@ class ReceiptPrinterEncoder {
   /**
      * Add raw printer commands
      *
-     * @param  {array}           data   raw bytes to be included
-     * @return {object}          Return the object, for easy chaining commands
+     * @param  {number[]|Uint8Array}           data   raw bytes to be included
+     * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
      *
      */
   raw(data) {
@@ -3285,7 +3390,7 @@ class ReceiptPrinterEncoder {
   /**
    * Get all the commands
    *
-   * @return {array}         All the commands currently in the queue
+   * @return {{ commands: object[], height: number }[]}         All the commands currently in the queue
    */
   commands() {
     let requiresFlush = true;
@@ -3351,9 +3456,24 @@ class ReceiptPrinterEncoder {
   /**
      * Encode all previous commands
      *
-     * @param  {string}          format  The format of the output, either 'commands',
-     *                                   'lines' or 'array', defaults to 'array'
-     * @return {Uint8Array}              Return the encoded bytes in the format specified
+     * @overload
+     * @param {'commands'} format
+     * @return {{ commands: object[], height: number }[]}
+     */
+  /**
+     * @overload
+     * @param {'lines'} format
+     * @return {object[][]}
+     */
+  /**
+     * @overload
+     * @param {string} [format]
+     * @return {Uint8Array}
+     */
+  /**
+     * @param {string} [format]  The format of the output, either 'commands',
+     *                           'lines' or 'array', defaults to 'array'
+     * @return {Uint8Array|{ commands: object[], height: number }[]|object[][]}
      */
   encode(format) {
     /* Get the commands */
@@ -3424,7 +3544,7 @@ class ReceiptPrinterEncoder {
    * @param  {string}          level    The error level, if level is strict,
    *                                    an error will be thrown, if level is relaxed,
    *                                    a warning will be logged
-   * @return {object}          Return the object, for easy chaining commands
+   * @return {ReceiptPrinterEncoder}          Return the object, for easy chaining commands
    */
   #error(message, level) {
     if (level === 'strict' || this.#options.errors === 'strict') {
@@ -3439,7 +3559,7 @@ class ReceiptPrinterEncoder {
   /**
    * Get all supported printer models
    *
-   * @return {object}         An object with all supported printer models
+   * @return {PrinterModelInfo[]}         An object with all supported printer models
    */
   static get printerModels() {
     return Object.entries(printerDefinitions).map((i) => ({id: i[0], name: i[1].vendor + ' ' + i[1].model}));
@@ -3448,7 +3568,7 @@ class ReceiptPrinterEncoder {
   /**
    * Get the current column width
    *
-   * @return {number}         The column width in characters
+   * @returns {number}         The column width in characters
    */
   get columns() {
     return this.#composer.columns;
