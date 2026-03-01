@@ -125,22 +125,8 @@ function generateMappings() {
     fs.writeFileSync('generated/mapping.js', output, 'utf8');
 }
 
-async function generateTypes() {
+function generateTypes() {
     let output = '';
-
-    /* Generate Codepage type from CodepageEncoder */
-
-    try {
-        const { default: CodepageEncoder } = await import('@point-of-sale/codepage-encoder');
-        let encodings = CodepageEncoder.getEncodings();
-
-        output += `export type Codepage =\n`;
-        output += encodings.map(e => `\t| '${e}'`).join('\n');
-        output += `;\n\n`;
-    }
-    catch (err) {
-        console.error(err);
-    }
 
     /* Generate PrinterModel type from printer definitions */
 
@@ -186,4 +172,4 @@ async function generateTypes() {
 
 generateMappings();
 generatePrinters();
-await generateTypes();
+generateTypes();

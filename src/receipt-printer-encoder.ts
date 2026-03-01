@@ -1,4 +1,5 @@
-import { Codepage, PrinterModel, CodepageMappingName } from '../generated/types.js';
+import { PrinterModel, CodepageMappingName } from '../generated/types.js';
+import { Codepage } from '@point-of-sale/codepage-encoder';
 
 export type Language = 'esc-pos' | 'star-prnt' | 'star-line';
 

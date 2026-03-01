@@ -49,6 +49,7 @@ export default [
 	// Bundled TypeScript declarations
 	{
 		input: 'dist/tmp/src/receipt-printer-encoder.d.ts',
+		external: ['@point-of-sale/codepage-encoder'],
 		output: {
 			file: 'dist/receipt-printer-encoder.d.ts',
 			format: 'es'
