@@ -91,17 +91,17 @@ export interface PDF417Options {
 	truncated?: boolean;
 }
 
-export interface SharpInput {
+interface SharpInput {
 	data: Uint8Array;
 	info: { width: number; height: number };
 }
 
-export interface NdarrayInput {
+interface NdarrayInput {
 	data: Uint8Array;
 	shape: number[];
 }
 
-export interface ReadImageInput {
+interface ReadImageInput {
 	width: number;
 	height: number;
 	frames: { data: Uint8Array }[];

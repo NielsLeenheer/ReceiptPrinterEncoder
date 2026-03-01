@@ -132,4 +132,4 @@ declare class ReceiptPrinterEncoder {
 }
 
 export { ReceiptPrinterEncoder as default };
-export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, CutType, DitherAlgorithm, ErrorLevel, Language, NdarrayInput, PDF417Options, PrinterModelInfo, QRCodeOptions, ReadImageInput, ReceiptPrinterEncoderOptions, RuleOptions, SharpInput, TableColumn, TextSize };
+export type { Alignment, BarcodeOptions, BarcodeSymbology, BoxOptions, CutType, DitherAlgorithm, ErrorLevel, Language, PDF417Options, PrinterModelInfo, QRCodeOptions, ReceiptPrinterEncoderOptions, RuleOptions, TableColumn, TextSize };
