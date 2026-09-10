@@ -99,6 +99,24 @@ describe('Blank lines caused by state-only lines', function() {
         });
     });
 
+    describe('initialize().codepage(cp437).pulse()', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
+        let result = encoder.initialize().codepage('cp437').pulse().encode();
+
+        it('should not feed the paper when opening the drawer', function () {
+            assert.deepEqual(new Uint8Array([ 27, 64, 28, 46, 27, 77, 0, 27, 112, 0, 50, 250 ]), result);
+        });
+    });
+
+    describe('initialize().codepage(star/standard).pulse() on star-prnt', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt' });
+        let result = encoder.initialize().codepage('star/standard').pulse().encode();
+
+        it('should not feed the paper when opening the drawer', function () {
+            assert.deepEqual(new Uint8Array([ 27, 64, 24, 27, 7, 20, 20, 7 ]), result);
+        });
+    });
+
     describe('line(hello).newline().line(hello)', function () {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.line('hello').newline().line('hello').encode();
