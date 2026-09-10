@@ -8,8 +8,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.text('hello').encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -17,8 +17,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.text('hello').newline().encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -26,8 +26,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.text('hello').newline().newline().encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13 ]), result);
         });
     });
 
@@ -35,8 +35,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.text('hello').newline(4).encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]), result);
         });
     });
 
@@ -44,8 +44,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.line('hello').encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -53,8 +53,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.text('héllo').encode();
         
-        it('should be [ 104, 63, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 130, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 130, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 130, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -71,8 +71,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.codepage('cp437').text('héllo').encode();
         
-        it('should be [ 104, 130, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 130, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 116, 0, 104, 130, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 130, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -100,7 +100,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.bold(true).text('hello').bold(false).encode();
         
         it('should be [ 27, 69, 1, ..., 27, 69, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, 1, 104, 101, 108, 108, 111, 27, 69, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 1, 27, 116, 0, 104, 101, 108, 108, 111, 27, 69, 0, 10, 13 ]), result);
         });
     });
 
@@ -109,7 +109,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.bold().text('hello').bold().encode();
         
         it('should be [ 27, 69, 1, ..., 27, 69, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, 1, 104, 101, 108, 108, 111, 27, 69, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 1, 27, 116, 0, 104, 101, 108, 108, 111, 27, 69, 0, 10, 13 ]), result);
         });
     });
 
@@ -118,7 +118,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.italic().text('hello').italic().encode();
         
         it('should be [ 27, 69, 1, ..., 27, 69, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 52, 1, 104, 101, 108, 108, 111, 27, 52, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 52, 1, 27, 116, 0, 104, 101, 108, 108, 111, 27, 52, 0, 10, 13 ]), result);
         });
     });
 
@@ -127,7 +127,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.underline(true).text('hello').underline(false).encode();
         
         it('should be [ 27, 45, 1, ..., 27, 45, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 45, 1, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 45, 1, 27, 116, 0, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
         });
     });
 
@@ -136,7 +136,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.underline().text('hello').underline().encode();
         
         it('should be [ 27, 45, 1, ..., 27, 45, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 45, 1, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 45, 1, 27, 116, 0, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
         });
     });
 
@@ -145,7 +145,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.invert().text('hello').invert().encode();
         
         it('should be [ 29, 66, 1, ..., 29, 66, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 66, 1, 104, 101, 108, 108, 111, 29, 66, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 66, 1, 27, 116, 0, 104, 101, 108, 108, 111, 29, 66, 0, 10, 13 ]), result);
         });
     });
 
@@ -154,7 +154,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.width(2).text('hello').width(1).encode();
         
         it('should be [ 29, 33, 16, ..., 29, 33, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 16, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 33, 16, 27, 116, 0, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
         });
     });
 
@@ -163,7 +163,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.height(2).text('hello').height(1).encode();
         
         it('should be [ 29, 33, 1, ..., 29, 33, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 1, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 33, 1, 27, 116, 0, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
         });
     });
 
@@ -172,7 +172,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.width(2).height(2).text('hello').width(1).height(1).encode();
         
         it('should be [ 29, 33, 17, ..., 29, 33, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 17, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 33, 17, 27, 116, 0, 104, 101, 108, 108, 111, 29, 33, 0, 10, 13 ]), result);
         });
     });
 
@@ -181,7 +181,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.align('left').line('hello').encode();
         
         it('should be [ ..., 32, 32, 32, 32, 32, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 32, 32, 32, 32, 32, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 104, 101, 108, 108, 111, 32, 32, 32, 32, 32, 10, 13 ]), result);
         });
     });
 
@@ -190,7 +190,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.align('center').line('hello').encode();
         
         it('should be [ 32, 32, ..., 32, 32, 32, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 32, 32, 104, 101, 108, 108, 111, 32, 32, 32, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 32, 32, 104, 101, 108, 108, 111, 32, 32, 32, 10, 13 ]), result);
         });
     });
 
@@ -199,7 +199,7 @@ describe('LanguageEscPos', function() {
         let result = encoder.align('right').line('hello').encode();
         
         it('should be [ 32, 32, 32, 32, 32, ..., 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 32, 32, 32, 32, 32, 104, 101, 108, 108, 111, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 116, 0, 32, 32, 32, 32, 32, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
