@@ -501,6 +501,7 @@ class ReceiptPrinterEncoder {
     return this;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Change text size
      *
@@ -509,6 +510,7 @@ class ReceiptPrinterEncoder {
      * @param {number} [height]  The height of the text, 1 - 8
      * @return {ReceiptPrinterEncoder}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {TextSize} value  The text size preset
@@ -608,6 +610,7 @@ class ReceiptPrinterEncoder {
     return this;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Insert a table
      *
@@ -1393,6 +1396,7 @@ class ReceiptPrinterEncoder {
     return result;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Encode all previous commands
      *
@@ -1400,16 +1404,19 @@ class ReceiptPrinterEncoder {
      * @param {'commands'} format
      * @return {{ commands: object[], height: number }[]}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {'lines'} format
      * @return {object[][]}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {string} [format]
      * @return {Uint8Array}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @param {string} [format]  The format of the output, either 'commands',
      *                           'lines' or 'array', defaults to 'array'
@@ -1508,7 +1515,7 @@ class ReceiptPrinterEncoder {
   /**
    * Get the current column width
    *
-   * @returns {number}         The column width in characters
+   * @return {number}         The column width in characters
    */
   get columns() {
     return this.#composer.columns;
