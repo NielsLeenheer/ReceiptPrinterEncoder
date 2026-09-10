@@ -1460,10 +1460,18 @@ class ReceiptPrinterEncoder {
     let result = [];
     let last = null;
 
-    for (const line of lines) {
-      for (const item of line) {
+    for (let i = 0; i < lines.length; i++) {
+      for (const item of lines[i]) {
         result.push(...item.payload);
         last = item;
+      }
+
+      /* Only feed the paper when the line contains printable content, a line
+         consisting of nothing but state changes, such as style, font or alignment
+         commands, would otherwise be printed as an empty line */
+
+      if (!LineComposer.hasContent(commands[i].commands)) {
+        continue;
       }
 
       if (this.#options.newline === '\n\r') {

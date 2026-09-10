@@ -114,6 +114,21 @@ class LineComposer {
   }
 
   /**
+     * Determine if a list of items contains printable content, or only
+     * commands that change the state of the printer, such as styles,
+     * fonts or alignment. Raw commands are not considered content, if
+     * they contain printable data the caller is responsible for the newline.
+     *
+     * @param  {object[]}   items   The items of a line
+     * @return {boolean}            True if the line contains printable content
+     */
+  static hasContent(items) {
+    const state = ['style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'raw'];
+
+    return items.some((item) => !state.includes(item.type));
+  }
+
+  /**
      * Fetch the contents of line buffer
      *
      * @param  {options}   options   Options for flushing the buffer
@@ -229,7 +244,7 @@ class LineComposer {
     this.#buffer = [];
     this.#cursor = 0;
 
-    if (result.length === 0 && options.forceNewline) {
+    if (options.forceNewline && !LineComposer.hasContent(result)) {
       result.push({type: 'empty'});
     }
 
