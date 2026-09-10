@@ -306,9 +306,16 @@ class ReceiptPrinterEncoder {
       throw new Error('Initialize is not supported in table cells or boxes');
     }
 
+    /* The initialize command resets the printer, so it must be sent before any
+       alignment padding or pending styles of the current line */
+
+    this.#composer.flush();
+
     this.#composer.add(
         this.#language.initialize(),
     );
+
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
