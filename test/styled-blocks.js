@@ -114,8 +114,7 @@ describe('Styles around cuts, pulses and blocks', function() {
         let result = new ReceiptPrinterEncoder({ language: 'esc-pos' }).bold(true).line('hello').bold(false).line('hello').encode();
 
         it('should carry the style state to the next text line without a state-only line in between', function () {
-            /* The second line starts with the restore of the previous style followed by the pending change */
-            assert.deepEqual(new Uint8Array([ 27, 69, 1, ...CODEPAGE, ...HELLO, 27, 69, 0, ...NL, 27, 69, 1, 27, 69, 0, ...HELLO, ...NL ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 1, ...CODEPAGE, ...HELLO, 27, 69, 0, ...NL, ...HELLO, ...NL ]), result);
         });
     });
 });

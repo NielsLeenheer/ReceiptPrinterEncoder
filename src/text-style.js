@@ -26,6 +26,20 @@ class TextStyle {
   }
 
   /**
+     * Get the default value of a style property
+     *
+     * @param  {string}   property   The property, 'size' for the combined width and height
+     * @return {boolean|object}      The default value
+     */
+  getDefault(property) {
+    if (property === 'size') {
+      return {width: this.#default.width, height: this.#default.height};
+    }
+
+    return this.#default[property];
+  }
+
+  /**
      * Return commands to get to the default style from the current style
      *
      * @return {array}   Array of modified properties

@@ -90,7 +90,7 @@ describe('Newlines in text()', function() {
         it('should apply the style change without printing anything for the empty text', function () {
             assert.deepEqual(new Uint8Array([
                 29, 33, 17, ...CODEPAGE, 120, 29, 33, 0, ...NL,
-                29, 33, 0, 121, ...new Array(41).fill(32), ...NL,
+                121, ...new Array(41).fill(32), ...NL,
             ]), result);
         });
     });

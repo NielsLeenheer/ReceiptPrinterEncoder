@@ -349,14 +349,16 @@ class LineComposer {
 
         result.push(item);
         last++;
-      } else if (item.type === 'style' && item.property === 'size') {
+      } else if (item.type === 'style') {
+        /* Consecutive changes of the same property collapse into the last one */
+
         const allowMerge =
           last >= 0 &&
           result[last].type === 'style' &&
-          result[last].property === 'size';
+          result[last].property === item.property;
 
         if (allowMerge) {
-          result[last].value = item.value;
+          result[last] = item;
           continue;
         }
 
@@ -366,6 +368,38 @@ class LineComposer {
         result.push(item);
         last++;
       }
+    }
+
+    return this.#dedupe(result);
+  }
+
+  /**
+     * Remove style commands that set a property to the value the printer
+     * already has. Every line starts in the default style.
+     *
+     * @param  {array}   items   Array of items
+     * @return {array}           Array of items without redundant style commands
+     */
+  #dedupe(items) {
+    const result = [];
+    const state = new Map();
+
+    const equal = (a, b) => (typeof a === 'object' && a !== null) ?
+      a.width === b.width && a.height === b.height :
+      a === b;
+
+    for (const item of items) {
+      if (item.type === 'style') {
+        const current = state.has(item.property) ? state.get(item.property) : this.style.getDefault(item.property);
+
+        if (equal(current, item.value)) {
+          continue;
+        }
+
+        state.set(item.property, item.value);
+      }
+
+      result.push(item);
     }
 
     return result;
