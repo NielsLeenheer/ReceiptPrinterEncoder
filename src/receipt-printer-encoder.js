@@ -133,7 +133,7 @@ class ReceiptPrinterEncoder {
       'supported': true,
       'symbologies': [
         'upca', 'upce', 'ean13', 'ean8', 'code39', 'itf', 'codabar', 'code93',
-        'code128', 'gs1-databar-omni', 'gs1-databar-truncated',
+        'code128', 'gs1-128', 'gs1-databar-omni', 'gs1-databar-truncated',
         'gs1-databar-limited', 'gs1-databar-expanded',
       ],
     },
