@@ -406,7 +406,7 @@ class ReceiptPrinterEncoder {
   /**
      * Underline text
      *
-     * @param  {boolean|number}   [value]  true to turn on underline, false to turn off, or 2 for double underline
+     * @param  {boolean}          [value]  true to turn on underline, false to turn off
      * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */
