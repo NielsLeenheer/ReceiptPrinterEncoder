@@ -470,7 +470,7 @@ For example:
 let result = encoder
     .box(
         { width: 30, align: 'right', style: 'double', marginLeft: 10 }, 
-        'The quick brown fox jumps over the lazy dog';o50[p49]
+        'The quick brown fox jumps over the lazy dog'
     )
     .encode()
 ```
