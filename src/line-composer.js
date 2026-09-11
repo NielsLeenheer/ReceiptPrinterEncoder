@@ -456,6 +456,15 @@ class LineComposer {
   }
 
   /**
+   * Determine if nothing has been added to the line buffer yet
+   *
+   * @return {boolean}   True if the line buffer is empty
+   */
+  get empty() {
+    return this.#buffer.length === 0 && this.#cursor === 0;
+  }
+
+  /**
    * Set the alignment of the current line
    *
    * @param  {string}   value   Text alignment, can be 'left', 'center', or 'right'

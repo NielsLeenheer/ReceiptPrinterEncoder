@@ -123,6 +123,7 @@ class ReceiptPrinterEncoder {
   #composer;
 
   #printerResolution = null;
+  #initializable = true;
 
   #printerCapabilities = {
     'fonts': {
@@ -312,10 +313,16 @@ class ReceiptPrinterEncoder {
       throw new Error('Initialize is not supported in table cells or boxes');
     }
 
-    /* The initialize command resets the printer, so it must be sent before any
-       alignment padding or pending styles of the current line */
+    /* The initialize command resets the printer, but not the state of the
+       encoder, such as the code page or the font. That is why it can only be
+       the first command of an encoder, and only once. To reset the printer
+       for another receipt, create a new encoder */
 
-    this.#composer.flush();
+    if (!this.#initializable || this.#queue.length > 0 || !this.#composer.empty) {
+      throw new Error('Initialize must be the first command, create a new encoder to initialize the printer again');
+    }
+
+    this.#initializable = false;
 
     this.#composer.add(
         this.#language.initialize(),
@@ -1398,6 +1405,10 @@ class ReceiptPrinterEncoder {
    * @return {{ commands: object[], height: number }[]}         All the commands currently in the queue
    */
   commands() {
+    /* Once commands have been encoded, the encoder is in use and can no longer be initialized */
+
+    this.#initializable = false;
+
     let requiresFlush = true;
 
     /* Determine if the last command is a pulse or cut, the we do not need a flush */

@@ -68,6 +68,8 @@ let result = encoder
     .encode()
 ```
 
+Initializing the printer resets settings such as the code page and the font, but the encoder does not send those again afterwards. That is why `initialize()` must be the first command of an encoder, and can only be called once. Calling it after other commands, or after `encode()`, throws an error. If the printer needs to be reset for another receipt, create a new encoder and start that with `initialize()`.
+
 <br>
 
 ### Codepage

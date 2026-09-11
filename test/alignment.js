@@ -56,15 +56,6 @@ describe('Alignment on the first line', function() {
         });
     });
 
-    describe('text(a).initialize().line(b)', function () {
-        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
-        let result = encoder.text('a').initialize().line('b').encode();
-
-        it('should print pending text before the initialize command', function () {
-            assert.deepEqual(new Uint8Array([ ...CODEPAGE, 97, ...NL, ...INIT, 98, ...NL ]), result);
-        });
-    });
-
     describe('initialize().align(center).line(hello) on star-prnt', function () {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.initialize().align('center').line('hello').encode();
