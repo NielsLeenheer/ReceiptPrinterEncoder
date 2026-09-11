@@ -10,6 +10,7 @@ Create a set of commands that can be send to any receipt printer that supports E
 - [Configuration options](configuration.md)
 - [Handling text](text.md)
 - [Commands for creating receipts](commands.md)
+  - [Lifecycle](#lifecycle)
   - [Initialize](#initialize)
   - [Codepage](#codepage)
   - [Text](#text)
@@ -44,11 +45,55 @@ Create a set of commands that can be send to any receipt printer that supports E
 
 Once you have instantiated your `ReceiptPrinterEncoder` object, you can use it to queue commands for adding content, styling the text, inserting barcodes, images and qrcodes and more. 
 
-When you are done, you can use the `encode()` command to get back your encoded receipt, ready to be send to the printer.
-
-You can reuse the instantiated `ReceiptPrinterEncoder` class to generate multiple commands or sets of commands for the same printer. It will remember settings like code page, so you don't have to specify that on subsequent use. That does rely on that previous commands were actually send to the printer. 
+When you are done, you can use the `encode()` command to get back your encoded receipt, ready to be send to the printer. See the [lifecycle](#lifecycle) section below for how `initialize()` and `encode()` work together to create one or more receipts.
 
 All commands can be chained, except for `encode()` which will return the result as an Uint8Array which contains all the bytes that need to be send to the printer.
+
+<br>
+
+### Lifecycle
+
+The typical lifecycle of a receipt looks like this:
+
+```js
+let encoder = new ReceiptPrinterEncoder();
+
+let receipt = encoder
+    .initialize()
+    .text('The quick brown fox jumps over the lazy dog')
+    .encode();
+```
+
+A receipt starts with `initialize()`. It resets the printer and the encoder to a known state, so every receipt starts from the same clean slate. Always call it first, on every receipt, even on a newly created encoder. Technically a fresh encoder already is a clean slate, but only `initialize()` also resets the printer itself — and some printers need it. For example SUNMI built-in printers start in double-byte mode and cannot print single-byte text correctly until they are initialized. After that you queue commands, and when the receipt is complete you call `encode()` to get the bytes to send to the printer.
+
+If you want to send a receipt to the printer in parts, you can call `encode()` multiple times. Each call drains the buffer and returns the commands queued so far. The encoder remembers its state — such as the code page and text styles — so the next chunk continues where the previous one left off:
+
+```js
+let header = encoder
+    .initialize()
+    .codepage('cp866')
+    .line('Апельсины')
+    .encode();
+
+/* ... send the header to the printer ... */
+
+let body = encoder
+    .line('Бананы')        // still cp866, no need to set it again
+    .encode();
+```
+
+Keep in mind that these chunks are not self-contained: each chunk depends on the printer state left by the previous chunk, so they must be sent to the same printer, in the same order.
+
+When the receipt is done, the next receipt starts with `initialize()` again. It resets both the printer and the encoder, so nothing — code page, styles, font, alignment — leaks from one receipt into the next:
+
+```js
+let next = encoder
+    .initialize()          // clean slate, cp866 and all styles are forgotten
+    .line('A brand new receipt')
+    .encode();
+```
+
+If you prefer, you can also simply create a new encoder for each receipt — as long as you start it with `initialize()` like any other receipt.
 
 The following commands are available:
 
@@ -60,7 +105,7 @@ The following commands are available:
 
 ### Initialize
 
-Properly initialize the printer, which means text mode is enabled and settings like code page are set to default.
+Properly initialize the printer, which means text mode is enabled and settings like code page are set to default. It also resets the encoder itself to a clean slate: no code page, no styles, default font and alignment.
 
 ```js
 let result = encoder
@@ -68,7 +113,7 @@ let result = encoder
     .encode()
 ```
 
-Initializing the printer resets settings such as the code page and the font, but the encoder does not send those again afterwards. That is why `initialize()` must be the first command of an encoder, and can only be called once. Calling it after other commands, or after `encode()`, throws an error. If the printer needs to be reset for another receipt, create a new encoder and start that with `initialize()`.
+Use `initialize()` to mark the start of a receipt. It is only allowed as the first command of an encoder, or right after an `encode()`. If there is still unprinted content in the buffer, it throws an error. To reset the printer for another receipt, you do not need to create a new encoder — just call `initialize()` again after the previous receipt was encoded.
 
 <br>
 

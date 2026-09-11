@@ -123,7 +123,6 @@ class ReceiptPrinterEncoder {
   #composer;
 
   #printerResolution = null;
-  #initializable = true;
 
   #printerCapabilities = {
     'fonts': {
@@ -152,7 +151,7 @@ class ReceiptPrinterEncoder {
   #codepage = 'cp437';
 
   #state = {
-    'codepage': 0,
+    'codepage': -1,
     'font': 'A',
   };
 
@@ -277,8 +276,21 @@ class ReceiptPrinterEncoder {
       this.#codepageCandidates = Object.keys(this.#codepageMapping);
     }
 
+    /* Set the default codepage for the printer language */
+
+    this.#codepage = this.#options.language == 'esc-pos' ? 'cp437' : 'star/standard';
+
     /* Create our line composer */
 
+    this.#createComposer();
+
+    this.#reset();
+  }
+
+  /**
+     * Create a fresh line composer, with default styles, alignment and columns
+     */
+  #createComposer() {
     this.#composer = new LineComposer({
       embedded: this.#options.embedded,
       columns: this.#options.columns,
@@ -288,18 +300,14 @@ class ReceiptPrinterEncoder {
 
       callback: (value) => this.#queue.push(value),
     });
-
-    this.#reset();
   }
 
   /**
-    * Reset the state of the object
-    */
+     * Reset the output queue, but keep the state of the encoder, such as the
+     * code page and text styles, for the next chunk of the receipt
+     */
   #reset() {
     this.#queue = [];
-    this.#codepage = this.#options.language == 'esc-pos' ? 'cp437' : 'star/standard';
-    this.#state.codepage = -1;
-    this.#state.font = 'A';
   }
 
   /**
@@ -313,16 +321,24 @@ class ReceiptPrinterEncoder {
       throw new Error('Initialize is not supported in table cells or boxes');
     }
 
-    /* The initialize command resets the printer, but not the state of the
-       encoder, such as the code page or the font. That is why it can only be
-       the first command of an encoder, and only once. To reset the printer
-       for another receipt, create a new encoder */
+    /* The initialize command resets both the printer and the encoder to a clean
+       slate: no code page, no styles, default font and alignment. It marks the
+       start of a receipt, so it is only allowed as the first command, or right
+       after an encode(). If there is anything left in the buffer, it throws */
 
-    if (!this.#initializable || this.#queue.length > 0 || !this.#composer.empty) {
-      throw new Error('Initialize must be the first command, create a new encoder to initialize the printer again');
+    if (this.#queue.length > 0 || !this.#composer.empty) {
+      throw new Error('Initialize must be the first command, or come right after an encode()');
     }
 
-    this.#initializable = false;
+    /* Reset the state of the encoder */
+
+    this.#codepage = this.#options.language == 'esc-pos' ? 'cp437' : 'star/standard';
+    this.#state.codepage = -1;
+    this.#state.font = 'A';
+
+    this.#createComposer();
+
+    /* Reset the printer */
 
     this.#composer.add(
         this.#language.initialize(),
@@ -1409,10 +1425,6 @@ class ReceiptPrinterEncoder {
    * @return {{ commands: object[], height: number }[]}         All the commands currently in the queue
    */
   commands() {
-    /* Once commands have been encoded, the encoder is in use and can no longer be initialized */
-
-    this.#initializable = false;
-
     let requiresFlush = true;
 
     /* Determine if the last command is a pulse or cut, the we do not need a flush */

@@ -1,10 +1,11 @@
 import ReceiptPrinterEncoder from '../src/receipt-printer-encoder.js';
 import { assert, expect } from 'chai';
 
-/* The initialize command resets the printer, but the encoder does not re-send
-   the code page or font afterwards. It is therefore only allowed as the first
-   command of an encoder, and only once. Resetting the printer for another
-   receipt needs a new encoder */
+/* The initialize command resets both the printer and the encoder to a clean
+   slate: no code page, no styles, default font and alignment. It marks the
+   start of a receipt, so it is only allowed as the first command, or right
+   after an encode(). Calling encode() drains the buffer, but keeps the state
+   for the next chunk of the receipt */
 
 describe('initialize()', function() {
     const NL = [ 10, 13 ];
@@ -24,8 +25,8 @@ describe('initialize()', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.codepage('cp866').initialize().text('a').encode();
 
-        it('should be allowed, the code page is sent after initialize', function () {
-            assert.deepEqual(new Uint8Array([ ...INITIALIZE, 27, 116, 17, 97, ...NL ]), result);
+        it('should be allowed, the code page is reset by initialize', function () {
+            assert.deepEqual(new Uint8Array([ ...INITIALIZE, ...CODEPAGE, 97, ...NL ]), result);
         });
     });
 
@@ -72,9 +73,31 @@ describe('initialize()', function() {
     describe('initialize() after a previous encode()', function () {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         encoder.text('a').encode();
+        let result = encoder.initialize().text('b').encode();
 
-        it('should throw', function () {
-            expect(() => encoder.initialize()).to.throw('Initialize must be the first command');
+        it('should be allowed and start a new receipt from a clean slate', function () {
+            assert.deepEqual(new Uint8Array([ ...INITIALIZE, ...CODEPAGE, 98, ...NL ]), result);
+        });
+    });
+
+    describe('initialize() after a previous encode() resets the styles', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
+        encoder.bold(true).line('a').encode();
+        let result = encoder.initialize().line('b').encode();
+
+        it('should not keep the style for the next receipt', function () {
+            assert.deepEqual(new Uint8Array([ ...INITIALIZE, ...CODEPAGE, 98, ...NL ]), result);
+        });
+    });
+
+    describe('encode() keeps the state for the next chunk', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
+        let first = encoder.codepage('cp866').text('a').encode();
+        let second = encoder.text('b').encode();
+
+        it('should not send the code page again for the second chunk', function () {
+            assert.deepEqual(new Uint8Array([ 27, 116, 17, 97, ...NL ]), first);
+            assert.deepEqual(new Uint8Array([ 98, ...NL ]), second);
         });
     });
 
