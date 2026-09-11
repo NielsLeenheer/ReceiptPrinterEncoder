@@ -595,8 +595,8 @@ class LanguageEscPos {
       off = 500;
     }
 
-    on = Math.min(500, Math.round(on / 2));
-    off = Math.min(500, Math.round(off / 2));
+    on = Math.max(0, Math.min(255, Math.round(on / 2)));
+    off = Math.max(0, Math.min(255, Math.round(off / 2)));
 
 
     return [

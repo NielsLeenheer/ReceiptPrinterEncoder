@@ -270,9 +270,18 @@ describe('LanguageEscPos', function() {
     describe('pulse()', function () {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
         let result = encoder.pulse().encode();
-        
+
         it('should be [ 27, 112, 0, 50, 250 ]', function () {
             assert.deepEqual(new Uint8Array([ 27, 112, 0, 50, 250 ]), result);
+        });
+    });
+
+    describe('pulse() with times longer than a single byte can hold', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos' });
+        let result = encoder.pulse(0, 1000, 600).encode();
+
+        it('should clamp at 255 instead of wrapping', function () {
+            assert.deepEqual(new Uint8Array([ 27, 112, 0, 255, 255 ]), result);
         });
     });
 
