@@ -53,6 +53,7 @@ import printerDefinitions from '../generated/printers.js';
  * @property {number | 'auto'} [width]
  * @property {Alignment} [align]
  * @property {'top' | 'bottom'} [verticalAlign]
+ * @property {'wrap' | 'clip' | 'ellipsis'} [overflow]
  * @property {number} [marginLeft]
  * @property {number} [marginRight]
  */
@@ -297,6 +298,7 @@ class ReceiptPrinterEncoder {
       align: 'left',
       size: 1,
       style: this.#options.style,
+      overflow: this.#options.overflow,
 
       callback: (value) => this.#queue.push(value),
     });
@@ -680,6 +682,7 @@ class ReceiptPrinterEncoder {
           width: columns[c].width * this.#composer.style.width,
           embedded: true,
           style: this.#inheritedStyle(),
+          overflow: columns[c].overflow,
         }));
 
         columnEncoder.codepage(this.#codepage);
@@ -775,6 +778,10 @@ class ReceiptPrinterEncoder {
     let fixed = 0;
 
     for (const column of columns) {
+      if (typeof column.overflow !== 'undefined' && !['wrap', 'clip', 'ellipsis'].includes(column.overflow)) {
+        throw new Error('Column overflow must be wrap, clip or ellipsis');
+      }
+
       if (typeof column.width === 'undefined' || column.width === 'auto') {
         fill.push(column);
       } else if (!Number.isInteger(column.width) || column.width < 1) {

@@ -15,6 +15,10 @@ const STYLED_TYPES = ['text', 'space', 'raw'];
 
 const BLOCK_TYPES = ['image', 'barcode', 'qrcode', 'pdf417'];
 
+/* Printed at the end of a line that is cut off, when overflow is 'ellipsis' */
+
+const ELLIPSIS = '...';
+
 /**
  * Compose lines of text and commands
  */
@@ -22,10 +26,12 @@ class LineComposer {
   #embedded;
   #columns;
   #align;
+  #overflow;
   #callback;
 
   #cursor = 0;
   #trimmable = false;
+  #clipped = false;
   #stored;
   #buffer = [];
 
@@ -39,6 +45,7 @@ class LineComposer {
     this.#embedded = options.embedded || false;
     this.#columns = options.columns || 42;
     this.#align = options.align || 'left';
+    this.#overflow = options.overflow || 'wrap';
     this.#callback = options.callback || (() => {});
 
     this.style = new TextStyle({
@@ -58,6 +65,11 @@ class LineComposer {
      * @param  {number}   codepage   Codepage to use for the text
      */
   text(value, codepage) {
+    if (this.#overflow !== 'wrap') {
+      this.#textWithoutWrap(value, codepage);
+      return;
+    }
+
     const lines = TextWrap.wrap(value, {columns: this.#columns, width: this.style.width, indent: this.#cursor});
 
     for (let i = 0; i < lines.length; i++) {
@@ -78,12 +90,137 @@ class LineComposer {
   }
 
   /**
+     * Add text to the line without wrapping it. Text that does not fit is cut
+     * off at the edge of the line, when overflow is 'ellipsis' the line ends
+     * with an ellipsis instead. A newline in the text still ends the line, the
+     * text after it is cut off in the same way.
+     *
+     * @param  {string}   value   Text to add to the line
+     * @param  {number}   codepage   Codepage to use for the text
+     */
+  #textWithoutWrap(value, codepage) {
+    const lines = String(value).split(/\r\n|\n/g);
+
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].length && !this.#clipped) {
+        this.#fit(lines[i], codepage);
+      }
+
+      if (i < lines.length - 1) {
+        this.flush({forceNewline: true});
+      }
+    }
+  }
+
+  /**
+     * Add as much of a single line of text as fits on the line
+     *
+     * @param  {string}   value   Text to add to the line, without newlines
+     * @param  {number}   codepage   Codepage to use for the text
+     */
+  #fit(value, codepage) {
+    const width = this.style.width;
+    const remaining = this.#columns - this.#cursor;
+
+    /* The text fits */
+
+    if (value.length * width <= remaining) {
+      this.add({type: 'text', value, codepage, width}, value.length * width);
+      return;
+    }
+
+    /* The text does not fit, whatever is added after it is dropped */
+
+    this.#clipped = true;
+
+    if (this.#overflow === 'ellipsis') {
+      const needed = ELLIPSIS.length * width;
+
+      /* Make room for the ellipsis, if necessary by removing characters that were added before */
+
+      if (remaining < needed) {
+        this.#backtrack(needed - remaining);
+      }
+
+      const available = this.#columns - this.#cursor - needed;
+
+      if (available >= 0) {
+        const piece = value.slice(0, Math.floor(available / width)).trimEnd();
+
+        if (piece.length) {
+          this.add({type: 'text', value: piece, codepage, width}, piece.length * width);
+        }
+
+        this.add({type: 'text', value: ELLIPSIS, codepage, width}, needed);
+        return;
+      }
+
+      /* There is no room for an ellipsis, for example in a column narrower than the ellipsis, so clip instead */
+    }
+
+    const piece = value.slice(0, Math.floor((this.#columns - this.#cursor) / width));
+
+    if (piece.length) {
+      this.add({type: 'text', value: piece, codepage, width}, piece.length * width);
+    }
+  }
+
+  /**
+     * Remove text and spaces from the end of the line buffer to free up a
+     * number of columns. Items that only change the state of the printer are
+     * kept. Stops at content that cannot be measured, such as nested tables.
+     *
+     * @param  {number}   columns   Number of columns to free up
+     */
+  #backtrack(columns) {
+    let freed = 0;
+
+    for (let i = this.#buffer.length - 1; i >= 0 && freed < columns; i--) {
+      const item = this.#buffer[i];
+
+      if (STATE_TYPES.includes(item.type)) {
+        continue;
+      }
+
+      if (typeof item.width !== 'number' || (item.type !== 'text' && item.type !== 'space')) {
+        break;
+      }
+
+      while (freed < columns && (item.type === 'text' ? item.value.length : item.size) > 0) {
+        if (item.type === 'text') {
+          item.value = item.value.slice(0, -1);
+        } else {
+          item.size--;
+        }
+
+        freed += item.width;
+      }
+
+      if ((item.type === 'text' ? item.value.length : item.size) === 0) {
+        this.#buffer.splice(i, 1);
+      }
+    }
+
+    this.#cursor -= freed;
+  }
+
+  /**
    * Add spaces to the line
    *
    * @param {number} size Number of spaces to add to the line
    */
   space(size) {
-    this.add({type: 'space', size}, size * this.style.width);
+    /* Without wrapping, spaces are clipped at the edge of the line */
+
+    if (this.#overflow !== 'wrap') {
+      size = Math.min(size, Math.floor((this.#columns - this.#cursor) / this.style.width));
+
+      if (size <= 0) {
+        return;
+      }
+    }
+
+    this.add({type: 'space', size, width: this.style.width}, size * this.style.width);
   }
 
   /**
@@ -283,6 +420,7 @@ class LineComposer {
     this.#buffer = [];
     this.#cursor = 0;
     this.#trimmable = false;
+    this.#clipped = false;
 
     if (options.forceNewline && !LineComposer.hasContent(result)) {
       result.push({type: 'empty'});

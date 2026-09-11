@@ -453,6 +453,7 @@ The first parameter is an array of column definitions. Each column can have the 
 - `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
 - `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
 - `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
+- `overflow`: what happens with text that does not fit on one line of the cell, either `wrap`, `clip` or `ellipsis`, see below. The default is `wrap`.
 
 The second parameter contains the data and is an array that contains each row. There can be as many rows as you would like.
 
@@ -521,6 +522,32 @@ On 42 column paper the first column is 32 characters wide, on 48 column paper it
 If there are multiple fill columns, the remaining space is divided evenly between them. If the space cannot be divided evenly, the first fill columns get one character more. Every fill column needs at least one character, otherwise an error is thrown, just like a table that is too wide.
 
 The fill column is measured in the same way as a fixed column: in characters of the size that is active when the table is created. At double size, a fill column on 42 column paper next to a column of 6 is 15 characters wide. When the table is created after switching to a smaller font, the fill column takes the extra characters that fit on the line in that font.
+
+#### Overflow
+
+By default the text in a cell is wrapped, so a long product name takes up as many lines as it needs. Receipts often keep every item on one line instead, and cut the name off when it is too long. The `overflow` property of a column controls this:
+
+- `wrap`: the text is wrapped onto as many lines as needed. This is the default.
+- `clip`: the text is cut off at the edge of the column.
+- `ellipsis`: the text is cut off and the line ends with `...` to show that something is missing.
+
+```js
+let result = encoder
+    .table(
+        [
+            { overflow: 'ellipsis', align: 'left' },
+            { width: 10, align: 'right' }
+        ], 
+        [
+            [ 'Cappuccino with oat milk, extra large', '4,50' ],
+        ]
+    )	
+    .encode()
+```
+
+On 32 column paper this prints `Cappuccino with oat...` followed by the price.
+
+Clipping applies to everything that is added to the cell: when a callback function adds more text after the line is full, it is dropped, styles are kept. A newline in the text still ends the line, and the text after it is clipped in the same way. The text is measured in characters of the size that is active at that point, so the ellipsis takes up three characters in the size of the text that overflows.
 
 <br>
 
