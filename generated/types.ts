@@ -29,6 +29,11 @@ export type PrinterModel =
 	| 'star-tsp100iv'
 	| 'star-tsp650'
 	| 'star-tsp650ii'
+	| 'sunmi-p2se'
+	| 'sunmi-p3h'
+	| 'sunmi-p3kh'
+	| 'sunmi-p3mix'
+	| 'sunmi'
 	| 'xprinter-xp-n160ii'
 	| 'xprinter-xp-t80q'
 	| 'youku-58t';
@@ -46,6 +51,7 @@ export type CodepageMappingName =
 	| 'pos-5890'
 	| 'pos-8360'
 	| 'star'
+	| 'sunmi'
 	| 'xprinter'
 	| 'youku';
 

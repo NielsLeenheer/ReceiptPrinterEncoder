@@ -53,7 +53,7 @@ For the printer to understand which code page you want to use, there needs to be
 
 The code page mapping tells us which code pages the printer support and which internal id the printer uses for which code page. Not all printers support the same code pages, and even it they do, it is common for manufacturers to use a different mapping. That means that even though the printer supports the code page, the way to activate it is different for that printer. 
 
-This library does support a number of code page mappings for common manufacturers, such as `bixolon`, `bixolon-legacy` `citizen`, `epson-legacy`, `epson`, `fujitsu`, `hp`, `metapace`, `mpt`, `pos-5890`, `pos-8360`, `xprinter`, `youku` and `star` (in ESC/POS emulation mode).
+This library does support a number of code page mappings for common manufacturers, such as `bixolon`, `bixolon-legacy` `citizen`, `epson-legacy`, `epson`, `fujitsu`, `hp`, `metapace`, `mpt`, `pos-5890`, `pos-8360`, `sunmi`, `xprinter`, `youku` and `star` (in ESC/POS emulation mode).
 
 When using the ESC/POS language this library uses the Epson code page mappings and Epson printers will support most of the code pages out of the box. 
 
