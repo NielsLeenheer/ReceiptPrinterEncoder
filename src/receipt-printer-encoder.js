@@ -663,7 +663,10 @@ class ReceiptPrinterEncoder {
         }));
 
         columnEncoder.codepage(this.#codepage);
-        columnEncoder.align(columns[c].align);
+
+        if (typeof columns[c].align !== 'undefined') {
+          columnEncoder.align(columns[c].align);
+        }
 
         if (typeof data[r][c] === 'string') {
           columnEncoder.text(data[r][c]);
@@ -826,7 +829,10 @@ class ReceiptPrinterEncoder {
     }));
 
     columnEncoder.codepage(this.#codepage);
-    columnEncoder.align(options.align);
+
+    if (typeof options.align !== 'undefined') {
+      columnEncoder.align(options.align);
+    }
 
     if (typeof contents === 'function') {
       contents(columnEncoder);

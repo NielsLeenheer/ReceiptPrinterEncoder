@@ -192,6 +192,30 @@ describe('Character width inside table cells', function() {
     });
 });
 
+describe('Table and box without an align property', function() {
+    const CODEPAGE = [ 27, 116, 0 ];
+    const NL = [ 10, 13 ];
+    const spaces = (n) => new Array(n).fill(32);
+
+    describe('table() without align', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 42 });
+        let result = encoder.table([ { width: 20 }, { width: 22, align: 'right' } ], [ [ 'a', 'b' ] ]).encode();
+
+        it('should default to left aligned', function () {
+            assert.deepEqual(new Uint8Array([ ...CODEPAGE, 97, ...spaces(19), ...spaces(21), 98, ...NL ]), result);
+        });
+    });
+
+    describe('box() without align', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 42 });
+        let result = encoder.box({ width: 10, style: 'none' }, 'hi').encode();
+
+        it('should default to left aligned', function () {
+            assert.deepEqual(new Uint8Array([ ...CODEPAGE, 104, 105, ...spaces(8), ...NL ]), result);
+        });
+    });
+});
+
 describe('LineComposer with content wider than the line', function() {
     for (const align of [ 'left', 'center', 'right' ]) {
         describe(`align ${align}, embedded`, function () {
