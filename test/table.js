@@ -75,7 +75,7 @@ describe('Table width', function() {
         let result = encoder.size(2).table([ { width: 15, align: 'left' }, { width: 6, align: 'right' } ], [ [ 'a', 'b' ] ]).encode();
 
         it('should print the table at double width', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 17, ...CODEPAGE, 97, ...spaces(14), ...spaces(5), 98, 29, 33, 0, ...NL, 29, 33, 0 ]), result);
+            assert.deepEqual(new Uint8Array([ 29, 33, 17, ...CODEPAGE, 97, ...spaces(14), ...spaces(5), 98, 29, 33, 0, ...NL ]), result);
         });
     });
 
@@ -185,7 +185,6 @@ describe('Character width inside table cells', function() {
             assert.deepEqual(new Uint8Array([
                 ...SIZE2, ...CODEPAGE, ...text('abcde'), ...spaces(6), ...text('10,00'), ...RESET, ...NL,
                 ...SIZE2, ...text('fg'), ...spaces(3), ...spaces(11), ...RESET, ...NL,
-                ...RESET,
             ]), result);
         });
     });

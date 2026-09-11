@@ -22,7 +22,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.bold(true).line('hello').bold(false).image(image, 8, 8).encode();
 
         it('should not have an empty line between the text and the image', function () {
-            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF, ...IMAGE, ...NL ]), result);
+            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...IMAGE, ...NL ]), result);
         });
     });
 
@@ -31,7 +31,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.bold(true).line('hello').image(image, 8, 8).encode();
 
         it('should not have empty lines before the image or at the end', function () {
-            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF, ...BOLD_ON, ...IMAGE, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF ]), result);
+            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...IMAGE, ...NL ]), result);
         });
     });
 
@@ -50,7 +50,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.bold(true).line('hello').cut().encode();
 
         it('should not have an empty line before the cut', function () {
-            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF, ...BOLD_ON, ...CUT, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF ]), result);
+            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...HELLO, ...BOLD_OFF, ...NL, ...CUT, ...NL ]), result);
         });
     });
 
@@ -59,7 +59,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.line('hello').bold(true).encode();
 
         it('should not have an empty line at the end', function () {
-            assert.deepEqual(new Uint8Array([ ...HELLO, ...NL, ...BOLD_ON, ...BOLD_OFF ]), result);
+            assert.deepEqual(new Uint8Array([ ...HELLO, ...NL ]), result);
         });
     });
 
@@ -131,7 +131,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.bold(true).newline().bold(false).encode();
 
         it('should still feed for an explicit newline', function () {
-            assert.deepEqual(new Uint8Array([ ...BOLD_ON, ...BOLD_OFF, ...NL, ...BOLD_ON, ...BOLD_OFF ]), result);
+            assert.deepEqual(new Uint8Array([ ...NL ]), result);
         });
     });
 
@@ -140,7 +140,7 @@ describe('Blank lines caused by state-only lines', function() {
         let result = encoder.bold(true).line('hello').bold(false).encode();
 
         it('should not have an empty line at the end', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 70, ...NL, 27, 69, 27, 70 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 70, ...NL ]), result);
         });
     });
 });

@@ -43,7 +43,7 @@ describe('Alignment on the first line', function() {
         let result = encoder.initialize().align('center').bold(true).line('hello').encode();
 
         it('should send the initialize command before the alignment spaces and styles', function () {
-            assert.deepEqual(new Uint8Array([ ...INIT, ...spaces(18), 27, 69, 1, ...CODEPAGE, ...HELLO, 27, 69, 0, ...NL, 27, 69, 1, 27, 69, 0 ]), result);
+            assert.deepEqual(new Uint8Array([ ...INIT, ...spaces(18), 27, 69, 1, ...CODEPAGE, ...HELLO, 27, 69, 0, ...NL ]), result);
         });
     });
 

@@ -7,6 +7,10 @@ const STATE_TYPES = [
   'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'raw',
 ];
 
+/* Item types that a text style applies to */
+
+const STYLED_TYPES = ['text', 'space', 'raw'];
+
 /* Item types that print a block which advances the paper by itself */
 
 const BLOCK_TYPES = ['image', 'barcode', 'qrcode', 'pdf417'];
@@ -199,11 +203,21 @@ class LineComposer {
     const restore = this.style.restore();
     const store = this.style.store();
 
+    /* Styles only apply to text, spaces and raw data. On a line without any of
+       those, such as a cut, an image or only pending state changes, the style
+       commands are left out. The style object carries the state to the next line */
+
+    const styled = buffer.some((item) => STYLED_TYPES.includes(item.type));
+
+    const before = styled ? this.#stored : [];
+    const after = styled ? store : [];
+    const items = styled ? buffer : buffer.filter((item) => item.type !== 'style');
+
     if (this.#cursor === 0 && (options.ignoreAlignment || !this.#embedded)) {
       result = this.#merge([
-        ...this.#stored,
-        ...buffer,
-        ...store,
+        ...before,
+        ...items,
+        ...after,
       ]);
     } else {
       if (this.#align === 'right') {
@@ -234,9 +248,9 @@ class LineComposer {
 
         result = this.#merge([
           {type: 'space', size: Math.max(0, this.#columns - this.#cursor)},
-          ...this.#stored,
-          ...buffer,
-          ...store,
+          ...before,
+          ...items,
+          ...after,
         ]);
       }
 
@@ -245,18 +259,18 @@ class LineComposer {
 
         result = this.#merge([
           {type: 'space', size: left},
-          ...this.#stored,
-          ...buffer,
-          ...store,
+          ...before,
+          ...items,
+          ...after,
           {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor - left) : 0},
         ]);
       }
 
       if (this.#align === 'left') {
         result = this.#merge([
-          ...this.#stored,
-          ...buffer,
-          ...store,
+          ...before,
+          ...items,
+          ...after,
           {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor) : 0},
         ]);
       }
