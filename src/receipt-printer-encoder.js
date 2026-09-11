@@ -1332,8 +1332,8 @@ class ReceiptPrinterEncoder {
      * Pulse
      *
      * @param  {number}          [device]  0 or 1 for on which pin the device is connected, default of 0
-     * @param  {number}          [on]      Time the pulse is on in milliseconds, default of 100
-     * @param  {number}          [off]     Time the pulse is off in milliseconds, default of 500
+     * @param  {number}          [on]      Time the pulse is on in milliseconds, default of 100 on ESC/POS, 200 on StarPRNT
+     * @param  {number}          [off]     Time the pulse is off in milliseconds, default of 500 on ESC/POS, 200 on StarPRNT
      * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
      *
      */

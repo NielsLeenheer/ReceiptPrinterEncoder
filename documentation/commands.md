@@ -769,9 +769,9 @@ let result = encoder
 
 The first parameter is the device where you want to send the pulse. This can be 0 or 1 depending how the device is connected. This parameter is optional an by default it will be send to device 0.
 
-The second parameter is how long the pulse should be active in milliseconds, with a default of 100 milliseconds
+The second parameter is how long the pulse should be active in milliseconds. The default is 100 milliseconds on ESC/POS printers and 200 milliseconds on StarPRNT printers.
 
-The third parameter is how long there should be a delay after the pulse has been send in milliseconds, with a default of 500 milliseconds.
+The third parameter is how long there should be a delay after the pulse has been send in milliseconds. The default is 500 milliseconds on ESC/POS printers and 200 milliseconds on StarPRNT printers.
 
 ```js
 let result = encoder
