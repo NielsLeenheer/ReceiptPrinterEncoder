@@ -140,4 +140,25 @@ describe('Size inheritance in tables and boxes', function() {
                 encode((e) => e.table([ { width: 9, align: 'center' }, { width: 7, align: 'left' } ], [ [ '12345678', 'x' ] ])));
         });
     });
+
+    describe('a box of width 1 with a border', function () {
+        it('should throw a descriptive error instead of a RangeError', function () {
+            assert.throws(() => encode((e) => e.box({ width: 1, style: 'single', align: 'left' }, 'a')), 'Box is too narrow');
+        });
+    });
+
+    describe('a box with an invalid width', function () {
+        it('should throw instead of producing garbage', function () {
+            assert.throws(() => encode((e) => e.box({ width: NaN, style: 'none', align: 'left' }, 'a')), 'Box width must be a positive integer');
+            assert.throws(() => encode((e) => e.box({ width: 0, style: 'none', align: 'left' }, 'a')), 'Box width must be a positive integer');
+        });
+    });
+
+    describe('a table with an invalid column width', function () {
+        it('should throw instead of producing garbage', function () {
+            assert.throws(() => encode((e) => e.table([ { width: NaN, align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
+            assert.throws(() => encode((e) => e.table([ { align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
+            assert.throws(() => encode((e) => e.table([ { width: 0, align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
+        });
+    });
 });

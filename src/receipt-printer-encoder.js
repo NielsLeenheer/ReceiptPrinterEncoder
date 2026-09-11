@@ -663,6 +663,14 @@ class ReceiptPrinterEncoder {
      *
      */
   table(columns, data) {
+    /* Check the column definitions */
+
+    for (const column of columns) {
+      if (!Number.isInteger(column.width) || column.width < 1) {
+        throw new Error('Column width must be a positive integer');
+      }
+    }
+
     /* Check if the table fits on the paper, taking margins and the current character width into account */
 
     const width = columns.reduce((total, column) =>
@@ -836,6 +844,10 @@ class ReceiptPrinterEncoder {
       paddingRight: 0,
     }, options || {});
 
+    if (!Number.isInteger(options.width) || options.width < 1) {
+      throw new Error('Box width must be a positive integer');
+    }
+
     const boxWidth = (options.width + options.marginLeft + options.marginRight) * this.#composer.style.width;
 
     if (boxWidth > this.#options.columns) {
@@ -853,6 +865,10 @@ class ReceiptPrinterEncoder {
     /* Render the contents of the box */
 
     const innerWidth = options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight;
+
+    if (innerWidth < 0) {
+      throw new Error('Box is too narrow');
+    }
 
     const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
       width: innerWidth * this.#composer.style.width,
