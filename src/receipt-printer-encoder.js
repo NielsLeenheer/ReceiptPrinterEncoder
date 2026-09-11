@@ -121,6 +121,8 @@ class ReceiptPrinterEncoder {
   #language;
   #composer;
 
+  #printerResolution = null;
+
   #printerCapabilities = {
     'fonts': {
       'A': {size: '12x24', columns: 42},
@@ -187,6 +189,7 @@ class ReceiptPrinterEncoder {
       }
 
       this.#printerCapabilities = printerDefinitions[options.printerModel].capabilities;
+      this.#printerResolution = printerDefinitions[options.printerModel].media?.dpi || null;
 
       /* Apply the printer definition to the defaults */
 
@@ -1193,7 +1196,7 @@ class ReceiptPrinterEncoder {
     /* Encode the image data */
 
     this.#composer.add(
-        this.#language.image(image, width, height, this.#options.imageMode),
+        this.#language.image(image, width, height, this.#options.imageMode, this.#printerResolution),
     );
 
     /* Reset alignment */

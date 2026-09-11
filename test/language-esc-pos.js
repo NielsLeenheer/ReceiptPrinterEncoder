@@ -262,8 +262,8 @@ describe('LanguageEscPos', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', createCanvas });
         let result = encoder.image(canvas, 8, 8).encode();
                 
-        it('should be [ 27, 51, 36, 27, 42, 33, 8, 0, 128, 0, 0, 0, 0, ... ]', function () {
-            assert.deepEqual(new Uint8Array([27, 51, 36, 27, 42, 33, 8, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 27, 50, 10, 13]), result);
+        it('should be [ 27, 51, 24, 27, 42, 33, 8, 0, 128, 0, 0, 0, 0, ... ]', function () {
+            assert.deepEqual(new Uint8Array([27, 51, 24, 27, 42, 33, 8, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 27, 50, 10, 13]), result);
         });
     });
 
