@@ -104,3 +104,25 @@ import ReceiptPrinterEncoder from 'npm:@point-of-sale/receipt-printer-encoder';
 
 let encoder = new ReceiptPrinterEncoder();
 ```
+
+<br>
+
+### Using with React Native and Expo
+
+This library and its dependencies use `structuredClone()`, which is part of the web platform and Node, but is not provided by React Native or the Hermes engine. Without it, creating an encoder fails with an error like `Property 'structuredClone' doesn't exist`.
+
+Install a polyfill and make it available as a global before importing this library, for example in the entry point of your app:
+
+```sh
+npm install @ungap/structured-clone
+```
+
+```js
+import structuredClone from '@ungap/structured-clone';
+
+if (typeof globalThis.structuredClone !== 'function') {
+    globalThis.structuredClone = structuredClone;
+}
+```
+
+The `image()` function also needs a way to read pixels, see the [image command](commands.md#image) for the input types it accepts and the `createCanvas` option.
