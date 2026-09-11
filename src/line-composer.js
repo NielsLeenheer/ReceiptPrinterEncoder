@@ -1,6 +1,16 @@
 import TextStyle from './text-style.js';
 import TextWrap from './text-wrap.js';
 
+/* Item types that only change the state of the printer and print nothing */
+
+const STATE_TYPES = [
+  'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'raw',
+];
+
+/* Item types that print a block which advances the paper by itself */
+
+const BLOCK_TYPES = ['image', 'barcode', 'qrcode', 'pdf417'];
+
 /**
  * Compose lines of text and commands
  */
@@ -123,9 +133,20 @@ class LineComposer {
      * @return {boolean}            True if the line contains printable content
      */
   static hasContent(items) {
-    const state = ['style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'raw'];
+    return items.some((item) => !STATE_TYPES.includes(item.type));
+  }
 
-    return items.some((item) => !state.includes(item.type));
+  /**
+     * Determine if a line contains a block that advances the paper by itself,
+     * such as an image, barcode, QR code or PDF417 code, and nothing else
+     * that is printable
+     *
+     * @param  {object[]}   items   The items of a line
+     * @return {boolean}            True if the line is a self advancing block
+     */
+  static isBlock(items) {
+    return items.some((item) => BLOCK_TYPES.includes(item.type)) &&
+      items.every((item) => STATE_TYPES.includes(item.type) || BLOCK_TYPES.includes(item.type));
   }
 
   /**

@@ -35,6 +35,7 @@ import printerDefinitions from '../generated/printers.js';
  * @property {Language} [language]
  * @property {'column' | 'raster'} [imageMode]
  * @property {number} [feedBeforeCut]
+ * @property {boolean} [feedAfterBlock]
  * @property {'\n\r' | '\n'} [newline]
  * @property {CodepageMappingName | Record<string, number>} [codepageMapping]
  * @property {Codepage[]} [codepageCandidates]
@@ -168,6 +169,7 @@ class ReceiptPrinterEncoder {
       language: 'esc-pos',
       imageMode: 'column',
       feedBeforeCut: 0,
+      feedAfterBlock: true,
       newline: '\n\r',
       codepageMapping: 'epson',
       codepageCandidates: null,
@@ -1490,6 +1492,13 @@ class ReceiptPrinterEncoder {
          commands, would otherwise be printed as an empty line */
 
       if (!LineComposer.hasContent(commands[i].commands)) {
+        continue;
+      }
+
+      /* Images, barcodes and QR codes advance the paper by themselves, the
+         line feed after them can be disabled with the feedAfterBlock option */
+
+      if (!this.#options.feedAfterBlock && LineComposer.isBlock(commands[i].commands)) {
         continue;
       }
 
