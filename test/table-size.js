@@ -114,6 +114,26 @@ describe('Size inheritance in tables and boxes', function() {
         });
     });
 
+    describe('size(2), a rule', function () {
+        it('should span the width of the paper with double width characters', function () {
+            const horizontal = new Array(16).fill(196);
+
+            assert.deepEqual(new Uint8Array([
+                ...SIZE2, ...CODEPAGE, ...horizontal, ...SIZE1, ...NL,
+            ]), encode((e) => e.size(2).rule()));
+        });
+    });
+
+    describe('a rule of 10 columns at size 1', function () {
+        it('should draw 10 single width characters', function () {
+            const horizontal = new Array(10).fill(196);
+
+            assert.deepEqual(new Uint8Array([
+                ...CODEPAGE, ...horizontal, ...NL,
+            ]), encode((e) => e.rule({ width: 10 })));
+        });
+    });
+
     describe('a table at size 1 with a centered column', function () {
         it('should pad with plain spaces, without size commands', function () {
             assert.deepEqual(new Uint8Array([ ...CODEPAGE, ...text('12345678'), 32, 120, ...spaces(6), ...NL ]),

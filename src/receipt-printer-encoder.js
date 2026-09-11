@@ -799,7 +799,12 @@ class ReceiptPrinterEncoder {
 
     this.#composer.flush();
 
-    this.#composer.text((options.style === 'double' ? '═' : '─').repeat(options.width), 'cp437');
+    this.#composer.text(
+        (options.style === 'double' ? '═' : '─').repeat(
+            Math.floor(options.width / this.#composer.style.width),
+        ),
+        'cp437',
+    );
     this.#composer.flush({forceNewline: true});
 
     return this;
