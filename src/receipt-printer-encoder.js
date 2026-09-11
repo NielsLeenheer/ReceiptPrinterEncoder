@@ -577,7 +577,11 @@ class ReceiptPrinterEncoder {
 
     const matches = value.match(/^[0-9]+x[0-9]+$/);
     if (matches) {
-      value = Object.entries(this.#printerCapabilities.fonts).find((i) => i[1].size == matches[0])[0];
+      const font = Object.entries(this.#printerCapabilities.fonts).find((i) => i[1].size == matches[0]);
+
+      if (font) {
+        value = font[0];
+      }
     }
 
     /* Make sure the font name is uppercase */
