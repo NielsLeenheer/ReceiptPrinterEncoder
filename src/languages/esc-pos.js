@@ -90,7 +90,7 @@ class LanguageEscPos {
       'codabar': 0x06,
       'code93': 0x48,
       'code128': 0x49,
-      'gs1-128': 0x48,
+      'gs1-128': 0x4a,
       'gs1-databar-omni': 0x4b,
       'gs1-databar-truncated': 0x4c,
       'gs1-databar-limited': 0x4d,
