@@ -747,13 +747,16 @@ When using Node you have multiple options:
 
 - And finally you can provide a `Canvas` or `Image` object used by the `canvas` library. However, if you provide an `Image` object the library needs to convert it to a canvas and for that you need to provide a `createCanvas` function when instantiating the encoder (In previous versions you did not need to do this, because the `canvas` library was a dependency, but in recent versions this has become an optional dependency).
 
-The second parameter is the width of the image on the paper receipt in pixels. It must be a multiple of 8. The provided image will be resized to the width specified here. 
+The second parameter is an object with options for the size of the image on the paper and for dithering:
 
-The third parameter is the height of the image on the paper receipt in pixels. It must be a multiple of 8. The provided image will be resized to the height specified here. 
+- *width* - the width of the image on the paper in dots. The image is resized to this width.
+- *height* - the height of the image on the paper in dots. The image is resized to this height.
+- *algorithm* - the dithering algorithm that is used to turn colour and grayscale images into black and white. The following algorithms are supported: `threshold`, `bayer`, `floydsteinberg` and `atkinson`. If not supplied, it will default to a simple threshold.
+- *threshold* - the threshold that will be used by the threshold and bayer dithering algorithm. It is ignored by the other algorithms. It is set to a default of 128.
 
-The fourth parameter is the dithering algorithm that is used to turn colour and grayscale images into black and white. The follow algorithms are supported: threshold, bayer, floydsteinberg, atkinson. If not supplied, it will default to a simple threshold.
+You only need to specify one of `width` and `height`, the other one follows from the aspect ratio of the image. If you specify both, the image is stretched to that size. If you leave out both, the image is printed at its own size, unless it is wider than the paper, in which case it is scaled down to fit.
 
-The fifth paramter is the threshold that will be used by the threshold and bayer dithering algorithm. It is ignored by the other algorithms. It is set to a default of 128.
+Printers need the width and height of an image to be a multiple of 8 dots. You do not need to take care of that yourself: the size is rounded up to the next multiple of 8 and the extra dots are white.
 
 For example on the web:
 
@@ -765,7 +768,7 @@ img.src = 'https://...';
 
 img.onload = function() {
     let result = encoder
-        .image(img, 64, 64, 'atkinson')
+        .image(img, { width: 320, algorithm: 'atkinson' })
         .encode()
 }
 ```
@@ -782,7 +785,7 @@ let buffer = await sharp('image.png')
 let encoder = new ReceiptPrinterEncoder();
 
 let result = encoder
-    .image(buffer, 64, 64, 'atkinson')
+    .image(buffer, { width: 320, algorithm: 'atkinson' })
     .encode();
 ```
 
@@ -798,9 +801,23 @@ let encoder = new ReceiptPrinterEncoder({
 });
 
 let result = encoder
-    .image(image, 64, 64, 'atkinson')
+    .image(image, { width: 320, algorithm: 'atkinson' })
     .encode();
 ```
+
+To print an image as wide as the paper, use the `printableWidth` property of the encoder. It is the width of the print area in dots, based on the number of columns and the width of the default font, so it follows the printer model or the `columns` option that you configured:
+
+```js
+let encoder = new ReceiptPrinterEncoder({
+    printerModel: 'epson-tm-t88vi'
+});
+
+let result = encoder
+    .image(image, { width: encoder.printableWidth })
+    .encode();
+```
+
+For backwards compatibility you can also pass the width, height, algorithm and threshold as separate parameters: `image(image, 64, 64, 'atkinson', 128)`.
 
 You can find examples for many types of image reading libraries in the `examples` directory.
 

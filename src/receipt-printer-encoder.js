@@ -99,9 +99,18 @@ import printerDefinitions from '../generated/printers.js';
  * @property {boolean} [truncated]
  */
 
+/**
+ * @typedef {Object} ImageOptions
+ * @property {number} [width]      Width of the image on the paper in dots
+ * @property {number} [height]     Height of the image on the paper in dots
+ * @property {DitherAlgorithm} [algorithm]
+ * @property {number} [threshold]
+ */
+
 /** @typedef {Object} SharpInput */
 /** @typedef {Object} NdarrayInput */
 /** @typedef {Object} ReadImageInput */
+/** @typedef {ImageData|HTMLImageElement|HTMLCanvasElement|SharpInput|NdarrayInput|ReadImageInput} ImageInput */
 
 /**
  * @typedef {Object} PrinterModelInfo
@@ -1188,36 +1197,77 @@ class ReceiptPrinterEncoder {
   }
 
 
+  // eslint-disable-next-line valid-jsdoc
   /**
-     * Image
+     * Print an image
      *
-     * @param  {ImageData|HTMLImageElement|HTMLCanvasElement|SharpInput|NdarrayInput|ReadImageInput}  input  an element, like a canvas or image that needs to be printed
-     * @param  {number}         width  width of the image on the printer
-     * @param  {number}         height  height of the image on the printer
-     * @param  {DitherAlgorithm}  [algorithm]  the dithering algorithm for making the image black and white
-     * @param  {number}         [threshold]  threshold for the dithering algorithm
-     * @return {ReceiptPrinterEncoder}                  Return the object, for easy chaining commands
+     * @overload
+     * @param {ImageInput} input   An element, like a canvas or image, or pixel data that needs to be printed
+     * @param {ImageOptions} [options]   Size and dithering options, see below
+     * @return {ReceiptPrinterEncoder}
+     */
+  // eslint-disable-next-line valid-jsdoc
+  /**
+     * @overload
+     * @param {ImageInput} input   An element, like a canvas or image, or pixel data that needs to be printed
+     * @param {number} width   Width of the image on the paper in dots
+     * @param {number} height   Height of the image on the paper in dots
+     * @param {DitherAlgorithm} [algorithm]   The dithering algorithm for making the image black and white
+     * @param {number} [threshold]   Threshold for the dithering algorithm
+     * @return {ReceiptPrinterEncoder}
+     */
+  /**
+     * @param  {ImageInput}  input   An element, like a canvas or image, or pixel data that needs to be printed
+     * @param  {number|ImageOptions}  [width]   Width of the image in dots, or an options object with:
+     *                                          - width: the width in dots, if left out it follows from the height
+     *                                          - height: the height in dots, if left out it follows from the width
+     *                                          - algorithm: the dithering algorithm, defaults to threshold
+     *                                          - threshold: threshold for the dithering algorithm, defaults to 128
+     *                                          Without a width and height the image is printed at its own size,
+     *                                          scaled down when it is wider than the paper. Sizes are rounded up
+     *                                          to a multiple of 8 dots, the extra dots are white.
+     * @param  {number}  [height]   Height of the image on the paper in dots
+     * @param  {DitherAlgorithm}  [algorithm]   The dithering algorithm for making the image black and white
+     * @param  {number}  [threshold]   Threshold for the dithering algorithm
+     * @return {ReceiptPrinterEncoder}   Return the object, for easy chaining commands
      *
      */
   image(input, width, height, algorithm, threshold) {
+    let options = {
+      width: undefined,
+      height: undefined,
+      algorithm: 'threshold',
+      threshold: 128,
+    };
+
+    if (typeof width === 'object' && width !== null) {
+      options = Object.assign(options, width);
+    } else {
+      if (typeof width !== 'undefined') {
+        options.width = width;
+      }
+
+      if (typeof height !== 'undefined') {
+        options.height = height;
+      }
+
+      if (typeof algorithm !== 'undefined') {
+        options.algorithm = algorithm;
+      }
+
+      if (typeof threshold !== 'undefined') {
+        options.threshold = threshold;
+      }
+    }
+
     if (this.#options.embedded) {
       throw new Error('Images are not supported in table cells or boxes');
     }
 
-    if (width % 8 !== 0) {
-      throw new Error('Width must be a multiple of 8');
-    }
-
-    if (height % 8 !== 0) {
-      throw new Error('Height must be a multiple of 8');
-    }
-
-    if (typeof algorithm === 'undefined') {
-      algorithm = 'threshold';
-    }
-
-    if (typeof threshold === 'undefined') {
-      threshold = 128;
+    for (const dimension of ['width', 'height']) {
+      if (typeof options[dimension] !== 'undefined' && (!Number.isInteger(options[dimension]) || options[dimension] < 1)) {
+        throw new Error(`Image ${dimension} must be a positive integer`);
+      }
     }
 
     /* Determine the type of the input */
@@ -1237,6 +1287,43 @@ class ReceiptPrinterEncoder {
     if (!type) {
       throw new Error('Could not determine the type of image input');
     }
+
+    /* Determine the size of the image on the paper. A missing width or height
+       follows from the other one and the size of the input, keeping the aspect
+       ratio. Without both, the image keeps its own size, unless that is wider
+       than the paper */
+
+    if (typeof options.width === 'undefined' || typeof options.height === 'undefined') {
+      const size = this.#imageSize(input, type);
+
+      if (!size) {
+        throw new Error('Could not determine the size of the image, specify both a width and a height');
+      }
+
+      if (typeof options.width !== 'undefined') {
+        options.height = Math.max(1, Math.round(options.width * size.height / size.width));
+      } else if (typeof options.height !== 'undefined') {
+        options.width = Math.max(1, Math.round(options.height * size.width / size.height));
+      } else if (size.width > this.printableWidth) {
+        options.width = this.printableWidth;
+        options.height = Math.max(1, Math.round(this.printableWidth * size.height / size.width));
+      } else {
+        options.width = Math.round(size.width);
+        options.height = Math.round(size.height);
+      }
+    }
+
+    width = options.width;
+    height = options.height;
+
+    /* The printer needs the width and height to be a multiple of 8 dots, the
+       image is padded with white dots on the right and at the bottom */
+
+    const paddedWidth = Math.ceil(width / 8) * 8;
+    const paddedHeight = Math.ceil(height / 8) * 8;
+
+    algorithm = options.algorithm;
+    threshold = options.threshold;
 
     /* Turn provided data into an ImageData object */
 
@@ -1318,6 +1405,18 @@ class ReceiptPrinterEncoder {
       case 'atkinson': image = Dither.atkinson(image); break;
     }
 
+    /* Pad the image to a multiple of 8 dots */
+
+    if (paddedWidth !== width || paddedHeight !== height) {
+      const padded = new ImageData(paddedWidth, paddedHeight);
+      padded.data.fill(255);
+
+      for (let y = 0; y < height; y++) {
+        padded.data.set(image.data.subarray(y * width * 4, (y + 1) * width * 4), y * paddedWidth * 4);
+      }
+
+      image = padded;
+    }
 
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
@@ -1330,7 +1429,7 @@ class ReceiptPrinterEncoder {
     /* Encode the image data */
 
     this.#composer.add(
-        this.#language.image(image, width, height, this.#options.imageMode, this.#printerResolution),
+        this.#language.image(image, paddedWidth, paddedHeight, this.#options.imageMode, this.#printerResolution),
     );
 
     /* Reset alignment */
@@ -1342,6 +1441,51 @@ class ReceiptPrinterEncoder {
     this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
+  }
+
+  /**
+     * Determine the size of an image input in pixels
+     *
+     * @param  {ImageInput}  input   The image input
+     * @param  {string}      type    The type of the input, as determined by image()
+     * @return {{width: number, height: number}|null}   The size, or null if it cannot be determined
+     */
+  #imageSize(input, type) {
+    let width;
+    let height;
+
+    if (type === 'element') {
+      width = input.naturalWidth || input.videoWidth || input.width;
+      height = input.naturalHeight || input.videoHeight || input.height;
+
+      /* SVG elements have animated lengths instead of numbers */
+
+      if (typeof width === 'object' && width !== null && width.baseVal) {
+        width = width.baseVal.value;
+      }
+
+      if (typeof height === 'object' && height !== null && height.baseVal) {
+        height = height.baseVal.value;
+      }
+    } else if (type === 'node-sharp') {
+      width = input.info.width;
+      height = input.info.height;
+    } else if (type === 'ndarray') {
+      width = input.shape[0];
+      height = input.shape[1];
+    } else {
+      width = input.width;
+      height = input.height;
+    }
+
+    width = Number(width);
+    height = Number(height);
+
+    if (!(width > 0) || !(height > 0)) {
+      return null;
+    }
+
+    return {width, height};
   }
 
   /**
@@ -1687,6 +1831,19 @@ class ReceiptPrinterEncoder {
    */
   get columns() {
     return this.#composer.columns;
+  }
+
+  /**
+   * Get the width of the print area in dots, based on the number of columns
+   * and the width of font A, rounded down to a multiple of 8. Use it to size
+   * images and to know how wide the paper is
+   *
+   * @return {number}         The width of the print area in dots
+   */
+  get printableWidth() {
+    const dots = parseInt(this.#printerCapabilities.fonts['A']?.size, 10) || 12;
+
+    return Math.floor((this.#options.columns * dots) / 8) * 8;
   }
 
   /**
