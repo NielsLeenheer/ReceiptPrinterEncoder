@@ -8,8 +8,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.text('hello').encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -17,8 +17,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.text('hello').newline().encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -26,8 +26,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.text('hello').newline().newline().encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13 ]), result);
         });
     });
 
@@ -35,8 +35,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.text('hello').newline(4).encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13, 10, 13, 10, 13, 10, 13 ]), result);
         });
     });
 
@@ -44,8 +44,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.line('hello').encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -53,8 +53,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.text('héllo').encode();
         
-        it('should be [ 104, 176, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 176, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 176, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 176, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -109,7 +109,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.bold(true).text('hello').bold(false).encode();
         
         it('should be [ 27, 69, ..., 27, 70, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, 104, 101, 108, 108, 111, 27, 70, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 70, 10, 13 ]), result);
         });
     });
 
@@ -118,7 +118,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.bold().text('hello').bold().encode();
         
         it('should be [ 27, 69, ..., 27, 70, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, 104, 101, 108, 108, 111, 27, 70, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 69, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 70, 10, 13 ]), result);
         });
     });
 
@@ -126,8 +126,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.italic().text('hello').italic().encode();
         
-        it('should be [ 104, 101, 108, 108, 111, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 104, 101, 108, 108, 111, 10, 13 ]), result);
+        it('should be [ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -136,7 +136,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.underline(true).text('hello').underline(false).encode();
         
         it('should be [ 27, 45, 1, ..., 27, 45, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 45, 1, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 45, 1, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
         });
     });
 
@@ -145,7 +145,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.underline().text('hello').underline().encode();
         
         it('should be [ 27, 45, 1, ..., 27, 45, 0, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 27, 45, 1, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
+            assert.deepEqual(new Uint8Array([ 27, 45, 1, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 45, 0, 10, 13 ]), result);
         });
     });
 
@@ -154,7 +154,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.align('left').line('hello').encode();
         
         it('should be [ ..., 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([104, 101, 108, 108, 111, 32, 32, 32, 32, 32, 10, 13]), result);
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, 32, 32, 32, 32, 32, 10, 13 ]), result);
         });
     });
 
@@ -163,7 +163,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.align('center').line('hello').encode();
         
         it('should be [ 32, 32, ..., 32, 32, 32, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([32, 32, 104, 101, 108, 108, 111, 32, 32, 32, 10, 13]), result);
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 32, 32, 104, 101, 108, 108, 111, 32, 32, 32, 10, 13 ]), result);
         });
     });
 
@@ -172,7 +172,7 @@ describe('LanguageStarPrnt', function() {
         let result = encoder.align('right').line('hello').encode();
         
         it('should be [ 32, 32, 32, 32, 32, ..., 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([32, 32, 32, 32, 32, 104, 101, 108, 108, 111, 10, 13]), result);
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 32, 32, 32, 32, 32, 104, 101, 108, 108, 111, 10, 13 ]), result);
         });
     });
 
@@ -266,8 +266,8 @@ describe('LanguageStarPrnt', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt', autoFlush: false });
         let result = encoder.raw([ 0x1c, 0x2e ]).encode();
         
-        it('should be [ 28, 46, 10, 13 ]', function () {
-            assert.deepEqual(new Uint8Array([ 28, 46, 10, 13 ]), result);
+        it('should be [ 28, 46 ]', function () {
+            assert.deepEqual(new Uint8Array([ 28, 46 ]), result);
         });
     });
 

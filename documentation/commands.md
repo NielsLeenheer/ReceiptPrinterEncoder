@@ -106,6 +106,8 @@ See the chapter [Handling text](text.md) for more information about code pages.
 
 Print a string of text. Word are wrapped automatically at the width specified by the `columns` property set at initialisation. 
 
+Multiple calls to `text()` continue on the same line. A newline character in the text ends the current line, and the text after it, from the same call or a later one, continues on the next line.
+
 ```js
 let result = encoder
     .text('The quick brown fox jumps over the lazy dog')
@@ -400,7 +402,7 @@ The table function takes two parameters.
 
 The first parameter is an array of column definitions. Each column can have the folowing properties:
 
-- `width`:  determines the width of the column. 
+- `width`:  determines the width of the column in characters. The total width of all columns, including margins, must fit on the paper, otherwise an error is thrown.
 - `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
 - `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
 - `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
@@ -423,6 +425,8 @@ The value can either be a string or a callback function.
 
 If you want to style text inside of a cell, can use the callback function instead. The first parameter of the called function contains the encoder object which you can use to chain additional commands.
 
+Cells inherit the bold, italic, underline and invert styles that are active when the table is created. Changing one of these styles inside a cell only applies to that cell, the other cells keep the inherited style.
+
 ```js
 [
     /* Row one, with two columns */
@@ -432,6 +436,19 @@ If you want to style text inside of a cell, can use the callback function instea
     ],
 ]
 ```
+
+The width of a column is measured in characters of the size that is active when the table is created. Cells inherit that size. When a cell changes the size, the number of characters that fit changes with it: a column with a width of 10 in a table at double size fits 10 double width characters, or 20 single width characters after `size(1)` in the cell. Characters of different sizes can be mixed on the same line, and the padding of a cell is always printed in single width spaces.
+
+```js
+[
+    [ 
+        (encoder) => encoder.size(2).text('Total'),
+        (encoder) => encoder.text('€ ').size(2).text('250,75')
+    ],
+]
+```
+
+A table with a total width of 24 characters created at double size takes up 48 columns of paper.
 
 <br>
 
@@ -451,13 +468,15 @@ The first parameter is an object with additional configuration options.
 
 The second parameter is the content of the box and it can be a string, or a callback function.
 
+The width of the box is measured in characters of the size that is active when the box is created, and the content of the box inherits the styles and size, in the same way as the cells of a table.
+
 For example:
 
 ```js
 let result = encoder
     .box(
         { width: 30, align: 'right', style: 'double', marginLeft: 10 }, 
-        'The quick brown fox jumps over the lazy dog';o50[p49]
+        'The quick brown fox jumps over the lazy dog'
     )
     .encode()
 ```

@@ -1,6 +1,20 @@
 import TextStyle from './text-style.js';
 import TextWrap from './text-wrap.js';
 
+/* Item types that only change the state of the printer and print nothing */
+
+const STATE_TYPES = [
+  'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'raw',
+];
+
+/* Item types that a text style applies to */
+
+const STYLED_TYPES = ['text', 'space', 'raw'];
+
+/* Item types that print a block which advances the paper by itself */
+
+const BLOCK_TYPES = ['image', 'barcode', 'qrcode', 'pdf417'];
+
 /**
  * Compose lines of text and commands
  */
@@ -11,6 +25,7 @@ class LineComposer {
   #callback;
 
   #cursor = 0;
+  #trimmable = false;
   #stored;
   #buffer = [];
 
@@ -27,6 +42,7 @@ class LineComposer {
     this.#callback = options.callback || (() => {});
 
     this.style = new TextStyle({
+      defaults: options.style,
       callback: (value) => {
         this.add(value, 0);
       },
@@ -45,16 +61,17 @@ class LineComposer {
     const lines = TextWrap.wrap(value, {columns: this.#columns, width: this.style.width, indent: this.#cursor});
 
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].length) {
-        /* Add the line to the buffer */
-        this.add({type: 'text', value: lines[i], codepage}, lines[i].length * this.style.width);
+      /* Add the line to the buffer */
 
-        /* If it is not the last line, flush the buffer */
-        if (i < lines.length - 1) {
-          this.flush();
-        }
-      } else {
-        /* In case the line is empty, flush the buffer */
+      if (lines[i].length) {
+        this.add({type: 'text', value: lines[i], codepage}, lines[i].length * this.style.width);
+      }
+
+      /* A newline in the text ends the current line, even if it is empty. Text
+         after the last newline stays on the line, so that it can be continued
+         by the next call, and an empty text does nothing at all */
+
+      if (i < lines.length - 1) {
         this.flush({forceNewline: true});
       }
     }
@@ -66,7 +83,7 @@ class LineComposer {
    * @param {number} size Number of spaces to add to the line
    */
   space(size) {
-    this.add({type: 'space', size}, size);
+    this.add({type: 'space', size}, size * this.style.width);
   }
 
   /**
@@ -92,6 +109,7 @@ class LineComposer {
       }
 
       this.#cursor += length || 0;
+      this.#trimmable = false;
       return;
     }
 
@@ -103,6 +121,11 @@ class LineComposer {
 
     this.#cursor += length;
     this.#buffer = this.#buffer.concat(value);
+
+    /* Only a trailing space of text added with text() can be trimmed for right
+       alignment, the padding of table cells and boxes is part of the layout */
+
+    this.#trimmable = value.type === 'text';
   }
 
   /**
@@ -111,6 +134,32 @@ class LineComposer {
      */
   end() {
     this.#cursor = this.#columns;
+  }
+
+  /**
+     * Determine if a list of items contains printable content, or only
+     * commands that change the state of the printer, such as styles,
+     * fonts or alignment. Raw commands are not considered content, if
+     * they contain printable data the caller is responsible for the newline.
+     *
+     * @param  {object[]}   items   The items of a line
+     * @return {boolean}            True if the line contains printable content
+     */
+  static hasContent(items) {
+    return items.some((item) => !STATE_TYPES.includes(item.type));
+  }
+
+  /**
+     * Determine if a line contains a block that advances the paper by itself,
+     * such as an image, barcode, QR code or PDF417 code, and nothing else
+     * that is printable
+     *
+     * @param  {object[]}   items   The items of a line
+     * @return {boolean}            True if the line is a self advancing block
+     */
+  static isBlock(items) {
+    return items.some((item) => BLOCK_TYPES.includes(item.type)) &&
+      items.every((item) => STATE_TYPES.includes(item.type) || BLOCK_TYPES.includes(item.type));
   }
 
   /**
@@ -162,11 +211,21 @@ class LineComposer {
     const restore = this.style.restore();
     const store = this.style.store();
 
+    /* Styles only apply to text, spaces and raw data. On a line without any of
+       those, such as a cut, an image or only pending state changes, the style
+       commands are left out. The style object carries the state to the next line */
+
+    const styled = buffer.some((item) => STYLED_TYPES.includes(item.type));
+
+    const before = styled ? this.#stored : [];
+    const after = styled ? store : [];
+    const items = styled ? buffer : buffer.filter((item) => item.type !== 'style');
+
     if (this.#cursor === 0 && (options.ignoreAlignment || !this.#embedded)) {
       result = this.#merge([
-        ...this.#stored,
-        ...buffer,
-        ...store,
+        ...before,
+        ...items,
+        ...after,
       ]);
     } else {
       if (this.#align === 'right') {
@@ -181,14 +240,9 @@ class LineComposer {
           }
         }
 
-        /* Remove trailing spaces from lines */
+        /* Remove a trailing space from text, so that it ends at the edge of the paper */
 
-        if (typeof last === 'number') {
-          if (buffer[last].type === 'space' && buffer[last].size > this.style.width) {
-            buffer[last].size -= this.style.width;
-            this.#cursor -= this.style.width;
-          }
-
+        if (typeof last === 'number' && this.#trimmable) {
           if (buffer[last].type === 'text' && buffer[last].value.endsWith(' ')) {
             buffer[last].value = buffer[last].value.slice(0, -1);
             this.#cursor -= this.style.width;
@@ -196,31 +250,31 @@ class LineComposer {
         }
 
         result = this.#merge([
-          {type: 'space', size: this.#columns - this.#cursor},
-          ...this.#stored,
-          ...buffer,
-          ...store,
+          ...this.#padding(this.#columns - this.#cursor),
+          ...before,
+          ...items,
+          ...after,
         ]);
       }
 
       if (this.#align === 'center') {
-        const left = (this.#columns - this.#cursor) >> 1;
+        const left = Math.max(0, this.#columns - this.#cursor) >> 1;
 
         result = this.#merge([
-          {type: 'space', size: left},
-          ...this.#stored,
-          ...buffer,
-          ...store,
-          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
+          ...this.#padding(left),
+          ...before,
+          ...items,
+          ...after,
+          ...this.#padding(this.#embedded ? this.#columns - this.#cursor - left : 0),
         ]);
       }
 
       if (this.#align === 'left') {
         result = this.#merge([
-          ...this.#stored,
-          ...buffer,
-          ...store,
-          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
+          ...before,
+          ...items,
+          ...after,
+          ...this.#padding(this.#embedded ? this.#columns - this.#cursor : 0),
         ]);
       }
     }
@@ -228,8 +282,9 @@ class LineComposer {
     this.#stored = restore;
     this.#buffer = [];
     this.#cursor = 0;
+    this.#trimmable = false;
 
-    if (result.length === 0 && options.forceNewline) {
+    if (options.forceNewline && !LineComposer.hasContent(result)) {
       result.push({type: 'empty'});
     }
 
@@ -257,6 +312,43 @@ class LineComposer {
     if (result.length) {
       this.#callback(result);
     }
+  }
+
+  /**
+     * Padding for a number of columns, in single width spaces. Padding is
+     * printed in the default style of this composer, which is the style
+     * inherited by a table cell or box. When that style has double width,
+     * single width spaces need a temporary size change, otherwise an odd
+     * number of columns could not be filled.
+     *
+     * @param  {number}   columns   Number of columns to fill
+     * @return {array}              Array of items
+     */
+  #padding(columns) {
+    return LineComposer.padding(columns, this.style.getDefault('size'));
+  }
+
+  /**
+     * Padding for a number of columns, in single width spaces, see #padding()
+     *
+     * @param  {number}   columns   Number of columns to fill
+     * @param  {object}   size      The size in which the padding is printed, with a width and height
+     * @return {array}              Array of items
+     */
+  static padding(columns, size) {
+    if (columns <= 0) {
+      return [];
+    }
+
+    if (size.width === 1) {
+      return [{type: 'space', size: columns}];
+    }
+
+    return [
+      {type: 'style', property: 'size', value: {width: 1, height: size.height}},
+      {type: 'space', size: columns},
+      {type: 'style', property: 'size', value: {width: size.width, height: size.height}},
+    ];
   }
 
   /**
@@ -298,14 +390,16 @@ class LineComposer {
 
         result.push(item);
         last++;
-      } else if (item.type === 'style' && item.property === 'size') {
+      } else if (item.type === 'style') {
+        /* Consecutive changes of the same property collapse into the last one */
+
         const allowMerge =
           last >= 0 &&
           result[last].type === 'style' &&
-          result[last].property === 'size';
+          result[last].property === item.property;
 
         if (allowMerge) {
-          result[last].value = item.value;
+          result[last] = item;
           continue;
         }
 
@@ -315,6 +409,38 @@ class LineComposer {
         result.push(item);
         last++;
       }
+    }
+
+    return this.#dedupe(result);
+  }
+
+  /**
+     * Remove style commands that set a property to the value the printer
+     * already has. Every line starts in the default style.
+     *
+     * @param  {array}   items   Array of items
+     * @return {array}           Array of items without redundant style commands
+     */
+  #dedupe(items) {
+    const result = [];
+    const state = new Map();
+
+    const equal = (a, b) => (typeof a === 'object' && a !== null) ?
+      a.width === b.width && a.height === b.height :
+      a === b;
+
+    for (const item of items) {
+      if (item.type === 'style') {
+        const current = state.has(item.property) ? state.get(item.property) : this.style.getDefault(item.property);
+
+        if (equal(current, item.value)) {
+          continue;
+        }
+
+        state.set(item.property, item.value);
+      }
+
+      result.push(item);
     }
 
     return result;

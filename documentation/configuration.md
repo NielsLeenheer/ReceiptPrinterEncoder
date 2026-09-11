@@ -130,6 +130,20 @@ let encoder = new ReceiptPrinterEncoder({
 
 <br>
 
+### Feed after block
+
+Images, barcodes, QR codes and PDF417 codes advance the paper by themselves. By default the encoder still sends a line feed after them, which results in an empty line below the image or code.
+
+To print the content that follows directly below the image or code, set the `feedAfterBlock` option to `false`. You can then use `newline()` to add space where you want it.
+
+```js
+let encoder = new ReceiptPrinterEncoder({
+    feedAfterBlock: false
+});
+```
+
+<br>
+
 ### Newline
 
 Most printers use a combination of a newline and carriage return to move the text position to the beginning of the next line. 

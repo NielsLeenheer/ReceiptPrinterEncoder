@@ -430,9 +430,10 @@ class LanguageEscPos {
      * @param {number} width        Width of the image
      * @param {number} height       Height of the image
      * @param {string} mode         Image encoding mode ('column' or 'raster')
+     * @param {number} [dpi]        Resolution of the printer in dots per inch, if known
      * @return {Array}             Array of bytes to send to the printer
      */
-  image(image, width, height, mode) {
+  image(image, width, height, mode, dpi) {
     const result = [];
 
     const getPixel = (x, y) => x < width && y < height ? (image.data[((width * y) + x) * 4] > 0 ? 0 : 1) : 0;
@@ -474,11 +475,26 @@ class LanguageEscPos {
     /* Encode images with ESC * */
 
     if (mode == 'column') {
+      /* The line spacing is set in motion units, which are not the same as dots
+         on every printer. On Epson printers the vertical motion unit is half a
+         dot by default. When the resolution is known, set the motion unit to
+         one dot, so 24 units are 24 dots and the strips of the image join up */
+
+      if (dpi) {
+        result.push(
+            {
+              type: 'motion-unit',
+              value: dpi,
+              payload: [0x1d, 0x50, dpi, dpi],
+            },
+        );
+      }
+
       result.push(
           {
             type: 'line-spacing',
             value: '24 dots',
-            payload: [0x1b, 0x33, 0x24],
+            payload: [0x1b, 0x33, 0x18],
           },
       );
 
@@ -502,6 +518,18 @@ class LanguageEscPos {
             payload: [0x1b, 0x32],
           },
       );
+
+      /* Restore the default motion units */
+
+      if (dpi) {
+        result.push(
+            {
+              type: 'motion-unit',
+              value: 'default',
+              payload: [0x1d, 0x50, 0x00, 0x00],
+            },
+        );
+      }
     }
 
     /* Encode images with GS v */

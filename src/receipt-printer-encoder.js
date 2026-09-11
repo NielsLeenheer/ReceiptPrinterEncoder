@@ -35,6 +35,7 @@ import printerDefinitions from '../generated/printers.js';
  * @property {Language} [language]
  * @property {'column' | 'raster'} [imageMode]
  * @property {number} [feedBeforeCut]
+ * @property {boolean} [feedAfterBlock]
  * @property {'\n\r' | '\n'} [newline]
  * @property {CodepageMappingName | Record<string, number>} [codepageMapping]
  * @property {Codepage[]} [codepageCandidates]
@@ -121,6 +122,8 @@ class ReceiptPrinterEncoder {
   #language;
   #composer;
 
+  #printerResolution = null;
+
   #printerCapabilities = {
     'fonts': {
       'A': {size: '12x24', columns: 42},
@@ -166,6 +169,7 @@ class ReceiptPrinterEncoder {
       language: 'esc-pos',
       imageMode: 'column',
       feedBeforeCut: 0,
+      feedAfterBlock: true,
       newline: '\n\r',
       codepageMapping: 'epson',
       codepageCandidates: null,
@@ -187,6 +191,7 @@ class ReceiptPrinterEncoder {
       }
 
       this.#printerCapabilities = printerDefinitions[options.printerModel].capabilities;
+      this.#printerResolution = printerDefinitions[options.printerModel].media?.dpi || null;
 
       /* Apply the printer definition to the defaults */
 
@@ -278,6 +283,7 @@ class ReceiptPrinterEncoder {
       columns: this.#options.columns,
       align: 'left',
       size: 1,
+      style: this.#options.style,
 
       callback: (value) => this.#queue.push(value),
     });
@@ -306,9 +312,16 @@ class ReceiptPrinterEncoder {
       throw new Error('Initialize is not supported in table cells or boxes');
     }
 
+    /* The initialize command resets the printer, so it must be sent before any
+       alignment padding or pending styles of the current line */
+
+    this.#composer.flush();
+
     this.#composer.add(
         this.#language.initialize(),
     );
+
+    this.#composer.flush({forceFlush: true, ignoreAlignment: true});
 
     return this;
   }
@@ -501,6 +514,7 @@ class ReceiptPrinterEncoder {
     return this;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Change text size
      *
@@ -509,6 +523,7 @@ class ReceiptPrinterEncoder {
      * @param {number} [height]  The height of the text, 1 - 8
      * @return {ReceiptPrinterEncoder}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {TextSize} value  The text size preset
@@ -608,6 +623,7 @@ class ReceiptPrinterEncoder {
     return this;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Insert a table
      *
@@ -620,6 +636,15 @@ class ReceiptPrinterEncoder {
      *
      */
   table(columns, data) {
+    /* Check if the table fits on the paper, taking margins and the current character width into account */
+
+    const width = columns.reduce((total, column) =>
+      total + column.width + (column.marginLeft || 0) + (column.marginRight || 0), 0);
+
+    if (width * this.#composer.style.width > this.#options.columns) {
+      throw new Error('Table is too wide');
+    }
+
     this.#composer.flush();
 
     /* Process all lines */
@@ -632,8 +657,9 @@ class ReceiptPrinterEncoder {
 
       for (let c = 0; c < columns.length; c++) {
         const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
-          width: columns[c].width,
+          width: columns[c].width * this.#composer.style.width,
           embedded: true,
+          style: this.#inheritedStyle(),
         }));
 
         columnEncoder.codepage(this.#codepage);
@@ -669,7 +695,13 @@ class ReceiptPrinterEncoder {
             verticalAlign = columns[c].verticalAlign;
           }
 
-          const line = {commands: [{type: 'space', size: columns[c].width}], height: 1};
+          const line = {
+            commands: LineComposer.padding(
+                columns[c].width * this.#composer.style.width,
+                {width: this.#composer.style.width, height: this.#composer.style.height},
+            ),
+            height: 1,
+          };
 
           if (verticalAlign == 'bottom') {
             lines[c].unshift(line);
@@ -687,7 +719,7 @@ class ReceiptPrinterEncoder {
             this.#composer.space(columns[c].marginLeft);
           }
 
-          this.#composer.add(lines[c][l].commands, columns[c].width);
+          this.#composer.add(lines[c][l].commands, columns[c].width * this.#composer.style.width);
 
           if (typeof columns[c].marginRight !== 'undefined') {
             this.#composer.space(columns[c].marginRight);
@@ -699,6 +731,25 @@ class ReceiptPrinterEncoder {
     }
 
     return this;
+  }
+
+  /**
+     * Get the styles that embedded content, such as table cells and boxes,
+     * inherits from the current style. The widths of columns and boxes are
+     * in characters of the current size, so the embedded content is measured
+     * in columns of the paper.
+     *
+     * @return {object}   The inherited style properties
+     */
+  #inheritedStyle() {
+    return {
+      bold: this.#composer.style.bold,
+      italic: this.#composer.style.italic,
+      underline: this.#composer.style.underline,
+      invert: this.#composer.style.invert,
+      width: this.#composer.style.width,
+      height: this.#composer.style.height,
+    };
   }
 
   /**
@@ -750,7 +801,9 @@ class ReceiptPrinterEncoder {
       paddingRight: 0,
     }, options || {});
 
-    if (options.width + options.marginLeft + options.marginRight > this.#options.columns) {
+    const boxWidth = (options.width + options.marginLeft + options.marginRight) * this.#composer.style.width;
+
+    if (boxWidth > this.#options.columns) {
       throw new Error('Box is too wide');
     }
 
@@ -764,9 +817,12 @@ class ReceiptPrinterEncoder {
 
     /* Render the contents of the box */
 
+    const innerWidth = options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight;
+
     const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
-      width: options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight,
+      width: innerWidth * this.#composer.style.width,
       embedded: true,
+      style: this.#inheritedStyle(),
     }));
 
     columnEncoder.codepage(this.#codepage);
@@ -781,6 +837,10 @@ class ReceiptPrinterEncoder {
     }
 
     const lines = columnEncoder.commands();
+
+    /* The vertical borders are as tall as the line, the current height is restored after them */
+
+    const height = this.#composer.style.height;
 
     /* Header */
 
@@ -801,20 +861,19 @@ class ReceiptPrinterEncoder {
       this.#composer.space(options.marginLeft);
 
       if (options.style != 'none') {
-        this.#composer.style.height = lines[i].height;
+        this.#composer.style.height = Math.max(height, lines[i].height);
         this.#composer.text(elements[5], 'cp437');
-        this.#composer.style.height = 1;
+        this.#composer.style.height = height;
       }
 
       this.#composer.space(options.paddingLeft);
-      this.#composer.add(lines[i].commands,
-          options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight);
+      this.#composer.add(lines[i].commands, innerWidth * this.#composer.style.width);
       this.#composer.space(options.paddingRight);
 
       if (options.style != 'none') {
-        this.#composer.style.height = lines[i].height;
+        this.#composer.style.height = Math.max(height, lines[i].height);
         this.#composer.text(elements[5], 'cp437');
-        this.#composer.style.height = 1;
+        this.#composer.style.height = height;
       }
 
       this.#composer.space(options.marginRight);
@@ -1174,7 +1233,7 @@ class ReceiptPrinterEncoder {
     /* Encode the image data */
 
     this.#composer.add(
-        this.#language.image(image, width, height, this.#options.imageMode),
+        this.#language.image(image, width, height, this.#options.imageMode, this.#printerResolution),
     );
 
     /* Reset alignment */
@@ -1393,6 +1452,7 @@ class ReceiptPrinterEncoder {
     return result;
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
      * Encode all previous commands
      *
@@ -1400,16 +1460,19 @@ class ReceiptPrinterEncoder {
      * @param {'commands'} format
      * @return {{ commands: object[], height: number }[]}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {'lines'} format
      * @return {object[][]}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @overload
      * @param {string} [format]
      * @return {Uint8Array}
      */
+  // eslint-disable-next-line valid-jsdoc
   /**
      * @param {string} [format]  The format of the output, either 'commands',
      *                           'lines' or 'array', defaults to 'array'
@@ -1453,10 +1516,25 @@ class ReceiptPrinterEncoder {
     let result = [];
     let last = null;
 
-    for (const line of lines) {
-      for (const item of line) {
+    for (let i = 0; i < lines.length; i++) {
+      for (const item of lines[i]) {
         result.push(...item.payload);
         last = item;
+      }
+
+      /* Only feed the paper when the line contains printable content, a line
+         consisting of nothing but state changes, such as style, font or alignment
+         commands, would otherwise be printed as an empty line */
+
+      if (!LineComposer.hasContent(commands[i].commands)) {
+        continue;
+      }
+
+      /* Images, barcodes and QR codes advance the paper by themselves, the
+         line feed after them can be disabled with the feedAfterBlock option */
+
+      if (!this.#options.feedAfterBlock && LineComposer.isBlock(commands[i].commands)) {
+        continue;
       }
 
       if (this.#options.newline === '\n\r') {
@@ -1508,7 +1586,7 @@ class ReceiptPrinterEncoder {
   /**
    * Get the current column width
    *
-   * @returns {number}         The column width in characters
+   * @return {number}         The column width in characters
    */
   get columns() {
     return this.#composer.columns;

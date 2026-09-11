@@ -19,10 +19,29 @@ class TextStyle {
      * Create a new TextStyle object
      *
      * @param  {object}   options   Object containing configuration options
+     *                              - callback: called with every style change
+     *                              - defaults: style properties that override the defaults
      */
   constructor(options) {
+    /* The defaults can be overridden, for example by a table cell that inherits the style of the table */
+
+    this.#default = Object.assign({}, this.#default, options.defaults || {});
     this.#current = structuredClone(this.#default);
     this.#callback = options.callback || (() => {});
+  }
+
+  /**
+     * Get the default value of a style property
+     *
+     * @param  {string}   property   The property, 'size' for the combined width and height
+     * @return {boolean|object}      The default value
+     */
+  getDefault(property) {
+    if (property === 'size') {
+      return {width: this.#default.width, height: this.#default.height};
+    }
+
+    return this.#default[property];
   }
 
   /**
