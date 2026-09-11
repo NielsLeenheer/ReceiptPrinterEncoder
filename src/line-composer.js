@@ -211,7 +211,7 @@ class LineComposer {
         }
 
         result = this.#merge([
-          {type: 'space', size: this.#columns - this.#cursor},
+          {type: 'space', size: Math.max(0, this.#columns - this.#cursor)},
           ...this.#stored,
           ...buffer,
           ...store,
@@ -219,14 +219,14 @@ class LineComposer {
       }
 
       if (this.#align === 'center') {
-        const left = (this.#columns - this.#cursor) >> 1;
+        const left = Math.max(0, this.#columns - this.#cursor) >> 1;
 
         result = this.#merge([
           {type: 'space', size: left},
           ...this.#stored,
           ...buffer,
           ...store,
-          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor - left : 0},
+          {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor - left) : 0},
         ]);
       }
 
@@ -235,7 +235,7 @@ class LineComposer {
           ...this.#stored,
           ...buffer,
           ...store,
-          {type: 'space', size: this.#embedded ? this.#columns - this.#cursor : 0},
+          {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor) : 0},
         ]);
       }
     }

@@ -630,6 +630,15 @@ class ReceiptPrinterEncoder {
      *
      */
   table(columns, data) {
+    /* Check if the table fits on the paper, taking margins and the current character width into account */
+
+    const width = columns.reduce((total, column) =>
+      total + column.width + (column.marginLeft || 0) + (column.marginRight || 0), 0);
+
+    if (width * this.#composer.style.width > this.#options.columns) {
+      throw new Error('Table is too wide');
+    }
+
     this.#composer.flush();
 
     /* Process all lines */
