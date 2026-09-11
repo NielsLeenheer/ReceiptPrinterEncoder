@@ -82,7 +82,7 @@ class LineComposer {
    * @param {number} size Number of spaces to add to the line
    */
   space(size) {
-    this.add({type: 'space', size}, size);
+    this.add({type: 'space', size}, size * this.style.width);
   }
 
   /**
@@ -248,7 +248,7 @@ class LineComposer {
         }
 
         result = this.#merge([
-          {type: 'space', size: Math.max(0, this.#columns - this.#cursor)},
+          ...this.#padding(this.#columns - this.#cursor),
           ...before,
           ...items,
           ...after,
@@ -259,11 +259,11 @@ class LineComposer {
         const left = Math.max(0, this.#columns - this.#cursor) >> 1;
 
         result = this.#merge([
-          {type: 'space', size: left},
+          ...this.#padding(left),
           ...before,
           ...items,
           ...after,
-          {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor - left) : 0},
+          ...this.#padding(this.#embedded ? this.#columns - this.#cursor - left : 0),
         ]);
       }
 
@@ -272,7 +272,7 @@ class LineComposer {
           ...before,
           ...items,
           ...after,
-          {type: 'space', size: this.#embedded ? Math.max(0, this.#columns - this.#cursor) : 0},
+          ...this.#padding(this.#embedded ? this.#columns - this.#cursor : 0),
         ]);
       }
     }
@@ -309,6 +309,43 @@ class LineComposer {
     if (result.length) {
       this.#callback(result);
     }
+  }
+
+  /**
+     * Padding for a number of columns, in single width spaces. Padding is
+     * printed in the default style of this composer, which is the style
+     * inherited by a table cell or box. When that style has double width,
+     * single width spaces need a temporary size change, otherwise an odd
+     * number of columns could not be filled.
+     *
+     * @param  {number}   columns   Number of columns to fill
+     * @return {array}              Array of items
+     */
+  #padding(columns) {
+    return LineComposer.padding(columns, this.style.getDefault('size'));
+  }
+
+  /**
+     * Padding for a number of columns, in single width spaces, see #padding()
+     *
+     * @param  {number}   columns   Number of columns to fill
+     * @param  {object}   size      The size in which the padding is printed, with a width and height
+     * @return {array}              Array of items
+     */
+  static padding(columns, size) {
+    if (columns <= 0) {
+      return [];
+    }
+
+    if (size.width === 1) {
+      return [{type: 'space', size: columns}];
+    }
+
+    return [
+      {type: 'style', property: 'size', value: {width: 1, height: size.height}},
+      {type: 'space', size: columns},
+      {type: 'style', property: 'size', value: {width: size.width, height: size.height}},
+    ];
   }
 
   /**

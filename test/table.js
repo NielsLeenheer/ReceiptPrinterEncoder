@@ -74,8 +74,10 @@ describe('Table width', function() {
         let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 42 });
         let result = encoder.size(2).table([ { width: 15, align: 'left' }, { width: 6, align: 'right' } ], [ [ 'a', 'b' ] ]).encode();
 
-        it('should print the table at double width', function () {
-            assert.deepEqual(new Uint8Array([ 29, 33, 17, ...CODEPAGE, 97, ...spaces(14), ...spaces(5), 98, 29, 33, 0, ...NL ]), result);
+        it('should print the table at double width, padded with single width spaces', function () {
+            assert.deepEqual(new Uint8Array([
+                29, 33, 17, ...CODEPAGE, 97, 29, 33, 1, ...spaces(28), ...spaces(10), 29, 33, 17, 98, 29, 33, 0, ...NL,
+            ]), result);
         });
     });
 
@@ -183,8 +185,8 @@ describe('Character width inside table cells', function() {
 
         it('should wrap after 5 characters and print the row at double width', function () {
             assert.deepEqual(new Uint8Array([
-                ...SIZE2, ...CODEPAGE, ...text('abcde'), ...spaces(6), ...text('10,00'), ...RESET, ...NL,
-                ...SIZE2, ...text('fg'), ...spaces(3), ...spaces(11), ...RESET, ...NL,
+                ...SIZE2, ...CODEPAGE, ...text('abcde'), ...HEIGHT2, ...spaces(12), ...SIZE2, ...text('10,00'), ...RESET, ...NL,
+                ...SIZE2, ...text('fg'), ...HEIGHT2, ...spaces(6), ...spaces(22), ...RESET, ...NL,
             ]), result);
         });
     });

@@ -437,7 +437,7 @@ Cells inherit the bold, italic, underline and invert styles that are active when
 ]
 ```
 
-Text inside a cell can have a different width or size. The width of a column is measured in single width characters, so a column with a width of 10 fits 5 double width characters on a line, after which the text wraps. Characters of different widths can be mixed on the same line.
+The width of a column is measured in characters of the size that is active when the table is created. Cells inherit that size. When a cell changes the size, the number of characters that fit changes with it: a column with a width of 10 in a table at double size fits 10 double width characters, or 20 single width characters after `size(1)` in the cell. Characters of different sizes can be mixed on the same line, and the padding of a cell is always printed in single width spaces.
 
 ```js
 [
@@ -448,7 +448,7 @@ Text inside a cell can have a different width or size. The width of a column is 
 ]
 ```
 
-If the width or size is changed before calling `table()`, the whole table is printed at that size and the column widths count characters at that size. A table with a total width of 24 characters printed at double width takes up 48 columns of paper.
+A table with a total width of 24 characters created at double size takes up 48 columns of paper.
 
 <br>
 

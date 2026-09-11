@@ -657,7 +657,7 @@ class ReceiptPrinterEncoder {
 
       for (let c = 0; c < columns.length; c++) {
         const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
-          width: columns[c].width,
+          width: columns[c].width * this.#composer.style.width,
           embedded: true,
           style: this.#inheritedStyle(),
         }));
@@ -695,7 +695,13 @@ class ReceiptPrinterEncoder {
             verticalAlign = columns[c].verticalAlign;
           }
 
-          const line = {commands: [{type: 'space', size: columns[c].width}], height: 1};
+          const line = {
+            commands: LineComposer.padding(
+                columns[c].width * this.#composer.style.width,
+                {width: this.#composer.style.width, height: this.#composer.style.height},
+            ),
+            height: 1,
+          };
 
           if (verticalAlign == 'bottom') {
             lines[c].unshift(line);
@@ -713,7 +719,7 @@ class ReceiptPrinterEncoder {
             this.#composer.space(columns[c].marginLeft);
           }
 
-          this.#composer.add(lines[c][l].commands, columns[c].width);
+          this.#composer.add(lines[c][l].commands, columns[c].width * this.#composer.style.width);
 
           if (typeof columns[c].marginRight !== 'undefined') {
             this.#composer.space(columns[c].marginRight);
@@ -729,8 +735,9 @@ class ReceiptPrinterEncoder {
 
   /**
      * Get the styles that embedded content, such as table cells and boxes,
-     * inherits from the current style. Width and height are not inherited,
-     * the column widths of a table are in characters of the current size.
+     * inherits from the current style. The widths of columns and boxes are
+     * in characters of the current size, so the embedded content is measured
+     * in columns of the paper.
      *
      * @return {object}   The inherited style properties
      */
@@ -740,6 +747,8 @@ class ReceiptPrinterEncoder {
       italic: this.#composer.style.italic,
       underline: this.#composer.style.underline,
       invert: this.#composer.style.invert,
+      width: this.#composer.style.width,
+      height: this.#composer.style.height,
     };
   }
 
@@ -792,7 +801,9 @@ class ReceiptPrinterEncoder {
       paddingRight: 0,
     }, options || {});
 
-    if (options.width + options.marginLeft + options.marginRight > this.#options.columns) {
+    const boxWidth = (options.width + options.marginLeft + options.marginRight) * this.#composer.style.width;
+
+    if (boxWidth > this.#options.columns) {
       throw new Error('Box is too wide');
     }
 
@@ -806,8 +817,10 @@ class ReceiptPrinterEncoder {
 
     /* Render the contents of the box */
 
+    const innerWidth = options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight;
+
     const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
-      width: options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight,
+      width: innerWidth * this.#composer.style.width,
       embedded: true,
       style: this.#inheritedStyle(),
     }));
@@ -850,8 +863,7 @@ class ReceiptPrinterEncoder {
       }
 
       this.#composer.space(options.paddingLeft);
-      this.#composer.add(lines[i].commands,
-          options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight);
+      this.#composer.add(lines[i].commands, innerWidth * this.#composer.style.width);
       this.#composer.space(options.paddingRight);
 
       if (options.style != 'none') {
