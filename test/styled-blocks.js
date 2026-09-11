@@ -70,7 +70,7 @@ describe('Styles around cuts, pulses and blocks', function() {
         let styled = new ReceiptPrinterEncoder({ language: 'star-prnt' }).bold(true).line('hello').encode();
 
         it('should still append the flush command when the receipt does not end in a cut or pulse', function () {
-            assert.deepEqual(new Uint8Array([ 27, 69, ...STAR_CODEPAGE, ...HELLO, 27, 70, ...NL, ...STAR_FLUSH, ...NL ]), styled);
+            assert.deepEqual(new Uint8Array([ 27, 69, ...STAR_CODEPAGE, ...HELLO, 27, 70, ...NL, ...STAR_FLUSH ]), styled);
         });
     });
 

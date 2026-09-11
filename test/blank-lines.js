@@ -143,4 +143,13 @@ describe('Blank lines caused by state-only lines', function() {
             assert.deepEqual(new Uint8Array([ 27, 69, 27, 29, 116, 0, 104, 101, 108, 108, 111, 27, 70, ...NL ]), result);
         });
     });
+
+    describe('line(hello) on star-prnt with the default autoFlush', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'star-prnt' });
+        let result = encoder.line('hello').encode();
+
+        it('should not feed the paper after the flush commands', function () {
+            assert.deepEqual(new Uint8Array([ 27, 29, 116, 0, 104, 101, 108, 108, 111, ...NL, 27, 29, 80, 48, 27, 29, 80, 49 ]), result);
+        });
+    });
 });

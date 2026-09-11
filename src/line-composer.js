@@ -4,7 +4,7 @@ import TextWrap from './text-wrap.js';
 /* Item types that only change the state of the printer and print nothing */
 
 const STATE_TYPES = [
-  'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'raw',
+  'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'print-mode', 'raw',
 ];
 
 /* Item types that a text style applies to */
