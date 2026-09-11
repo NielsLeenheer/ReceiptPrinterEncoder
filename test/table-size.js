@@ -157,7 +157,7 @@ describe('Size inheritance in tables and boxes', function() {
     describe('a table with an invalid column width', function () {
         it('should throw instead of producing garbage', function () {
             assert.throws(() => encode((e) => e.table([ { width: NaN, align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
-            assert.throws(() => encode((e) => e.table([ { align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
+            assert.throws(() => encode((e) => e.table([ { width: 'wide', align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
             assert.throws(() => encode((e) => e.table([ { width: 0, align: 'left' } ], [ [ 'a' ] ])), 'Column width must be a positive integer');
         });
     });

@@ -429,7 +429,7 @@ Insert a table with multiple columns. The contents of each cell can be a string,
 let result = encoder
     .table(
         [
-            { width: 36, marginRight: 2, align: 'left' },
+            { marginRight: 2, align: 'left' },
             { width: 10, align: 'right' }
         ], 
         [
@@ -449,7 +449,7 @@ The table function takes two parameters.
 
 The first parameter is an array of column definitions. Each column can have the folowing properties:
 
-- `width`:  determines the width of the column in characters. The total width of all columns, including margins, must fit on the paper, otherwise an error is thrown.
+- `width`:  determines the width of the column in characters. The total width of all columns, including margins, must fit on the paper, otherwise an error is thrown. If you leave out the width, or set it to `auto`, the column is a fill column that takes the space that is left, see below.
 - `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
 - `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
 - `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
@@ -496,6 +496,31 @@ The width of a column is measured in characters of the size that is active when 
 ```
 
 A table with a total width of 24 characters created at double size takes up 48 columns of paper.
+
+#### Fill columns
+
+A column without a `width`, or with a `width` of `auto`, is a fill column. It takes the space that is left on the line after the columns with a fixed width and all margins. That way you do not need to calculate the width of the item column yourself for every paper width:
+
+```js
+let result = encoder
+    .table(
+        [
+            { align: 'left' },
+            { width: 10, align: 'right' }
+        ], 
+        [
+            [ 'Item 1', '€ 10,00' ],
+            [ 'Item 2', '15,00' ],
+        ]
+    )	
+    .encode()
+```
+
+On 42 column paper the first column is 32 characters wide, on 48 column paper it is 38 characters wide.
+
+If there are multiple fill columns, the remaining space is divided evenly between them. If the space cannot be divided evenly, the first fill columns get one character more. Every fill column needs at least one character, otherwise an error is thrown, just like a table that is too wide.
+
+The fill column is measured in the same way as a fixed column: in characters of the size that is active when the table is created. At double size, a fill column on 42 column paper next to a column of 6 is 15 characters wide. When the table is created after switching to a smaller font, the fill column takes the extra characters that fit on the line in that font.
 
 <br>
 

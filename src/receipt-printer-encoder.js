@@ -50,7 +50,7 @@ import printerDefinitions from '../generated/printers.js';
 
 /**
  * @typedef {Object} TableColumn
- * @property {number} width
+ * @property {number | 'auto'} [width]
  * @property {Alignment} [align]
  * @property {'top' | 'bottom'} [verticalAlign]
  * @property {number} [marginLeft]
@@ -663,22 +663,7 @@ class ReceiptPrinterEncoder {
      *
      */
   table(columns, data) {
-    /* Check the column definitions */
-
-    for (const column of columns) {
-      if (!Number.isInteger(column.width) || column.width < 1) {
-        throw new Error('Column width must be a positive integer');
-      }
-    }
-
-    /* Check if the table fits on the paper, taking margins and the current character width into account */
-
-    const width = columns.reduce((total, column) =>
-      total + column.width + (column.marginLeft || 0) + (column.marginRight || 0), 0);
-
-    if (width * this.#composer.style.width > this.#options.columns) {
-      throw new Error('Table is too wide');
-    }
+    columns = this.#resolveColumns(columns);
 
     this.#composer.flush();
 
@@ -769,6 +754,57 @@ class ReceiptPrinterEncoder {
     }
 
     return this;
+  }
+
+  /**
+     * Resolve the widths of the columns of a table. A column without a width,
+     * or with a width of 'auto', is a fill column: it takes the space that is
+     * left after the fixed columns and all margins. If there are multiple fill
+     * columns, the remaining space is divided evenly between them, the first
+     * ones get any remainder. Widths are in characters of the current size.
+     *
+     * @param  {TableColumn[]}   columns   The column definitions
+     * @return {TableColumn[]}             The column definitions with numeric widths
+     */
+  #resolveColumns(columns) {
+    if (!Array.isArray(columns) || columns.length === 0) {
+      throw new Error('A table needs at least one column');
+    }
+
+    const fill = [];
+    let fixed = 0;
+
+    for (const column of columns) {
+      if (typeof column.width === 'undefined' || column.width === 'auto') {
+        fill.push(column);
+      } else if (!Number.isInteger(column.width) || column.width < 1) {
+        throw new Error('Column width must be a positive integer, or auto');
+      } else {
+        fixed += column.width;
+      }
+
+      fixed += (column.marginLeft || 0) + (column.marginRight || 0);
+    }
+
+    /* The available width is the width of the line in characters of the current size */
+
+    const available = Math.floor(this.#composer.columns / this.#composer.style.width);
+    const remaining = available - fixed;
+
+    /* Without fill columns the table must simply fit, with fill columns each of them needs at least one character */
+
+    if (remaining < 0 || (fill.length > 0 && remaining < fill.length)) {
+      throw new Error('Table is too wide');
+    }
+
+    const widths = new Map();
+
+    fill.forEach((column, i) => {
+      widths.set(column, Math.floor(remaining / fill.length) + (i < remaining % fill.length ? 1 : 0));
+    });
+
+    return columns.map((column) =>
+      widths.has(column) ? Object.assign({}, column, {width: widths.get(column)}) : column);
   }
 
   /**
