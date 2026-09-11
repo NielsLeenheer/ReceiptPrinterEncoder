@@ -25,6 +25,7 @@ class LineComposer {
   #callback;
 
   #cursor = 0;
+  #trimmable = false;
   #stored;
   #buffer = [];
 
@@ -108,6 +109,7 @@ class LineComposer {
       }
 
       this.#cursor += length || 0;
+      this.#trimmable = false;
       return;
     }
 
@@ -119,6 +121,11 @@ class LineComposer {
 
     this.#cursor += length;
     this.#buffer = this.#buffer.concat(value);
+
+    /* Only a trailing space of text added with text() can be trimmed for right
+       alignment, the padding of table cells and boxes is part of the layout */
+
+    this.#trimmable = value.type === 'text';
   }
 
   /**
@@ -233,14 +240,9 @@ class LineComposer {
           }
         }
 
-        /* Remove trailing spaces from lines */
+        /* Remove a trailing space from text, so that it ends at the edge of the paper */
 
-        if (typeof last === 'number') {
-          if (buffer[last].type === 'space' && buffer[last].size > this.style.width) {
-            buffer[last].size -= this.style.width;
-            this.#cursor -= this.style.width;
-          }
-
+        if (typeof last === 'number' && this.#trimmable) {
           if (buffer[last].type === 'text' && buffer[last].value.endsWith(' ')) {
             buffer[last].value = buffer[last].value.slice(0, -1);
             this.#cursor -= this.style.width;
@@ -280,6 +282,7 @@ class LineComposer {
     this.#stored = restore;
     this.#buffer = [];
     this.#cursor = 0;
+    this.#trimmable = false;
 
     if (options.forceNewline && !LineComposer.hasContent(result)) {
       result.push({type: 'empty'});

@@ -468,6 +468,8 @@ The first parameter is an object with additional configuration options.
 
 The second parameter is the content of the box and it can be a string, or a callback function.
 
+The width of the box is measured in characters of the size that is active when the box is created, and the content of the box inherits the styles and size, in the same way as the cells of a table.
+
 For example:
 
 ```js

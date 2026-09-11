@@ -82,6 +82,32 @@ describe('Size inheritance in tables and boxes', function() {
         });
     });
 
+    describe('size(2), a box of 16 with a single border', function () {
+        it('should draw the borders and the content at double size', function () {
+            let result = encode((e) => e.size(2).box({ width: 16, style: 'single', align: 'left' }, 'hi'));
+            const horizontal = new Array(14).fill(196);
+
+            assert.deepEqual(new Uint8Array([
+                ...SIZE2, ...CODEPAGE, 218, ...horizontal, 191, ...SIZE1, ...NL,
+                ...SIZE2, 179, ...text('hi'), ...WIDTH1_HEIGHT2, ...spaces(24), ...SIZE2, 179, ...SIZE1, ...NL,
+                ...SIZE2, 192, ...horizontal, 217, ...SIZE1, ...NL,
+            ]), result);
+        });
+    });
+
+    describe('a box at size 1 with content of double height', function () {
+        it('should draw the vertical borders at the height of the content and restore the height', function () {
+            let result = encode((e) => e.box({ width: 16, style: 'single', align: 'left' }, (box) => box.height(2).text('hi')));
+            const horizontal = new Array(14).fill(196);
+
+            assert.deepEqual(new Uint8Array([
+                ...CODEPAGE, 218, ...horizontal, 191, ...NL,
+                ...WIDTH1_HEIGHT2, 179, ...text('hi'), ...SIZE1, ...spaces(12), ...WIDTH1_HEIGHT2, 179, ...SIZE1, ...NL,
+                192, ...horizontal, 217, ...NL,
+            ]), result);
+        });
+    });
+
     describe('size(2), a box wider than the paper', function () {
         it('should still throw', function () {
             assert.throws(() => encode((e) => e.size(2).box({ width: 17, style: 'none', align: 'left' }, 'a')), 'Box is too wide');

@@ -838,6 +838,10 @@ class ReceiptPrinterEncoder {
 
     const lines = columnEncoder.commands();
 
+    /* The vertical borders are as tall as the line, the current height is restored after them */
+
+    const height = this.#composer.style.height;
+
     /* Header */
 
     this.#composer.flush();
@@ -857,9 +861,9 @@ class ReceiptPrinterEncoder {
       this.#composer.space(options.marginLeft);
 
       if (options.style != 'none') {
-        this.#composer.style.height = lines[i].height;
+        this.#composer.style.height = Math.max(height, lines[i].height);
         this.#composer.text(elements[5], 'cp437');
-        this.#composer.style.height = 1;
+        this.#composer.style.height = height;
       }
 
       this.#composer.space(options.paddingLeft);
@@ -867,9 +871,9 @@ class ReceiptPrinterEncoder {
       this.#composer.space(options.paddingRight);
 
       if (options.style != 'none') {
-        this.#composer.style.height = lines[i].height;
+        this.#composer.style.height = Math.max(height, lines[i].height);
         this.#composer.text(elements[5], 'cp437');
-        this.#composer.style.height = 1;
+        this.#composer.style.height = height;
       }
 
       this.#composer.space(options.marginRight);
