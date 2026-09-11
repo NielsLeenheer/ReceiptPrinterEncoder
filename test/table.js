@@ -90,6 +90,107 @@ describe('Table width', function() {
     });
 });
 
+describe('Character width inside table cells', function() {
+    const CODEPAGE = [ 27, 116, 0 ];
+    const SIZE2 = [ 29, 33, 17 ];
+    const WIDTH2 = [ 29, 33, 16 ];
+    const HEIGHT2 = [ 29, 33, 1 ];
+    const RESET = [ 29, 33, 0 ];
+    const NL = [ 10, 13 ];
+    const spaces = (n) => new Array(n).fill(32);
+    const text = (s) => Array.from(s).map((c) => c.charCodeAt(0));
+
+    describe('size(2) inside a cell of width 10', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.table(
+            [ { width: 10, align: 'left' }, { width: 2, align: 'left' }, { width: 20, align: 'left' } ],
+            [ [ (cell) => cell.size(2).text('abcdefghijkl'), '', 'next column' ] ],
+        ).encode();
+
+        it('should wrap after 5 characters and keep the other columns aligned', function () {
+            assert.deepEqual(new Uint8Array([
+                ...SIZE2, ...CODEPAGE, ...text('abcde'), ...RESET, ...spaces(2), ...text('next column'), ...spaces(9), ...NL,
+                ...SIZE2, ...text('fghij'), ...RESET, ...spaces(22), ...NL,
+                ...SIZE2, ...text('kl'), ...RESET, ...spaces(6), ...spaces(22), ...NL,
+            ]), result);
+        });
+    });
+
+    describe('size(2) inside a right aligned cell of width 10', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.table(
+            [ { width: 10, align: 'right' }, { width: 22, align: 'left' } ],
+            [ [ (cell) => cell.size(2).text('abc'), 'next' ] ],
+        ).encode();
+
+        it('should pad with single width spaces', function () {
+            assert.deepEqual(new Uint8Array([
+                ...spaces(4), ...SIZE2, ...CODEPAGE, ...text('abc'), ...RESET, ...text('next'), ...spaces(18), ...NL,
+            ]), result);
+        });
+    });
+
+    describe('width(2) inside a centered cell of width 10', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.table(
+            [ { width: 10, align: 'center' }, { width: 22, align: 'left' } ],
+            [ [ (cell) => cell.width(2).text('abc'), 'next' ] ],
+        ).encode();
+
+        it('should pad with single width spaces on both sides', function () {
+            assert.deepEqual(new Uint8Array([
+                ...spaces(2), ...WIDTH2, ...CODEPAGE, ...text('abc'), ...RESET, ...spaces(2), ...text('next'), ...spaces(18), ...NL,
+            ]), result);
+        });
+    });
+
+    describe('mixed widths inside a cell of width 10', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.table(
+            [ { width: 10, align: 'left' }, { width: 22, align: 'left' } ],
+            [ [ (cell) => cell.text('ab').size(2).text('cde').size(1).text('fghij'), 'next' ] ],
+        ).encode();
+
+        it('should count every character at its own width', function () {
+            assert.deepEqual(new Uint8Array([
+                ...CODEPAGE, ...text('ab'), ...SIZE2, ...text('cde'), ...RESET, ...spaces(2), ...text('next'), ...spaces(18), ...NL,
+                ...text('fghij'), ...spaces(5), ...spaces(22), ...NL,
+            ]), result);
+        });
+    });
+
+    describe('height(2) inside a cell of width 10', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.table(
+            [ { width: 10, align: 'left' }, { width: 22, align: 'left' } ],
+            [ [ (cell) => cell.height(2).text('abcdefghijkl'), 'next' ] ],
+        ).encode();
+
+        it('should wrap after 10 characters, height does not affect the width', function () {
+            assert.deepEqual(new Uint8Array([
+                ...HEIGHT2, ...CODEPAGE, ...text('abcdefghij'), ...RESET, ...text('next'), ...spaces(18), ...NL,
+                ...HEIGHT2, ...text('kl'), ...RESET, ...spaces(8), ...spaces(22), ...NL,
+            ]), result);
+        });
+    });
+
+    describe('size(2) before the table, columns of 5 and 11 characters on 32 columns', function () {
+        let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 32 });
+        let result = encoder.size(2).table(
+            [ { width: 5, align: 'left' }, { width: 11, align: 'right' } ],
+            [ [ 'abcdefg', '10,00' ] ],
+        ).encode();
+
+        it('should wrap after 5 characters and print the row at double width', function () {
+            assert.deepEqual(new Uint8Array([
+                ...SIZE2, ...CODEPAGE, ...text('abcde'), ...spaces(6), ...text('10,00'), ...RESET, ...NL,
+                ...SIZE2, ...text('fg'), ...spaces(3), ...spaces(11), ...RESET, ...NL,
+                ...RESET,
+            ]), result);
+        });
+    });
+});
+
 describe('LineComposer with content wider than the line', function() {
     for (const align of [ 'left', 'center', 'right' ]) {
         describe(`align ${align}, embedded`, function () {

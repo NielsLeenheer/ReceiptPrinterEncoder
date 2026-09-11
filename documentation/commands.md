@@ -400,7 +400,7 @@ The table function takes two parameters.
 
 The first parameter is an array of column definitions. Each column can have the folowing properties:
 
-- `width`:  determines the width of the column. 
+- `width`:  determines the width of the column in characters. The total width of all columns, including margins, must fit on the paper, otherwise an error is thrown.
 - `marginLeft` and `marginRight`: set a margin to the left and right of the column. 
 - `align`: sets the horizontal alignment of the text in the column and can either be `left` or `right`.
 - `verticalAlign`: sets the vertical alignment of the text in the column and can either be `top` or `bottom`.
@@ -432,6 +432,19 @@ If you want to style text inside of a cell, can use the callback function instea
     ],
 ]
 ```
+
+Text inside a cell can have a different width or size. The width of a column is measured in single width characters, so a column with a width of 10 fits 5 double width characters on a line, after which the text wraps. Characters of different widths can be mixed on the same line.
+
+```js
+[
+    [ 
+        (encoder) => encoder.size(2).text('Total'),
+        (encoder) => encoder.text('€ ').size(2).text('250,75')
+    ],
+]
+```
+
+If the width or size is changed before calling `table()`, the whole table is printed at that size and the column widths count characters at that size. A table with a total width of 24 characters printed at double width takes up 48 columns of paper.
 
 <br>
 
