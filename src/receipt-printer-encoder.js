@@ -283,6 +283,7 @@ class ReceiptPrinterEncoder {
       columns: this.#options.columns,
       align: 'left',
       size: 1,
+      style: this.#options.style,
 
       callback: (value) => this.#queue.push(value),
     });
@@ -658,6 +659,7 @@ class ReceiptPrinterEncoder {
         const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
           width: columns[c].width,
           embedded: true,
+          style: this.#inheritedStyle(),
         }));
 
         columnEncoder.codepage(this.#codepage);
@@ -726,6 +728,22 @@ class ReceiptPrinterEncoder {
   }
 
   /**
+     * Get the styles that embedded content, such as table cells and boxes,
+     * inherits from the current style. Width and height are not inherited,
+     * the column widths of a table are in characters of the current size.
+     *
+     * @return {object}   The inherited style properties
+     */
+  #inheritedStyle() {
+    return {
+      bold: this.#composer.style.bold,
+      italic: this.#composer.style.italic,
+      underline: this.#composer.style.underline,
+      invert: this.#composer.style.invert,
+    };
+  }
+
+  /**
      * Insert a horizontal rule
      *
      * @param  {RuleOptions}     [options]  And object with the following properties:
@@ -791,6 +809,7 @@ class ReceiptPrinterEncoder {
     const columnEncoder = new ReceiptPrinterEncoder(Object.assign({}, this.#options, {
       width: options.width - (options.style == 'none' ? 0 : 2) - options.paddingLeft - options.paddingRight,
       embedded: true,
+      style: this.#inheritedStyle(),
     }));
 
     columnEncoder.codepage(this.#codepage);

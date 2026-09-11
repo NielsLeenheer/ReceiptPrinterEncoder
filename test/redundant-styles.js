@@ -79,11 +79,9 @@ describe('Redundant style commands', function() {
             .table([ { width: 16, align: 'left' }, { width: 16, align: 'left' } ], [ [ (cell) => cell.bold(true).text('a'), 'b' ] ])
             .encode();
 
-        it('should not repeat bold at the start of the cell, but keep the reset at its end', function () {
-            /* The cell resets bold at its end, so the rest of the row is not bold and the
-               reset of the row itself is redundant. This is how cells behaved before. */
+        it('should not repeat bold inside the cell, the cell inherits it', function () {
             assert.deepEqual(new Uint8Array([
-                ...BOLD_ON, ...CODEPAGE, 97, ...BOLD_OFF, ...new Array(15).fill(32), 98, ...new Array(15).fill(32), ...NL,
+                ...BOLD_ON, ...CODEPAGE, 97, ...new Array(15).fill(32), 98, ...new Array(15).fill(32), ...BOLD_OFF, ...NL,
             ]), result);
         });
     });

@@ -19,8 +19,13 @@ class TextStyle {
      * Create a new TextStyle object
      *
      * @param  {object}   options   Object containing configuration options
+     *                              - callback: called with every style change
+     *                              - defaults: style properties that override the defaults
      */
   constructor(options) {
+    /* The defaults can be overridden, for example by a table cell that inherits the style of the table */
+
+    this.#default = Object.assign({}, this.#default, options.defaults || {});
     this.#current = structuredClone(this.#default);
     this.#callback = options.callback || (() => {});
   }

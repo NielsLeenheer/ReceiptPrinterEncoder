@@ -425,6 +425,8 @@ The value can either be a string or a callback function.
 
 If you want to style text inside of a cell, can use the callback function instead. The first parameter of the called function contains the encoder object which you can use to chain additional commands.
 
+Cells inherit the bold, italic, underline and invert styles that are active when the table is created. Changing one of these styles inside a cell only applies to that cell, the other cells keep the inherited style.
+
 ```js
 [
     /* Row one, with two columns */

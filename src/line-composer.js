@@ -41,6 +41,7 @@ class LineComposer {
     this.#callback = options.callback || (() => {});
 
     this.style = new TextStyle({
+      defaults: options.style,
       callback: (value) => {
         this.add(value, 0);
       },
