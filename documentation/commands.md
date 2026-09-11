@@ -106,6 +106,8 @@ See the chapter [Handling text](text.md) for more information about code pages.
 
 Print a string of text. Word are wrapped automatically at the width specified by the `columns` property set at initialisation. 
 
+Multiple calls to `text()` continue on the same line. A newline character in the text ends the current line, and the text after it, from the same call or a later one, continues on the next line.
+
 ```js
 let result = encoder
     .text('The quick brown fox jumps over the lazy dog')

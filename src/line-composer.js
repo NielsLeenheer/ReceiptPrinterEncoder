@@ -55,16 +55,17 @@ class LineComposer {
     const lines = TextWrap.wrap(value, {columns: this.#columns, width: this.style.width, indent: this.#cursor});
 
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].length) {
-        /* Add the line to the buffer */
-        this.add({type: 'text', value: lines[i], codepage}, lines[i].length * this.style.width);
+      /* Add the line to the buffer */
 
-        /* If it is not the last line, flush the buffer */
-        if (i < lines.length - 1) {
-          this.flush();
-        }
-      } else {
-        /* In case the line is empty, flush the buffer */
+      if (lines[i].length) {
+        this.add({type: 'text', value: lines[i], codepage}, lines[i].length * this.style.width);
+      }
+
+      /* A newline in the text ends the current line, even if it is empty. Text
+         after the last newline stays on the line, so that it can be continued
+         by the next call, and an empty text does nothing at all */
+
+      if (i < lines.length - 1) {
         this.flush({forceNewline: true});
       }
     }
