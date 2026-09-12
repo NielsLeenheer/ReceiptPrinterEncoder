@@ -26,3 +26,25 @@ describe('font() by size', function() {
         });
     });
 });
+
+describe('Alignment padding after a font change', function () {
+    let encoder = new ReceiptPrinterEncoder({ language: 'esc-pos', columns: 42 });
+
+    describe('font(B).align(center).line(hello)', function () {
+        let result = encoder.font('B').align('center').line('hello').encode();
+
+        it('should send the font command before the padding, so the spaces print in font B', function () {
+            let font = Array.from(result).findIndex((b, i) => b === 0x1b && result[i + 1] === 0x4d && result[i + 2] === 0x01);
+            let space = Array.from(result).indexOf(0x20);
+
+            assert.notEqual(font, -1);
+            assert.ok(font < space, 'ESC M 1 must come before the first space');
+        });
+
+        it('should pad to the centre in font B columns', function () {
+            let spaces = Array.from(result).filter((b) => b === 0x20).length;
+
+            assert.equal(spaces, (56 - 5) >> 1);
+        });
+    });
+});

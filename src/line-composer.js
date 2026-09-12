@@ -7,6 +7,11 @@ const STATE_TYPES = [
   'style', 'align', 'font', 'initialize', 'character-mode', 'codepage', 'line-spacing', 'motion-unit', 'print-mode', 'raw',
 ];
 
+/* Item types that must precede the alignment padding of a line when they are
+   pending at its start, because they change how the padding is printed */
+
+const LEADING_TYPES = ['font', 'codepage', 'character-mode', 'line-spacing', 'motion-unit', 'print-mode'];
+
 /* Item types that a text style applies to */
 
 const STYLED_TYPES = ['text', 'space', 'raw'];
@@ -358,6 +363,20 @@ class LineComposer {
     const after = styled ? store : [];
     const items = styled ? buffer : buffer.filter((item) => item.type !== 'style');
 
+    /* State commands that were pending before the line started, such as a font
+       change, go before the alignment padding. A font change alters the width
+       of the characters, so the printer must apply it before it prints the
+       spaces, otherwise the line is padded in the width of the previous font */
+
+    let lead = 0;
+
+    while (lead < items.length && LEADING_TYPES.includes(items[lead].type)) {
+      lead++;
+    }
+
+    const leading = items.slice(0, lead);
+    const trailing = items.slice(lead);
+
     if (this.#cursor === 0 && (options.ignoreAlignment || !this.#embedded)) {
       result = this.#merge([
         ...before,
@@ -387,9 +406,10 @@ class LineComposer {
         }
 
         result = this.#merge([
+          ...leading,
           ...this.#padding(this.#columns - this.#cursor),
           ...before,
-          ...items,
+          ...trailing,
           ...after,
         ]);
       }
@@ -398,9 +418,10 @@ class LineComposer {
         const left = Math.max(0, this.#columns - this.#cursor) >> 1;
 
         result = this.#merge([
+          ...leading,
           ...this.#padding(left),
           ...before,
-          ...items,
+          ...trailing,
           ...after,
           ...this.#padding(this.#embedded ? this.#columns - this.#cursor - left : 0),
         ]);
